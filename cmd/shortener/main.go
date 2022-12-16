@@ -37,7 +37,8 @@ func GetHandler(w http.ResponseWriter, r *http.Request) {
 		lastIdentificator <- u.id
 	}
 	//http.Redirect(w, r, u.longName, http.StatusTemporaryRedirect)
-	w.Header().Add("Location", "http://localhost:8080/"+u.longName)
+	w.Header().Set("Location", "")
+	w.Header().Add("Location", u.longName)
 	w.WriteHeader(307)
 }
 
