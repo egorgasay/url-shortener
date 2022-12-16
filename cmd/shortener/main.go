@@ -43,11 +43,11 @@ func GetHandler(w http.ResponseWriter, r *http.Request) {
 		lastIdentificator <- u.id
 	}
 	//http.Redirect(w, r, u.longName, http.StatusTemporaryRedirect)
-	w.Header().Set("Location", "")
+	//w.Header().Set("Location", "")
 	//w.Header().Add("Location", u.longName)
 	w.Header().Add("Location", u.longName)
 	w.WriteHeader(307)
-	w.Header().Del("Location")
+	//w.Header().Del("Location")
 }
 
 func PostHandler(w http.ResponseWriter, r *http.Request) {
