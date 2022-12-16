@@ -20,7 +20,7 @@ type urls struct {
 const (
 	alphabet    string = "AB1CDEFG2HIJKLM3NOPQRS4TUVW5XYZabc6defgh7ijklmn8opqrs9tuvw0xyz"
 	lenAlphabet int    = 62
-	domain      string = "127.0.0.1:8080/"
+	domain      string = "http://127.0.0.1:8080/"
 )
 
 // lastIdentificator канал в котором хранится последнее известное id
