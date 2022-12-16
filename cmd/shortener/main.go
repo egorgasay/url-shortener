@@ -36,10 +36,8 @@ func GetHandler(w http.ResponseWriter, r *http.Request) {
 		<-lastIdentificator
 		lastIdentificator <- u.id
 	}
-
-	//fmt.Println("long -", u.longName)
-	w.Header().Set("Location", u.longName)
-	//w.Header().Set("Location", "'"+u.longName+"'")
+	//http.Redirect(w, r, u.longName, http.StatusTemporaryRedirect)
+	w.Header().Add("Location", "http://localhost:8080/"+u.longName)
 	w.WriteHeader(307)
 }
 
@@ -74,6 +72,7 @@ func PostHandler(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		fmt.Println(err)
 		http.Error(w, err.Error(), 400)
+		return
 	}
 	w.WriteHeader(201)
 	_, err = w.Write([]byte(shrtURL))
