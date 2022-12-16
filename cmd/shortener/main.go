@@ -17,6 +17,12 @@ type urls struct {
 	id        int
 }
 
+const (
+	alphabet    string = "AB1CDEFG2HIJKLM3NOPQRS4TUVW5XYZabc6defgh7ijklmn8opqrs9tuvw0xyz"
+	lenAlphabet int    = 62
+	domain      string = "localhost:8080/"
+)
+
 // lastIdentificator канал в котором хранится последнее известное id
 var lastIdentificator = make(chan int, 1)
 
@@ -78,16 +84,11 @@ func PostHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	w.WriteHeader(201)
-	_, err = w.Write([]byte(shrtURL))
+	_, err = w.Write([]byte(domain + shrtURL))
 	if err != nil {
 		return
 	}
 }
-
-const (
-	alphabet    string = "AB1CDEFG2HIJKLM3NOPQRS4TUVW5XYZabc6defgh7ijklmn8opqrs9tuvw0xyz"
-	lenAlphabet int    = 62
-)
 
 func getShortName(lastID int) (shrtURL string) {
 	allNums := []int{}
