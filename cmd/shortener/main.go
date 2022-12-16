@@ -38,8 +38,10 @@ func GetHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	//http.Redirect(w, r, u.longName, http.StatusTemporaryRedirect)
 	w.Header().Set("Location", "")
+	//w.Header().Add("Location", u.longName)
 	w.Header().Add("Location", u.longName)
 	w.WriteHeader(307)
+	w.Header().Del("Location")
 }
 
 func PostHandler(w http.ResponseWriter, r *http.Request) {
@@ -84,7 +86,7 @@ func PostHandler(w http.ResponseWriter, r *http.Request) {
 
 const (
 	alphabet    string = "AB1CDEFG2HIJKLM3NOPQRS4TUVW5XYZabc6defgh7ijklmn8opqrs9tuvw0xyz"
-	lenAlphabet        = 62
+	lenAlphabet int    = 62
 )
 
 func getShortName(lastID int) (shrtURL string) {
