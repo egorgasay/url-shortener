@@ -50,7 +50,7 @@ func PostHandler(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), 500)
 		return
 	}
-	longUrl := string(b)
+	longURL := string(b)
 	li := 0
 	select {
 	case li = <-lastIdentificator:
@@ -67,8 +67,8 @@ func PostHandler(w http.ResponseWriter, r *http.Request) {
 		lastIdentificator <- li + 1 // код дублируется - исправить
 		break
 	}
-	shrtUrl := getShortName(li)
-	valueStrings := fmt.Sprintf("('%s','%s')", longUrl, shrtUrl)
+	shrtURL := getShortName(li)
+	valueStrings := fmt.Sprintf("('%s','%s')", longURL, shrtURL)
 	stmt := fmt.Sprintf("INSERT INTO urls (long, short) VALUES %s", valueStrings)
 	_, err = DB.Exec(stmt, valueStrings)
 	if err != nil {
@@ -76,7 +76,7 @@ func PostHandler(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), 400)
 	}
 	w.WriteHeader(201)
-	_, err = w.Write([]byte(shrtUrl))
+	_, err = w.Write([]byte(shrtURL))
 	if err != nil {
 		return
 	}
@@ -87,14 +87,14 @@ const (
 	lenAlphabet        = 62
 )
 
-func getShortName(lastId int) (shrtUrl string) {
+func getShortName(lastID int) (shrtURL string) {
 	allNums := []int{}
-	if lastId < 100000 {
-		lastId = 10000 * lastId
+	if lastID < 100000 {
+		lastID = 10000 * lastID
 	}
-	for lastId > 0 {
-		allNums = append(allNums, lastId%lenAlphabet)
-		lastId = lastId / lenAlphabet
+	for lastID > 0 {
+		allNums = append(allNums, lastID%lenAlphabet)
+		lastID = lastID / lenAlphabet
 	}
 	//fmt.Println(allNums)
 	// разворачиваем слайс
@@ -106,7 +106,7 @@ func getShortName(lastId int) (shrtUrl string) {
 	for _, el := range allNums {
 		chars = append(chars, string(alphabet[el]))
 	}
-	shrtUrl = strings.Join(chars, "")
+	shrtURL = strings.Join(chars, "")
 	return
 }
 
