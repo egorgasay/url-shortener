@@ -10,7 +10,7 @@ type Config struct {
 	DataSourceName string
 }
 
-func NewSqliteDb(cfg Config) (*sql.DB, error) {
+func NewSqliteDB(cfg Config) (*sql.DB, error) {
 	db, err := sql.Open(cfg.DriverName, cfg.DataSourceName)
 	if err != nil {
 		log.Fatal(err)

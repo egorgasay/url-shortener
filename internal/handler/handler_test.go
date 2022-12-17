@@ -53,7 +53,7 @@ func TestHandler_GetLinkHandler(t *testing.T) {
 			repo := service_mocks.NewMockGetLink(c)
 			test.mockBehavior(repo)
 
-			services := &service.Service{repo, nil}
+			services := &service.Service{GetLink: repo}
 			handler := Handler{services}
 
 			req := httptest.NewRequest("GET", test.target,
@@ -122,7 +122,7 @@ func TestHandler_CreateLinkHandler(t *testing.T) {
 			repo := service_mocks.NewMockCreateLink(c)
 			test.mockBehavior(repo)
 
-			services := &service.Service{nil, repo}
+			services := &service.Service{CreateLink: repo}
 			handler := Handler{services}
 
 			req := httptest.NewRequest("POST", "/",

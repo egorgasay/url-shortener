@@ -12,7 +12,7 @@ import (
 func main() {
 	//strg := storage.NewStorage()
 	cfg := repository.Config{"sqlite3", "urlshortener.db"}
-	strg, err := repository.NewSqliteDb(cfg)
+	strg, err := repository.NewSqliteDB(cfg)
 	if err != nil {
 		log.Fatalf("Failed to initialize: %s", err.Error())
 	}

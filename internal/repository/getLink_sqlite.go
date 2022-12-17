@@ -14,9 +14,9 @@ func NewGetLinkSqlite(db *sql.DB) *GetLinkSqlite {
 	return &GetLinkSqlite{db: db}
 }
 
-func (gls GetLinkSqlite) GetLink(shrt string) (longUrl string, err error) {
+func (gls GetLinkSqlite) GetLink(shrt string) (longURL string, err error) {
 	stm := gls.db.QueryRow("SELECT long FROM urls WHERE short = ?", shrt[1:])
-	err = stm.Scan(&longUrl)
+	err = stm.Scan(&longURL)
 	if err != nil {
 		return
 	}
