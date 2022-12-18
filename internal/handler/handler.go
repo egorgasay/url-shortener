@@ -4,9 +4,9 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
+	"github.com/gin-gonic/gin"
 	_ "github.com/mattn/go-sqlite3"
 	"io"
-	"net/http"
 	"url-shortener/internal/service"
 )
 
@@ -22,32 +22,31 @@ func NewHandler(storage *sql.DB) *Handler {
 	return &Handler{service.NewService(storage)}
 }
 
-func (h Handler) GetLinkHandler(w http.ResponseWriter, r *http.Request) {
-	longURL, err := h.services.GetLink.GetLink(r.URL.Path)
-	if err != nil {
-		http.Error(w, err.Error(), 400)
-	}
-	w.Header().Add("Location", longURL)
-	//fmt.Println(w.Header())
-	w.WriteHeader(307)
-}
-
-func (h Handler) CreateLinkHandler(w http.ResponseWriter, r *http.Request) {
-	b, err := io.ReadAll(r.Body)
-	if err != nil {
-		http.Error(w, err.Error(), 500)
-		return
-	} else if len(b) < 3 {
-		err = errors.New("недопустимый URL")
-		http.Error(w, err.Error(), 500)
-	}
-	defer r.Body.Close()
-	shortURL, err := h.services.CreateLink.CreateLink(string(b))
+func (h Handler) GetLinkHandler(c *gin.Context) {
+	longURL, err := h.services.GetLink.GetLink(c.Param("id"))
 	if err != nil {
 		fmt.Println(err)
-		http.Error(w, err.Error(), 400)
+		c.AbortWithStatus(400)
 		return
 	}
-	w.WriteHeader(201)
-	w.Write([]byte(domain + shortURL))
+	c.Header("Location", longURL)
+	c.Status(307)
+}
+
+func (h Handler) CreateLinkHandler(c *gin.Context) {
+	b, err := io.ReadAll(c.Request.Body)
+	if err != nil || len(b) < 3 {
+		c.Error(errors.New("недопустимый URL"))
+		c.AbortWithStatus(500)
+		return
+	}
+	defer c.Request.Body.Close()
+	shortURL, err := h.services.CreateLink.CreateLink(string(b))
+	if err != nil {
+		c.Error(err)
+		c.AbortWithStatus(400)
+		return
+	}
+	c.Status(201)
+	c.Writer.WriteString(domain + shortURL)
 }

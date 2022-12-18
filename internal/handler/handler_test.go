@@ -3,9 +3,9 @@ package handler
 import (
 	"bytes"
 	"errors"
+	"github.com/gin-gonic/gin"
 	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/assert"
-	"net/http"
 	"net/http/httptest"
 	"testing"
 	"url-shortener/internal/service"
@@ -26,18 +26,18 @@ func TestHandler_GetLinkHandler(t *testing.T) {
 			name:   "Ok",
 			target: "/IVI",
 			mockBehavior: func(r *service_mocks.MockGetLink) {
-				r.EXPECT().GetLink("/IVI").Return(
-					"http://zrnzruvv7qfdy.ru/hlc65i", nil)
+				r.EXPECT().GetLink("IVI").Return(
+					"http://zrnzruvv7qfdy.ru/hlc65i", nil).AnyTimes()
 			},
 			expectedStatusCode:   307,
-			expectedResponseHead: `http://zrnzruvv7qfdy.ru/hlc65i`,
+			expectedResponseHead: "http://zrnzruvv7qfdy.ru/hlc65i",
 		},
 		{
 			name:   "Err",
 			target: "/IVI1",
 			mockBehavior: func(r *service_mocks.MockGetLink) {
-				r.EXPECT().GetLink("/IVI1").Return(
-					"", errors.New("Bad url"))
+				r.EXPECT().GetLink("IVI1").Return(
+					"", errors.New("Bad url")).AnyTimes()
 			},
 			expectedStatusCode:   400,
 			expectedResponseHead: ``,
@@ -46,7 +46,6 @@ func TestHandler_GetLinkHandler(t *testing.T) {
 
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
-			// Init Dependencies
 			c := gomock.NewController(t)
 			defer c.Finish()
 
@@ -57,14 +56,12 @@ func TestHandler_GetLinkHandler(t *testing.T) {
 			handler := Handler{services}
 
 			req := httptest.NewRequest("GET", test.target,
-				bytes.NewBufferString(""))
+				nil)
 			w := httptest.NewRecorder()
-			// определяем хендлер
-			h := http.HandlerFunc(handler.GetLinkHandler)
-			// запускаем сервер
-			h.ServeHTTP(w, req)
-			//res := w.Result()
+			router := gin.Default()
+			router.GET("/:id", handler.GetLinkHandler)
 
+			router.ServeHTTP(w, req)
 			// Assert
 			assert.Equal(t, w.Code, test.expectedStatusCode)
 			assert.Equal(t, w.Header().Get("Location"), test.expectedResponseHead)
@@ -97,20 +94,21 @@ func TestHandler_CreateLinkHandler(t *testing.T) {
 			inputBody: "http://zrnzqddy.ru/hlc65i",
 			mockBehavior: func(r *service_mocks.MockCreateLink) {
 				r.EXPECT().CreateLink("http://zrnzqddy.ru/hlc65i").Return(
-					"", errors.New("UNIQUE constraint failed: urls.long"))
+					"", gin.Error{Err: errors.New("URL уже существует")})
 			},
 			expectedStatusCode:   400,
-			expectedResponseBody: "UNIQUE constraint failed: urls.long\n",
+			expectedResponseBody: "",
 		},
 		{
 			name:      "server error",
 			inputBody: "q",
 			mockBehavior: func(r *service_mocks.MockCreateLink) {
 				r.EXPECT().CreateLink("q").Return(
-					"", errors.New(""))
+					"", gin.Error{Err: errors.New("недопустимый URL")}).
+					AnyTimes()
 			},
 			expectedStatusCode:   500,
-			expectedResponseBody: "недопустимый URL\n\n",
+			expectedResponseBody: "",
 		},
 	}
 
@@ -129,10 +127,10 @@ func TestHandler_CreateLinkHandler(t *testing.T) {
 				bytes.NewBufferString(test.inputBody))
 			w := httptest.NewRecorder()
 			// определяем хендлер
-			h := http.HandlerFunc(handler.CreateLinkHandler)
-			// запускаем сервер
-			h.ServeHTTP(w, req)
-			//res := w.Result()
+			router := gin.Default()
+			router.Use(handler.CreateLinkHandler)
+
+			router.ServeHTTP(w, req)
 
 			// Assert
 			assert.Equal(t, w.Code, test.expectedStatusCode)
@@ -140,43 +138,3 @@ func TestHandler_CreateLinkHandler(t *testing.T) {
 		})
 	}
 }
-
-//type dbMock struct {
-//}
-//
-//func (dm dbMock) Close() error {
-//	fmt.Println("Closed successfully")
-//	return nil
-//}
-//
-//func (dm dbMock) Exec(query string, args ...any) (sql.Result, error) {
-//	return nil, nil
-//}
-//
-//func (dm dbMock) QueryRow(query string, args ...any) *sql.Row {
-//	return &sql.Row{}
-//}
-
-//
-//func TestGetHandler(t *testing.T) {
-//	type want struct {
-//		Status      int
-//		ContentType string
-//		Response    string
-//	}
-//	tests := []struct {
-//		name    string
-//		storage storage.Repositories
-//		want    want
-//	}{
-//		{
-//			"404 test #1",
-//		},
-//	}
-//	for _, test := range tests {
-//		t.Run(test.name, func(t *testing.T) {
-//			id := getTestID()
-//			request := httptest.NewRequest(http.MethodGet, "/"+id, nil)
-//		})
-//	}
-//}

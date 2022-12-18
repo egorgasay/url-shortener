@@ -1,25 +1,29 @@
 package main
 
 import (
-	"github.com/gorilla/mux"
+	"github.com/gin-gonic/gin"
 	"log"
 	"net/http"
 	handlers "url-shortener/internal/handler"
 	"url-shortener/internal/repository"
-	//"url-shortener/internal/storage"
 )
 
 func main() {
-	//strg := storage.NewStorage()
 	cfg := repository.Config{DriverName: "sqlite3", DataSourceName: "urlshortener.db"}
 	strg, err := repository.NewSqliteDB(cfg)
 	if err != nil {
 		log.Fatalf("Failed to initialize: %s", err.Error())
 	}
+	router := gin.Default()
 	handler := handlers.NewHandler(strg)
-	router := mux.NewRouter()
-	router.HandleFunc("/{id}", handler.GetLinkHandler)
-	router.HandleFunc("/", handler.CreateLinkHandler)
+	//router := chi.NewRouter()
+
+	//// middleware
+	//router.Use(middleware.Logger)
+	//router.Use(middleware.Recoverer)
+
+	router.GET("/:id", handler.GetLinkHandler)
+	router.POST("/", handler.CreateLinkHandler)
 	http.Handle("/", router)
-	log.Fatal(http.ListenAndServe(":8080", nil))
+	log.Fatal(http.ListenAndServe(":8080", router))
 }
