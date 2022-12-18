@@ -27,8 +27,10 @@ func (h Handler) GetLinkHandler(c *gin.Context) {
 	if err != nil {
 		fmt.Println(err)
 		c.AbortWithStatus(400)
+
 		return
 	}
+
 	c.Header("Location", longURL)
 	c.Status(307)
 }
@@ -38,15 +40,19 @@ func (h Handler) CreateLinkHandler(c *gin.Context) {
 	if err != nil || len(b) < 3 {
 		c.Error(errors.New("недопустимый URL"))
 		c.AbortWithStatus(500)
+
 		return
 	}
 	defer c.Request.Body.Close()
-	shortURL, err := h.services.CreateLink.CreateLink(string(b))
-	if err != nil {
+
+	var shortURL, errCl = h.services.CreateLink.CreateLink(string(b))
+	if errCl != nil {
 		c.Error(err)
 		c.AbortWithStatus(400)
+
 		return
 	}
+
 	c.Status(201)
 	c.Writer.WriteString(domain + shortURL)
 }

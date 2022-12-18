@@ -12,8 +12,7 @@ const (
 )
 
 type CreateLinkSqlite struct {
-	db       *sql.DB
-	shortURL string
+	db *sql.DB
 }
 
 func NewCreateLinkSqlite(db *sql.DB) *CreateLinkSqlite {
@@ -21,31 +20,40 @@ func NewCreateLinkSqlite(db *sql.DB) *CreateLinkSqlite {
 }
 
 func (cr CreateLinkSqlite) CreateLink(longURL string) (string, error) {
-	stm := cr.db.QueryRow("SELECT MAX(id) FROM urls")
 	var li int
+
+	stm := cr.db.QueryRow("SELECT MAX(id) FROM urls")
+
 	err := stm.Scan(&li)
 	if err != nil {
 		fmt.Println(err)
 		return "", err
 	}
+
 	shortURL := getShortName(li + 1)
+
 	valueStrings := fmt.Sprintf("'%s','%s'", longURL, shortURL)
-	stmt := fmt.Sprintf("INSERT INTO urls (long, short) VALUES (%s)", valueStrings)
+	stmt := fmt.Sprintf("INSERT INTO urls (long, short) VALUES (%s)", valueStrings) //nolint:gosec
+
 	_, err = cr.db.Exec(stmt, valueStrings)
+
 	if err != nil {
 		return "", err
 	}
+
 	return shortURL, nil
 }
 
 func getShortName(lastID int) (shrtURL string) {
 	allNums := []int{}
+
 	if lastID < 100000 {
 		lastID = 10000 * lastID
 	}
+
 	for lastID > 0 {
 		allNums = append(allNums, lastID%lenAlphabet)
-		lastID = lastID / lenAlphabet
+		lastID /= lenAlphabet
 	}
 
 	// разворачиваем слайс
@@ -57,6 +65,8 @@ func getShortName(lastID int) (shrtURL string) {
 	for _, el := range allNums {
 		chars = append(chars, string(alphabet[el]))
 	}
+
 	shrtURL = strings.Join(chars, "")
+
 	return
 }

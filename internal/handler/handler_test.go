@@ -40,7 +40,7 @@ func TestHandler_GetLinkHandler(t *testing.T) {
 					"", errors.New("Bad url")).AnyTimes()
 			},
 			expectedStatusCode:   400,
-			expectedResponseHead: ``,
+			expectedResponseHead: "",
 		},
 	}
 
@@ -58,6 +58,7 @@ func TestHandler_GetLinkHandler(t *testing.T) {
 			req := httptest.NewRequest("GET", test.target,
 				nil)
 			w := httptest.NewRecorder()
+
 			router := gin.Default()
 			router.GET("/:id", handler.GetLinkHandler)
 
@@ -96,7 +97,7 @@ func TestHandler_CreateLinkHandler(t *testing.T) {
 				r.EXPECT().CreateLink("http://zrnzqddy.ru/hlc65i").Return(
 					"", gin.Error{Err: errors.New("URL уже существует")})
 			},
-			expectedStatusCode:   400,
+			expectedStatusCode:   500,
 			expectedResponseBody: "",
 		},
 		{
@@ -131,7 +132,6 @@ func TestHandler_CreateLinkHandler(t *testing.T) {
 			router.Use(handler.CreateLinkHandler)
 
 			router.ServeHTTP(w, req)
-
 			// Assert
 			assert.Equal(t, w.Code, test.expectedStatusCode)
 			assert.Equal(t, w.Body.String(), test.expectedResponseBody)
