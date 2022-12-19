@@ -3,6 +3,7 @@ package repository
 import (
 	"database/sql"
 	"fmt"
+	"log"
 	"strings"
 )
 
@@ -26,7 +27,7 @@ func (cr CreateLinkSqlite) CreateLink(longURL string) (string, error) {
 
 	err := stm.Scan(&li)
 	if err != nil {
-		fmt.Println(err)
+		log.Println(err)
 		return "", err
 	}
 
@@ -68,5 +69,5 @@ func getShortName(lastID int) (shrtURL string) {
 
 	shrtURL = strings.Join(chars, "")
 
-	return
+	return shrtURL
 }

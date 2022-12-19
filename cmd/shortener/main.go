@@ -4,20 +4,21 @@ import (
 	"github.com/gin-gonic/gin"
 	"log"
 	"net/http"
+	"url-shortener/config"
 	handlers "url-shortener/internal/handler"
 	"url-shortener/internal/repository"
 )
 
 func main() {
-	cfg := repository.Config{DriverName: "sqlite3", DataSourceName: "urlshortener.db"}
+	cfg := config.New()
 
-	strg, err := repository.NewSqliteDB(cfg)
+	storage, err := repository.NewSqliteDB(*cfg.DBConfig)
 	if err != nil {
 		log.Fatalf("Failed to initialize: %s", err.Error())
 	}
 
 	router := gin.Default()
-	handler := handlers.NewHandler(strg)
+	handler := handlers.NewHandler(storage)
 
 	router.GET("/:id", handler.GetLinkHandler)
 	router.POST("/", handler.CreateLinkHandler)

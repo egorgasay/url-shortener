@@ -3,15 +3,12 @@ package handler
 import (
 	"database/sql"
 	"errors"
-	"fmt"
 	"github.com/gin-gonic/gin"
 	_ "github.com/mattn/go-sqlite3"
 	"io"
+	"log"
+	"url-shortener/config"
 	"url-shortener/internal/service"
-)
-
-const (
-	domain string = "http://127.0.0.1:8080/"
 )
 
 type Handler struct {
@@ -25,7 +22,7 @@ func NewHandler(storage *sql.DB) *Handler {
 func (h Handler) GetLinkHandler(c *gin.Context) {
 	longURL, err := h.services.GetLink.GetLink(c.Param("id"))
 	if err != nil {
-		fmt.Println(err)
+		log.Println(err)
 		c.AbortWithStatus(400)
 
 		return
@@ -54,5 +51,5 @@ func (h Handler) CreateLinkHandler(c *gin.Context) {
 	}
 
 	c.Status(201)
-	c.Writer.WriteString(domain + shortURL)
+	c.Writer.WriteString(config.Domain + shortURL)
 }
