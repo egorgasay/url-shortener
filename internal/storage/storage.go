@@ -1,17 +1,28 @@
 package storage
 
-//type Storage *sql.DB
-//
-//type Repositories interface {
-//	Close() error
-//	Exec(query string, args ...any) (sql.Result, error)
-//	QueryRow(query string, args ...any) *sql.Row
-//}
-//
-//func NewStorage() Repositories {
-//	db, errWhileOpenDB := sql.Open("sqlite3", "urlshortener.db")
-//	if errWhileOpenDB != nil {
-//		log.Fatal(errWhileOpenDB)
-//	}
-//	return db
-//}
+import (
+	"database/sql"
+)
+
+type IRealStorage interface {
+	Ping() error
+	Close() error
+	Query(string, ...any) (*sql.Rows, error)
+	Exec(string, ...any) (sql.Result, error)
+	QueryRow(string, ...any) *sql.Row
+}
+
+type RealStorage struct {
+	IRealStorage
+}
+
+func NewRealStorage(db IRealStorage) RealStorage {
+	return RealStorage{db}
+}
+
+type MapStorage map[string]string
+
+func NewMapStorage() MapStorage {
+	db := make(MapStorage, 10)
+	return db
+}

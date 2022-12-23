@@ -1,22 +1,17 @@
 package repository
 
-import (
-	"database/sql"
-)
-
-// import handlers "url-shortener/internal/handler"
-
 type GetLinkSqlite struct {
-	db *sql.DB
+	db IStorage
 }
 
-func NewGetLinkSqlite(db *sql.DB) *GetLinkSqlite {
-	return &GetLinkSqlite{db: db}
+func NewGetLinkSqlite(db *Storage) *GetLinkSqlite {
+	if db == nil {
+		panic("переменная storage равна nil")
+	}
+
+	return &GetLinkSqlite{db: db.DB}
 }
 
-func (gls GetLinkSqlite) GetLink(shrt string) (longURL string, err error) {
-	stm := gls.db.QueryRow("SELECT long FROM urls WHERE short = ?", shrt)
-	err = stm.Scan(&longURL)
-
-	return longURL, err
+func (gls GetLinkSqlite) GetLink(shortURL string) (longURL string, err error) {
+	return gls.db.GetLongLink(shortURL)
 }

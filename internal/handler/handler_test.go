@@ -37,7 +37,7 @@ func TestHandler_GetLinkHandler(t *testing.T) {
 			target: "/IVI1",
 			mockBehavior: func(r *service_mocks.MockGetLink) {
 				r.EXPECT().GetLink("IVI1").Return(
-					"", errors.New("Bad url")).AnyTimes()
+					"", errors.New("bad url")).AnyTimes()
 			},
 			expectedStatusCode:   400,
 			expectedResponseHead: "",
@@ -133,8 +133,8 @@ func TestHandler_CreateLinkHandler(t *testing.T) {
 
 			router.ServeHTTP(w, req)
 			// Assert
-			assert.Equal(t, w.Code, test.expectedStatusCode)
-			assert.Equal(t, w.Body.String(), test.expectedResponseBody)
+			assert.Equal(t, test.expectedStatusCode, w.Code)
+			assert.Equal(t, test.expectedResponseBody, w.Body.String())
 		})
 	}
 }

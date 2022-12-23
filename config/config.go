@@ -13,7 +13,7 @@ type Config struct {
 func New() *Config {
 	return &Config{
 		DBConfig: &repository.Config{
-			DriverName:     "sqlite3",
+			DriverName:     "map", // можно выбрать между map и sqlite
 			DataSourceName: "urlshortener.db",
 		},
 	}

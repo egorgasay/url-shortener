@@ -12,7 +12,7 @@ import (
 func main() {
 	cfg := config.New()
 
-	storage, err := repository.NewSqliteDB(*cfg.DBConfig)
+	storage, err := repository.New(cfg.DBConfig)
 	if err != nil {
 		log.Fatalf("Failed to initialize: %s", err.Error())
 	}
@@ -23,5 +23,6 @@ func main() {
 	router.GET("/:id", handler.GetLinkHandler)
 	router.POST("/", handler.CreateLinkHandler)
 	http.Handle("/", router)
+
 	log.Fatal(http.ListenAndServe(":8080", router))
 }

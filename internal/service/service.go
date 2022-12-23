@@ -1,7 +1,6 @@
 package service
 
 import (
-	"database/sql"
 	"url-shortener/internal/repository"
 )
 
@@ -20,7 +19,11 @@ type Service struct {
 	CreateLink
 }
 
-func NewService(db *sql.DB) *Service {
+func NewService(db *repository.Storage) *Service {
+	if db == nil {
+		panic("переменная storage равна nil")
+	}
+
 	return &Service{
 		repository.NewGetLinkSqlite(db),
 		repository.NewCreateLinkSqlite(db),
