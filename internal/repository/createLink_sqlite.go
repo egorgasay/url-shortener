@@ -22,8 +22,5 @@ func (cr CreateLinkSqlite) CreateLink(longURL string) (string, error) {
 		log.Println(err)
 		return "", err
 	}
-
-	shortURL, err := cr.db.AddLink(longURL, id+1)
-
-	return shortURL, nil
+	return cr.db.AddLink(longURL, id+1)
 }
