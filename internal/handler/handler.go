@@ -67,7 +67,7 @@ func (h Handler) CreateLink(link string) (*url.URL, error) {
 		return nil, err
 	}
 
-	u, err := url.Parse(config.Domain + "chars")
+	u, err := url.Parse(config.Domain)
 	if err != nil {
 		return nil, err
 	}
