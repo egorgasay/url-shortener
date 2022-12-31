@@ -1,4 +1,4 @@
-package dbStorage
+package dbstorage
 
 import (
 	"github.com/speps/go-hashids"

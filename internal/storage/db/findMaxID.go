@@ -1,4 +1,4 @@
-package dbStorage
+package dbstorage
 
 func (s RealStorage) FindMaxID() (int, error) {
 	var id int
