@@ -24,7 +24,7 @@ func main() {
 	routes.PublicRoutes(public, *handler)
 
 	serverAddress := "127.0.0.1:8080"
-	if addr, ok := os.LookupEnv("BASE_URL"); ok {
+	if addr, ok := os.LookupEnv("SERVER_ADDRESS"); ok {
 		serverAddress = addr
 	}
 
