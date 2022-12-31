@@ -87,7 +87,7 @@ func (h Handler) APICreateLinkHandler(c *gin.Context) {
 	}
 
 	type RequestJSON struct {
-		Url string `json:"url"`
+		URL string `json:"url"`
 	}
 
 	var rj RequestJSON
@@ -100,7 +100,21 @@ func (h Handler) APICreateLinkHandler(c *gin.Context) {
 		return
 	}
 
-	u, err := h.CreateLink(rj.Url)
+	u, err := h.CreateLink(rj.URL)
+	if err != nil {
+		c.Error(err)
+		c.AbortWithStatus(http.StatusInternalServerError)
+
+		return
+	}
+
+	type ResponseJSON struct {
+		Result string `json:"result"`
+	}
+
+	respJSON := ResponseJSON{Result: u.String()}
+
+	URL, err := json.Marshal(respJSON)
 	if err != nil {
 		c.Error(err)
 		c.AbortWithStatus(http.StatusInternalServerError)
@@ -109,6 +123,6 @@ func (h Handler) APICreateLinkHandler(c *gin.Context) {
 	}
 
 	c.Status(http.StatusCreated)
-
-	c.Writer.WriteString(u.String())
+	c.Writer.Header().Set("Content-Type", "application/json")
+	c.Writer.WriteString(string(URL))
 }

@@ -157,7 +157,7 @@ func TestHandler_APICreateLinkHandler(t *testing.T) {
 					"BEh6", nil).AnyTimes()
 			},
 			expectedStatusCode:   201,
-			expectedResponseBody: `http://127.0.0.1:8080/BEh6`,
+			expectedResponseBody: `{"result":"http://127.0.0.1:8080/BEh6"}`,
 		},
 		{
 			name:      "already exists",
