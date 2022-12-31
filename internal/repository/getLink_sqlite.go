@@ -1,10 +1,12 @@
 package repository
 
+import "url-shortener/internal/storage"
+
 type GetLinkSqlite struct {
-	db IStorage
+	db storage.IStorage
 }
 
-func NewGetLinkSqlite(db *Storage) *GetLinkSqlite {
+func NewGetLinkSqlite(db *storage.Storage) *GetLinkSqlite {
 	if db == nil {
 		panic("переменная storage равна nil")
 	}

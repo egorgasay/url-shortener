@@ -2,13 +2,14 @@ package repository
 
 import (
 	"log"
+	"url-shortener/internal/storage"
 )
 
 type CreateLinkSqlite struct {
-	db IStorage
+	db storage.IStorage
 }
 
-func NewCreateLinkSqlite(db *Storage) *CreateLinkSqlite {
+func NewCreateLinkSqlite(db *storage.Storage) *CreateLinkSqlite {
 	if db == nil {
 		panic("переменная storage равна nil")
 	}
@@ -22,5 +23,6 @@ func (cr CreateLinkSqlite) CreateLink(longURL string) (string, error) {
 		log.Println(err)
 		return "", err
 	}
+
 	return cr.db.AddLink(longURL, id+1)
 }

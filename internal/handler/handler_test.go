@@ -138,3 +138,72 @@ func TestHandler_CreateLinkHandler(t *testing.T) {
 		})
 	}
 }
+
+func TestHandler_APICreateLinkHandler(t *testing.T) {
+	type mockBehavior func(r *service_mocks.MockCreateLink)
+
+	tests := []struct {
+		name                 string
+		inputBody            string
+		mockBehavior         mockBehavior
+		expectedStatusCode   int
+		expectedResponseBody string
+	}{
+		{
+			name:      "Ok",
+			inputBody: `{"url":"vk.com/gasayminajj"}`,
+			mockBehavior: func(r *service_mocks.MockCreateLink) {
+				r.EXPECT().CreateLink("vk.com/gasayminajj").Return(
+					"BEh6", nil).AnyTimes()
+			},
+			expectedStatusCode:   201,
+			expectedResponseBody: `http://127.0.0.1:8080/BEh6`,
+		},
+		{
+			name:      "already exists",
+			inputBody: `{"url":"http://zrnzqddy.ru/hlc65i"}`,
+			mockBehavior: func(r *service_mocks.MockCreateLink) {
+				r.EXPECT().CreateLink("http://zrnzqddy.ru/hlc65i").Return(
+					"", gin.Error{Err: errors.New("URL уже существует")})
+			},
+			expectedStatusCode:   500,
+			expectedResponseBody: "",
+		},
+		{
+			name:      "server error",
+			inputBody: "q",
+			mockBehavior: func(r *service_mocks.MockCreateLink) {
+				r.EXPECT().CreateLink("q").Return(
+					"", gin.Error{Err: errors.New("недопустимый URL")}).
+					AnyTimes()
+			},
+			expectedStatusCode:   500,
+			expectedResponseBody: "",
+		},
+	}
+
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			c := gomock.NewController(t)
+			defer c.Finish()
+
+			repo := service_mocks.NewMockCreateLink(c)
+			test.mockBehavior(repo)
+
+			services := &service.Service{CreateLink: repo}
+			handler := Handler{services}
+
+			req := httptest.NewRequest("POST", "/api/shorten",
+				bytes.NewBufferString(test.inputBody))
+			w := httptest.NewRecorder()
+			// определяем хендлер
+			router := gin.Default()
+			router.Use(handler.APICreateLinkHandler)
+
+			router.ServeHTTP(w, req)
+			// Assert
+			assert.Equal(t, test.expectedStatusCode, w.Code)
+			assert.Equal(t, test.expectedResponseBody, w.Body.String())
+		})
+	}
+}

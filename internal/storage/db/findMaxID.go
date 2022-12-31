@@ -1,8 +1,4 @@
-package storage
-
-func (s MapStorage) FindMaxID() (int, error) {
-	return len(s), nil
-}
+package dbStorage
 
 func (s RealStorage) FindMaxID() (int, error) {
 	var id int

@@ -2,6 +2,7 @@ package service
 
 import (
 	"url-shortener/internal/repository"
+	"url-shortener/internal/storage"
 )
 
 //go:generate mockgen -source=service.go -destination=mocks/mock.go
@@ -19,7 +20,7 @@ type Service struct {
 	CreateLink
 }
 
-func NewService(db *repository.Storage) *Service {
+func NewService(db *storage.Storage) *Service {
 	if db == nil {
 		panic("переменная storage равна nil")
 	}

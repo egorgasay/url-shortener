@@ -3,6 +3,8 @@ package repository
 import (
 	"database/sql"
 	"url-shortener/internal/storage"
+	dbStorage "url-shortener/internal/storage/db"
+	mapStorage "url-shortener/internal/storage/map"
 )
 
 type Config struct {
@@ -10,32 +12,15 @@ type Config struct {
 	DataSourceName string
 }
 
-//type IStorage interface {
-//	Ping() error
-//	Close() error
-//	Exec(string, ...any) (sql.Result, error)
-//	QueryRow(string, ...any) *sql.Row
-//}
-
-type IStorage interface {
-	FindMaxID() (int, error)
-	AddLink(longURL string, id int) (string, error)
-	GetLongLink(shortURL string) (longURL string, err error)
-}
-
-type Storage struct {
-	DB IStorage
-}
-
-func New(cfg *Config) (*Storage, error) {
+func New(cfg *Config) (*storage.Storage, error) {
 	if cfg == nil {
 		panic("конфигурация задана некорректно")
 	}
 
 	if cfg.DriverName == "map" {
-		db := storage.NewMapStorage()
-		return &Storage{
-			DB: db,
+		db := mapStorage.NewMapStorage()
+		return &storage.Storage{
+			DB: &db,
 		}, nil
 	}
 
@@ -44,7 +29,7 @@ func New(cfg *Config) (*Storage, error) {
 		return nil, err
 	}
 
-	return &Storage{
-		DB: storage.NewRealStorage(db),
+	return &storage.Storage{
+		DB: dbStorage.NewRealStorage(db),
 	}, nil
 }

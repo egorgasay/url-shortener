@@ -1,6 +1,7 @@
 package handler
 
 import (
+	"encoding/json"
 	"errors"
 	"github.com/gin-gonic/gin"
 	_ "github.com/mattn/go-sqlite3"
@@ -9,15 +10,15 @@ import (
 	"net/http"
 	"net/url"
 	"url-shortener/config"
-	"url-shortener/internal/repository"
 	"url-shortener/internal/service"
+	"url-shortener/internal/storage"
 )
 
 type Handler struct {
 	services *service.Service
 }
 
-func NewHandler(storage *repository.Storage) *Handler {
+func NewHandler(storage *storage.Storage) *Handler {
 	if storage == nil {
 		panic("переменная storage равна nil")
 	}
@@ -47,7 +48,7 @@ func (h Handler) CreateLinkHandler(c *gin.Context) {
 		return
 	}
 
-	shortURL, err := h.services.CreateLink.CreateLink(string(b))
+	u, err := h.CreateLink(string(b))
 	if err != nil {
 		c.Error(err)
 		c.AbortWithStatus(http.StatusInternalServerError)
@@ -55,12 +56,57 @@ func (h Handler) CreateLinkHandler(c *gin.Context) {
 		return
 	}
 
+	c.Status(http.StatusCreated)
+
+	c.Writer.WriteString(u.String())
+}
+
+func (h Handler) CreateLink(link string) (*url.URL, error) {
+	shortURL, err := h.services.CreateLink.CreateLink(link)
+	if err != nil {
+		return nil, err
+	}
+
 	u, err := url.Parse(config.Domain + "chars")
 	if err != nil {
-		log.Fatal(err)
+		return nil, err
 	}
 
 	u.Path = shortURL
+
+	return u, nil
+}
+
+func (h Handler) APICreateLinkHandler(c *gin.Context) {
+	b, err := io.ReadAll(c.Request.Body)
+	if err != nil || len(b) < 3 {
+		c.Error(errors.New("недопустимый URL"))
+		c.AbortWithStatus(http.StatusInternalServerError)
+
+		return
+	}
+
+	type RequestJSON struct {
+		Url string `json:"url"`
+	}
+
+	var rj RequestJSON
+
+	err = json.Unmarshal(b, &rj)
+	if err != nil {
+		c.Error(errors.New("некорректный JSON"))
+		c.AbortWithStatus(http.StatusInternalServerError)
+
+		return
+	}
+
+	u, err := h.CreateLink(rj.Url)
+	if err != nil {
+		c.Error(err)
+		c.AbortWithStatus(http.StatusInternalServerError)
+
+		return
+	}
 
 	c.Status(http.StatusCreated)
 
