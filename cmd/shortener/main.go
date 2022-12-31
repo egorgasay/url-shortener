@@ -3,6 +3,7 @@ package main
 import (
 	"github.com/gin-gonic/gin"
 	"log"
+	"os"
 	"url-shortener/config"
 	handlers "url-shortener/internal/handler"
 	"url-shortener/internal/repository"
@@ -22,5 +23,10 @@ func main() {
 	public := router.Group("/")
 	routes.PublicRoutes(public, *handler)
 
-	router.Run("localhost:8080")
+	serverAddress := "127.0.0.1"
+	if addr, ok := os.LookupEnv("BASE_URL"); ok {
+		serverAddress = addr
+	}
+
+	router.Run(serverAddress + ":8080")
 }
