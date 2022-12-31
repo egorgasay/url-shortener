@@ -23,10 +23,10 @@ func main() {
 	public := router.Group("/")
 	routes.PublicRoutes(public, *handler)
 
-	serverAddress := "127.0.0.1"
+	serverAddress := "127.0.0.1:8080"
 	if addr, ok := os.LookupEnv("BASE_URL"); ok {
 		serverAddress = addr
 	}
 
-	router.Run(serverAddress + ":8080")
+	router.Run(serverAddress)
 }
