@@ -2,7 +2,7 @@ package mapstorage
 
 import "errors"
 
-func (s MapStorage) GetLongLink(shortURL string) (string, error) {
+func (s *MapStorage) GetLongLink(shortURL string) (string, error) {
 	s.mu.RLock()
 	defer s.mu.RUnlock()
 

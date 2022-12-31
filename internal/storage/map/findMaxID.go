@@ -1,6 +1,6 @@
 package mapstorage
 
-func (s MapStorage) FindMaxID() (int, error) {
+func (s *MapStorage) FindMaxID() (int, error) {
 	s.mu.RLock()
 	defer s.mu.RUnlock()
 
