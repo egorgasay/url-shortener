@@ -1,4 +1,4 @@
-package shortenAlgorithm
+package shortenalgorithm
 
 import "github.com/speps/go-hashids"
 

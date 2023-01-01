@@ -5,7 +5,7 @@ import (
 )
 
 func (s *MapStorage) AddLink(longURL string, id int) (string, error) {
-	shortURL := shortenAlgorithm.GetShortName(id)
+	shortURL := shortenalgorithm.GetShortName(id)
 
 	s.mu.RLock()
 	defer s.mu.RUnlock()

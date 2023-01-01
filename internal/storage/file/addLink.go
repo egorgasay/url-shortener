@@ -6,7 +6,7 @@ import (
 )
 
 func (fs *FileStorage) AddLink(longURL string, id int) (string, error) {
-	shortURL := shortenAlgorithm.GetShortName(id)
+	shortURL := shortenalgorithm.GetShortName(id)
 
 	err := fs.Open()
 	if err != nil {
