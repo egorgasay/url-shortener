@@ -7,5 +7,5 @@ type IStorage interface {
 }
 
 type Storage struct {
-	DB IStorage
+	IStorage
 }

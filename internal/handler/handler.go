@@ -11,14 +11,13 @@ import (
 	"net/url"
 	"url-shortener/config"
 	"url-shortener/internal/service"
-	"url-shortener/internal/storage"
 )
 
 type Handler struct {
 	services *service.Service
 }
 
-func NewHandler(storage *storage.Storage) *Handler {
+func NewHandler(storage service.IService) *Handler {
 	if storage == nil {
 		panic("переменная storage равна nil")
 	}
@@ -27,7 +26,7 @@ func NewHandler(storage *storage.Storage) *Handler {
 }
 
 func (h Handler) GetLinkHandler(c *gin.Context) {
-	longURL, err := h.services.GetLink.GetLink(c.Param("id"))
+	longURL, err := h.services.GetLink(c.Param("id"))
 	if err != nil {
 		log.Println(err)
 		c.AbortWithStatus(http.StatusBadRequest)
@@ -62,7 +61,7 @@ func (h Handler) CreateLinkHandler(c *gin.Context) {
 }
 
 func (h Handler) CreateLink(link string) (*url.URL, error) {
-	shortURL, err := h.services.CreateLink.CreateLink(link)
+	shortURL, err := h.services.CreateLink(link)
 	if err != nil {
 		return nil, err
 	}

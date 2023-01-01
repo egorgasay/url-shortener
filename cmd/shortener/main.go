@@ -13,13 +13,13 @@ import (
 func main() {
 	cfg := config.New()
 
-	storage, err := repository.New(cfg.DBConfig)
+	repo, err := repository.New(cfg.DBConfig)
 	if err != nil {
 		log.Fatalf("Failed to initialize: %s", err.Error())
 	}
 
 	router := gin.Default()
-	handler := handlers.NewHandler(storage)
+	handler := handlers.NewHandler(repo)
 	public := router.Group("/")
 	routes.PublicRoutes(public, *handler)
 
