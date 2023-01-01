@@ -18,8 +18,8 @@ func New() *Config {
 
 	return &Config{
 		DBConfig: &repository.Config{
-			DriverName:     "sqlite3", // можно выбрать между map и sqlite3
-			DataSourceName: "urlshortener.db",
+			DriverName:     "file", // можно выбрать между map, sqlite3 и file
+			DataSourceName: "urlshortener.txt",
 		},
 	}
 }
