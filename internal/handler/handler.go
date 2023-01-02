@@ -1,6 +1,7 @@
 package handler
 
 import (
+	"compress/gzip"
 	"encoding/json"
 	"errors"
 	"github.com/gin-gonic/gin"
@@ -39,7 +40,23 @@ func (h Handler) GetLinkHandler(c *gin.Context) {
 }
 
 func (h Handler) CreateLinkHandler(c *gin.Context) {
-	b, err := io.ReadAll(c.Request.Body)
+	var reader io.Reader
+
+	if method, _ := c.Get("Content-Encoding"); method == "gzip" {
+		gz, err := gzip.NewReader(c.Request.Body)
+		if err != nil {
+			c.Error(err)
+			c.AbortWithStatus(http.StatusInternalServerError)
+
+			return
+		}
+		reader = gz
+		defer gz.Close()
+	} else {
+		reader = c.Request.Body
+	}
+
+	b, err := io.ReadAll(reader)
 	if err != nil || len(b) < 3 {
 		c.Error(errors.New("недопустимый URL"))
 		c.AbortWithStatus(http.StatusInternalServerError)
