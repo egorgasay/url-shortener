@@ -14,17 +14,19 @@ import (
 var (
 	host    *string
 	baseURL *string
+	path    *string
 )
 
 func init() {
 	host = flag.String("a", "localhost:8080", "-a=host")
 	baseURL = flag.String("b", "http://localhost:8080/", "-b=URL")
+	path = flag.String("f", "urlshortener.txt", "-f=path")
 }
 
 func main() {
 	flag.Parse()
 
-	cfg := config.New(*baseURL)
+	cfg := config.New(*baseURL, *path)
 
 	storage, err := repository.New(cfg.DBConfig)
 	if err != nil {

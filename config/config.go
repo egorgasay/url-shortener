@@ -11,17 +11,21 @@ type Config struct {
 	DBConfig *repository.Config
 }
 
-func New(baseURL string) *Config {
+func New(baseURL, path string) *Config {
 	if addr, ok := os.LookupEnv("BASE_URL"); ok {
 		Domain = addr
 	} else {
 		Domain = baseURL
 	}
 
+	if fsp, ok := os.LookupEnv("FILE_STORAGE_PATH"); ok {
+		path = fsp
+	}
+
 	return &Config{
 		DBConfig: &repository.Config{
 			DriverName:     "file", // можно выбрать между map, sqlite3 и file
-			DataSourceName: "urlshortener.txt",
+			DataSourceName: path,
 		},
 	}
 }
