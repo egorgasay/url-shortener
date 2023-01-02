@@ -11,9 +11,11 @@ type Config struct {
 	DBConfig *repository.Config
 }
 
-func New() *Config {
+func New(baseURL string) *Config {
 	if addr, ok := os.LookupEnv("BASE_URL"); ok {
 		Domain = addr
+	} else {
+		Domain = baseURL
 	}
 
 	return &Config{

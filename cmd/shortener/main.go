@@ -1,6 +1,7 @@
 package main
 
 import (
+	"flag"
 	"github.com/gin-gonic/gin"
 	"log"
 	"os"
@@ -10,20 +11,32 @@ import (
 	"url-shortener/internal/routes"
 )
 
-func main() {
-	cfg := config.New()
+var (
+	host    *string
+	baseURL *string
+)
 
-	repo, err := repository.New(cfg.DBConfig)
+func init() {
+	host = flag.String("a", "localhost:8080", "-a=host")
+	baseURL = flag.String("b", "http://localhost:8080/", "-b=URL")
+}
+
+func main() {
+	flag.Parse()
+
+	cfg := config.New(*baseURL)
+
+	storage, err := repository.New(cfg.DBConfig)
 	if err != nil {
 		log.Fatalf("Failed to initialize: %s", err.Error())
 	}
 
 	router := gin.Default()
-	handler := handlers.NewHandler(repo)
+	handler := handlers.NewHandler(storage)
 	public := router.Group("/")
 	routes.PublicRoutes(public, *handler)
 
-	serverAddress := "127.0.0.1:8080"
+	serverAddress := *host
 	if addr, ok := os.LookupEnv("SERVER_ADDRESS"); ok {
 		serverAddress = addr
 	}
