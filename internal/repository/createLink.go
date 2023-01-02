@@ -5,7 +5,6 @@ import (
 )
 
 func (r Repository) CreateLink(longURL string) (string, error) {
-
 	id, err := r.repo.FindMaxID()
 	if err != nil {
 		log.Println(err)

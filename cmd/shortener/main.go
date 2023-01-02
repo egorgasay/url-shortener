@@ -2,7 +2,6 @@ package main
 
 import (
 	"flag"
-	"github.com/gin-contrib/gzip"
 	"github.com/gin-gonic/gin"
 	"log"
 	"os"
@@ -38,8 +37,6 @@ func main() {
 	handler := handlers.NewHandler(storage)
 	public := router.Group("/")
 	routes.PublicRoutes(public, *handler)
-
-	router.Use(gzip.Gzip(gzip.BestSpeed))
 
 	serverAddress := *host
 	if addr, ok := os.LookupEnv("SERVER_ADDRESS"); ok {

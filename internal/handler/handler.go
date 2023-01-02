@@ -10,6 +10,7 @@ import (
 	"log"
 	"net/http"
 	"net/url"
+	"strings"
 	"url-shortener/config"
 	"url-shortener/internal/service"
 )
@@ -35,27 +36,16 @@ func (h Handler) GetLinkHandler(c *gin.Context) {
 		return
 	}
 
+	GzipHandler(c)
+
 	c.Header("Location", longURL)
-	c.Header("Content-Encoding", "gzip")
 	c.Status(http.StatusTemporaryRedirect)
 }
 
 func (h Handler) CreateLinkHandler(c *gin.Context) {
-	var reader io.Reader
-
-	if method, _ := c.Get("Content-Encoding"); method == "gzip" {
-		gz, err := gzip.NewReader(c.Request.Body)
-		if err != nil {
-			c.Error(err)
-			c.AbortWithStatus(http.StatusInternalServerError)
-
-			return
-		}
-
-		reader = gz
-		defer gz.Close()
-	} else {
-		reader = c.Request.Body
+	reader, err := h.UseGzipHandler(c)
+	if err != nil {
+		return
 	}
 
 	b, err := io.ReadAll(reader)
@@ -95,8 +85,34 @@ func (h Handler) CreateLink(link string) (*url.URL, error) {
 	return u, nil
 }
 
+func (h Handler) UseGzipHandler(c *gin.Context) (io.Reader, error) {
+	var reader io.Reader
+
+	if str, ok := c.Get("Accept-Encoding"); ok && !strings.Contains(str.(string), "gzip") {
+		gz, err := gzip.NewReader(c.Request.Body)
+		if err != nil {
+			c.Error(err)
+			c.AbortWithStatus(http.StatusInternalServerError)
+
+			return nil, err
+		}
+
+		reader = gz
+		defer gz.Close()
+	} else {
+		reader = c.Request.Body
+	}
+
+	return reader, nil
+}
+
 func (h Handler) APICreateLinkHandler(c *gin.Context) {
-	b, err := io.ReadAll(c.Request.Body)
+	reader, err := h.UseGzipHandler(c)
+	if err != nil {
+		return
+	}
+
+	b, err := io.ReadAll(reader)
 	if err != nil || len(b) < 3 {
 		c.Error(errors.New("недопустимый URL"))
 		c.AbortWithStatus(http.StatusInternalServerError)
@@ -142,5 +158,15 @@ func (h Handler) APICreateLinkHandler(c *gin.Context) {
 
 	c.Status(http.StatusCreated)
 	c.Writer.Header().Set("Content-Type", "application/json")
+
 	c.Writer.WriteString(string(URL))
+}
+
+func GzipHandler(c *gin.Context) {
+	if str, ok := c.Get("Accept-Encoding"); ok && !strings.Contains(str.(string), "gzip") {
+		return
+	}
+
+	c.Writer.Header().Set("Content-Encoding", "gzip")
+	c.Writer.Header().Set("Content-Type", "application/x-gzip")
 }
