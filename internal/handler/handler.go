@@ -36,7 +36,7 @@ func (h Handler) GetLinkHandler(c *gin.Context) {
 		return
 	}
 
-	GzipHandler(c)
+	//GzipHandler(c)
 
 	c.Header("Location", longURL)
 	c.Status(http.StatusTemporaryRedirect)
