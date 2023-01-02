@@ -50,6 +50,7 @@ func (h Handler) CreateLinkHandler(c *gin.Context) {
 
 			return
 		}
+
 		reader = gz
 		defer gz.Close()
 	} else {
@@ -140,5 +141,6 @@ func (h Handler) APICreateLinkHandler(c *gin.Context) {
 
 	c.Status(http.StatusCreated)
 	c.Writer.Header().Set("Content-Type", "application/json")
+	c.Writer.Header().Set("Content-Encoding", "gzip")
 	c.Writer.WriteString(string(URL))
 }
