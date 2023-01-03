@@ -36,8 +36,6 @@ func (h Handler) GetLinkHandler(c *gin.Context) {
 		return
 	}
 
-	//GzipHandler(c)
-
 	c.Header("Location", longURL)
 	c.Status(http.StatusTemporaryRedirect)
 }
@@ -98,7 +96,9 @@ func (h Handler) UseGzipHandler(c *gin.Context) (io.Reader, error) {
 		}
 
 		reader = gz
-		defer gz.Close()
+
+		c.Writer.Header().Set("Content-Encoding", "gzip")
+		c.Writer.Header().Set("Content-Type", "application/x-gzip")
 	} else {
 		reader = c.Request.Body
 	}
@@ -159,6 +159,7 @@ func (h Handler) APICreateLinkHandler(c *gin.Context) {
 	c.Status(http.StatusCreated)
 	c.Writer.Header().Set("Content-Type", "application/json")
 
+	GzipHandler(c)
 	c.Writer.WriteString(string(URL))
 }
 
@@ -168,5 +169,5 @@ func GzipHandler(c *gin.Context) {
 	}
 
 	c.Writer.Header().Set("Content-Encoding", "gzip")
-	c.Writer.Header().Set("Content-Type", "application/x-gzip")
+	//c.Writer.Header().Set("Content-Type", "application/x-gzip")
 }
