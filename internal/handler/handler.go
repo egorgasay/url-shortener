@@ -41,17 +41,6 @@ func (h Handler) GetLinkHandler(c *gin.Context) {
 }
 
 func (h Handler) CreateLinkHandler(c *gin.Context) {
-
-	//contentType := c.Request.Header.Get("Content-Type")
-	//
-	//bodyBytes, err := io.ReadAll(body)
-	//if err != nil {
-	//	c.Error(err)
-	//	c.AbortWithStatus(http.StatusInternalServerError)
-	//
-	//	return
-	//}
-
 	data, err := h.UseGzipHandler(c.Request.Body, c.Request.Header.Get("Content-Type"))
 	if err != nil {
 		c.Error(err)
@@ -92,6 +81,11 @@ func (h Handler) CreateLink(link string) (*url.URL, error) {
 func (h Handler) UseGzipHandler(body io.Reader, contentType string) (data []byte, err error) {
 	if strings.Contains(contentType, "gzip") {
 		data, err = DecompressGzip(body)
+		if err != nil {
+			return nil, err
+		}
+	} else {
+		data, err = io.ReadAll(body)
 		if err != nil {
 			return nil, err
 		}
