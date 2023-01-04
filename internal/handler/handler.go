@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	"errors"
 	"github.com/gin-gonic/gin"
-	_ "github.com/mattn/go-sqlite3"
 	"io"
 	"log"
 	"net/http"
@@ -13,6 +12,8 @@ import (
 	"strings"
 	"url-shortener/config"
 	"url-shortener/internal/service"
+
+	_ "github.com/mattn/go-sqlite3"
 )
 
 type Handler struct {
@@ -164,12 +165,3 @@ func DecompressGzip(body io.Reader) ([]byte, error) {
 
 	return data, nil
 }
-
-//func GzipHandler(c *gin.Context) {
-//	if str, ok := c.Get("Accept-Encoding"); ok && !strings.Contains(str.(string), "gzip") {
-//		return
-//	}
-//
-//	c.Writer.Header().Set("Content-Encoding", "gzip")
-//	//c.Writer.Header().Set("Content-Type", "application/x-gzip")
-//}
