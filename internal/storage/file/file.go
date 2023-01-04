@@ -1,22 +1,24 @@
 package filestorage
 
-import "os"
+import (
+	"os"
+	"sync"
+)
 
 // добавить mutex?
 
 type FileStorage struct {
 	Path string
 	File *os.File
+	Mu   sync.Mutex
 }
 
 func NewFileStorage(path string) *FileStorage {
 	return &FileStorage{Path: path}
 }
 
-// если добавить мьютекс то сделать возможность выбирать для чего открывать
-// файл, посредством аргумента в Open(globals.Read) где Read = os.O_RDONLY
-
 func (fs *FileStorage) Open() error {
+	fs.Mu.Lock()
 	file, err := os.OpenFile(fs.Path, os.O_RDWR|os.O_CREATE|os.O_APPEND, 0777)
 	if err != nil {
 		return err
@@ -27,5 +29,6 @@ func (fs *FileStorage) Open() error {
 }
 
 func (fs *FileStorage) Close() error {
+	fs.Mu.Unlock()
 	return fs.File.Close()
 }
