@@ -41,20 +41,26 @@ func (h Handler) GetLinkHandler(c *gin.Context) {
 }
 
 func (h Handler) CreateLinkHandler(c *gin.Context) {
-	reader, err := h.UseGzipHandler(c)
-	if err != nil {
-		return
-	}
 
-	b, err := io.ReadAll(reader)
-	if err != nil || len(b) < 3 {
-		c.Error(errors.New("недопустимый URL"))
+	//contentType := c.Request.Header.Get("Content-Type")
+	//
+	//bodyBytes, err := io.ReadAll(body)
+	//if err != nil {
+	//	c.Error(err)
+	//	c.AbortWithStatus(http.StatusInternalServerError)
+	//
+	//	return
+	//}
+
+	data, err := h.UseGzipHandler(c.Request.Body, c.Request.Header.Get("Content-Type"))
+	if err != nil {
+		c.Error(err)
 		c.AbortWithStatus(http.StatusInternalServerError)
 
 		return
 	}
 
-	u, err := h.CreateLink(string(b))
+	u, err := h.CreateLink(string(data))
 	if err != nil {
 		c.Error(err)
 		c.AbortWithStatus(http.StatusInternalServerError)
@@ -83,38 +89,25 @@ func (h Handler) CreateLink(link string) (*url.URL, error) {
 	return u, nil
 }
 
-func (h Handler) UseGzipHandler(c *gin.Context) (io.Reader, error) {
-	var reader io.Reader
-
-	if str, ok := c.Get("Accept-Encoding"); ok && !strings.Contains(str.(string), "gzip") {
-		gz, err := gzip.NewReader(c.Request.Body)
+func (h Handler) UseGzipHandler(body io.Reader, contentType string) (data []byte, err error) {
+	if strings.Contains(contentType, "gzip") {
+		data, err = DecompressGzip(body)
 		if err != nil {
-			c.Error(err)
-			c.AbortWithStatus(http.StatusInternalServerError)
-
 			return nil, err
 		}
-
-		reader = gz
-
-		c.Writer.Header().Set("Content-Encoding", "gzip")
-		c.Writer.Header().Set("Content-Type", "application/x-gzip")
-	} else {
-		reader = c.Request.Body
 	}
 
-	return reader, nil
+	if len(string(data)) < 3 {
+		return nil, errors.New("недопустимый URL")
+	}
+
+	return data, nil
 }
 
 func (h Handler) APICreateLinkHandler(c *gin.Context) {
-	reader, err := h.UseGzipHandler(c)
+	b, err := h.UseGzipHandler(c.Request.Body, c.Request.Header.Get("Content-Type"))
 	if err != nil {
-		return
-	}
-
-	b, err := io.ReadAll(reader)
-	if err != nil || len(b) < 3 {
-		c.Error(errors.New("недопустимый URL"))
+		c.Error(err)
 		c.AbortWithStatus(http.StatusInternalServerError)
 
 		return
@@ -156,18 +149,33 @@ func (h Handler) APICreateLinkHandler(c *gin.Context) {
 		return
 	}
 
+	c.Header("Content-Type", "application/json")
 	c.Status(http.StatusCreated)
-	c.Writer.Header().Set("Content-Type", "application/json")
 
-	GzipHandler(c)
-	c.Writer.WriteString(string(URL))
+	c.Writer.Write(URL)
 }
 
-func GzipHandler(c *gin.Context) {
-	if str, ok := c.Get("Accept-Encoding"); ok && !strings.Contains(str.(string), "gzip") {
-		return
+func DecompressGzip(body io.Reader) ([]byte, error) {
+	gz, err := gzip.NewReader(body)
+	if err != nil {
+		return nil, err
 	}
 
-	c.Writer.Header().Set("Content-Encoding", "gzip")
-	//c.Writer.Header().Set("Content-Type", "application/x-gzip")
+	defer gz.Close()
+
+	data, err := io.ReadAll(gz)
+	if err != nil {
+		return nil, err
+	}
+
+	return data, nil
 }
+
+//func GzipHandler(c *gin.Context) {
+//	if str, ok := c.Get("Accept-Encoding"); ok && !strings.Contains(str.(string), "gzip") {
+//		return
+//	}
+//
+//	c.Writer.Header().Set("Content-Encoding", "gzip")
+//	//c.Writer.Header().Set("Content-Type", "application/x-gzip")
+//}
