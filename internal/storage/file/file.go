@@ -3,6 +3,7 @@ package filestorage
 import (
 	"os"
 	"sync"
+	"url-shortener/internal/storage"
 )
 
 // добавить mutex?
@@ -13,7 +14,7 @@ type FileStorage struct {
 	Mu   sync.Mutex
 }
 
-func NewFileStorage(path string) *FileStorage {
+func NewFileStorage(path string) storage.IStorage {
 	return &FileStorage{Path: path}
 }
 

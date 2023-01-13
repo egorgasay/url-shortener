@@ -1,16 +1,11 @@
 package handler
 
 import (
-	"compress/gzip"
 	"encoding/json"
 	"errors"
 	"github.com/gin-gonic/gin"
-	"io"
 	"log"
 	"net/http"
-	"net/url"
-	"strings"
-	"url-shortener/config"
 	"url-shortener/internal/service"
 
 	_ "github.com/mattn/go-sqlite3"
@@ -42,7 +37,7 @@ func (h Handler) GetLinkHandler(c *gin.Context) {
 }
 
 func (h Handler) CreateLinkHandler(c *gin.Context) {
-	data, err := h.UseGzipHandler(c.Request.Body, c.Request.Header.Get("Content-Type"))
+	data, err := UseGzip(c.Request.Body, c.Request.Header.Get("Content-Type"))
 	if err != nil {
 		c.Error(err)
 		c.AbortWithStatus(http.StatusInternalServerError)
@@ -50,7 +45,15 @@ func (h Handler) CreateLinkHandler(c *gin.Context) {
 		return
 	}
 
-	u, err := h.CreateLink(string(data))
+	charsForURL, err := h.services.CreateLink(string(data))
+	if err != nil {
+		c.Error(err)
+		c.AbortWithStatus(http.StatusInternalServerError)
+
+		return
+	}
+
+	URL, err := CreateLink(charsForURL)
 	if err != nil {
 		c.Error(err)
 		c.AbortWithStatus(http.StatusInternalServerError)
@@ -60,47 +63,11 @@ func (h Handler) CreateLinkHandler(c *gin.Context) {
 
 	c.Status(http.StatusCreated)
 
-	c.Writer.WriteString(u.String())
-}
-
-func (h Handler) CreateLink(link string) (*url.URL, error) {
-	shortURL, err := h.services.CreateLink(link)
-	if err != nil {
-		return nil, err
-	}
-
-	u, err := url.Parse(config.Domain)
-	if err != nil {
-		return nil, err
-	}
-
-	u.Path = shortURL
-
-	return u, nil
-}
-
-func (h Handler) UseGzipHandler(body io.Reader, contentType string) (data []byte, err error) {
-	if strings.Contains(contentType, "gzip") {
-		data, err = DecompressGzip(body)
-		if err != nil {
-			return nil, err
-		}
-	} else {
-		data, err = io.ReadAll(body)
-		if err != nil {
-			return nil, err
-		}
-	}
-
-	if len(string(data)) < 3 {
-		return nil, errors.New("недопустимый URL")
-	}
-
-	return data, nil
+	c.Writer.WriteString(URL.String())
 }
 
 func (h Handler) APICreateLinkHandler(c *gin.Context) {
-	b, err := h.UseGzipHandler(c.Request.Body, c.Request.Header.Get("Content-Type"))
+	b, err := UseGzip(c.Request.Body, c.Request.Header.Get("Content-Type"))
 	if err != nil {
 		c.Error(err)
 		c.AbortWithStatus(http.StatusInternalServerError)
@@ -122,7 +89,15 @@ func (h Handler) APICreateLinkHandler(c *gin.Context) {
 		return
 	}
 
-	u, err := h.CreateLink(rj.URL)
+	charsForURL, err := h.services.CreateLink(rj.URL)
+	if err != nil {
+		c.Error(err)
+		c.AbortWithStatus(http.StatusInternalServerError)
+
+		return
+	}
+
+	URL, err := CreateLink(charsForURL)
 	if err != nil {
 		c.Error(err)
 		c.AbortWithStatus(http.StatusInternalServerError)
@@ -134,9 +109,9 @@ func (h Handler) APICreateLinkHandler(c *gin.Context) {
 		Result string `json:"result"`
 	}
 
-	respJSON := ResponseJSON{Result: u.String()}
+	respJSON := ResponseJSON{Result: URL.String()}
 
-	URL, err := json.Marshal(respJSON)
+	rawURL, err := json.Marshal(respJSON)
 	if err != nil {
 		c.Error(err)
 		c.AbortWithStatus(http.StatusInternalServerError)
@@ -147,21 +122,5 @@ func (h Handler) APICreateLinkHandler(c *gin.Context) {
 	c.Header("Content-Type", "application/json")
 	c.Status(http.StatusCreated)
 
-	c.Writer.Write(URL)
-}
-
-func DecompressGzip(body io.Reader) ([]byte, error) {
-	gz, err := gzip.NewReader(body)
-	if err != nil {
-		return nil, err
-	}
-
-	defer gz.Close()
-
-	data, err := io.ReadAll(gz)
-	if err != nil {
-		return nil, err
-	}
-
-	return data, nil
+	c.Writer.Write(rawURL)
 }

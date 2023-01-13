@@ -1,19 +1,14 @@
 package dbstorage
 
-import "database/sql"
-
-type IRealStorage interface {
-	Ping() error
-	Close() error
-	Query(string, ...any) (*sql.Rows, error)
-	Exec(string, ...any) (sql.Result, error)
-	QueryRow(string, ...any) *sql.Row
-}
+import (
+	"database/sql"
+	"url-shortener/internal/storage"
+)
 
 type RealStorage struct {
-	IRealStorage
+	DB *sql.DB
 }
 
-func NewRealStorage(db IRealStorage) RealStorage {
-	return RealStorage{db}
+func NewRealStorage(db *sql.DB) storage.IStorage {
+	return &RealStorage{DB: db}
 }

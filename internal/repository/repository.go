@@ -2,7 +2,6 @@ package repository
 
 import (
 	"database/sql"
-	"os"
 	"url-shortener/internal/storage"
 	dbStorage "url-shortener/internal/storage/db"
 	filestorage "url-shortener/internal/storage/file"
@@ -25,22 +24,28 @@ func New(cfg *Config) (*Repository, error) {
 
 	switch cfg.DriverName {
 	case "sqlite3":
+
+		exists := IsDatabaseExist(cfg.DataSourceName)
+
 		db, err := sql.Open(cfg.DriverName, cfg.DataSourceName)
 		if err != nil {
 			return nil, err
 		}
 
+		if !exists {
+			err = InitDatabase(db)
+			if err != nil {
+				return nil, err
+			}
+		}
+
 		return &Repository{repo: dbStorage.NewRealStorage(db)}, nil
 	case "file":
 		filename := cfg.DataSourceName
-		if name, ok := os.LookupEnv("FILE_STORAGE_PATH"); ok {
-			filename = name
-		}
-
 		return &Repository{repo: filestorage.NewFileStorage(filename)}, nil
 
 	default:
 		db := mapStorage.NewMapStorage()
-		return &Repository{repo: &db}, nil
+		return &Repository{repo: db}, nil
 	}
 }
