@@ -31,7 +31,7 @@ var F Flag
 func init() {
 	F.host = flag.String("a", defaultHost, "-a=host")
 	F.BaseURL = flag.String("b", defaultURL, "-b=URL")
-	F.path = flag.String("F", defaultPath, "-F=path")
+	F.path = flag.String("f", defaultPath, "-f=path")
 	F.storage = flag.String("s", defaultStorage, "-s=storage")
 }
 
