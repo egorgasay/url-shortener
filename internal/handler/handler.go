@@ -1,23 +1,21 @@
 package handler
 
 import (
+	"encoding/json"
 	"errors"
 	"github.com/gin-gonic/gin"
-	_ "github.com/mattn/go-sqlite3"
-	"io"
 	"log"
 	"net/http"
-	"net/url"
-	"url-shortener/config"
-	"url-shortener/internal/repository"
 	"url-shortener/internal/service"
+
+	_ "github.com/mattn/go-sqlite3"
 )
 
 type Handler struct {
 	services *service.Service
 }
 
-func NewHandler(storage *repository.Storage) *Handler {
+func NewHandler(storage service.IService) *Handler {
 	if storage == nil {
 		panic("переменная storage равна nil")
 	}
@@ -26,7 +24,7 @@ func NewHandler(storage *repository.Storage) *Handler {
 }
 
 func (h Handler) GetLinkHandler(c *gin.Context) {
-	longURL, err := h.services.GetLink.GetLink(c.Param("id"))
+	longURL, err := h.services.GetLink(c.Param("id"))
 	if err != nil {
 		log.Println(err)
 		c.AbortWithStatus(http.StatusBadRequest)
@@ -39,15 +37,7 @@ func (h Handler) GetLinkHandler(c *gin.Context) {
 }
 
 func (h Handler) CreateLinkHandler(c *gin.Context) {
-	b, err := io.ReadAll(c.Request.Body)
-	if err != nil || len(b) < 3 {
-		c.Error(errors.New("недопустимый URL"))
-		c.AbortWithStatus(http.StatusInternalServerError)
-
-		return
-	}
-
-	shortURL, err := h.services.CreateLink.CreateLink(string(b))
+	data, err := UseGzip(c.Request.Body, c.Request.Header.Get("Content-Type"))
 	if err != nil {
 		c.Error(err)
 		c.AbortWithStatus(http.StatusInternalServerError)
@@ -55,14 +45,82 @@ func (h Handler) CreateLinkHandler(c *gin.Context) {
 		return
 	}
 
-	u, err := url.Parse(config.Domain + "chars")
+	charsForURL, err := h.services.CreateLink(string(data))
 	if err != nil {
-		log.Fatal(err)
+		c.Error(err)
+		c.AbortWithStatus(http.StatusInternalServerError)
+
+		return
 	}
 
-	u.Path = shortURL
+	URL, err := CreateLink(charsForURL)
+	if err != nil {
+		c.Error(err)
+		c.AbortWithStatus(http.StatusInternalServerError)
+
+		return
+	}
 
 	c.Status(http.StatusCreated)
 
-	c.Writer.WriteString(u.String())
+	c.Writer.WriteString(URL.String())
+}
+
+func (h Handler) APICreateLinkHandler(c *gin.Context) {
+	b, err := UseGzip(c.Request.Body, c.Request.Header.Get("Content-Type"))
+	if err != nil {
+		c.Error(err)
+		c.AbortWithStatus(http.StatusInternalServerError)
+
+		return
+	}
+
+	type RequestJSON struct {
+		URL string `json:"url"`
+	}
+
+	var rj RequestJSON
+
+	err = json.Unmarshal(b, &rj)
+	if err != nil {
+		c.Error(errors.New("некорректный JSON"))
+		c.AbortWithStatus(http.StatusInternalServerError)
+
+		return
+	}
+
+	charsForURL, err := h.services.CreateLink(rj.URL)
+	if err != nil {
+		c.Error(err)
+		c.AbortWithStatus(http.StatusInternalServerError)
+
+		return
+	}
+
+	URL, err := CreateLink(charsForURL)
+	if err != nil {
+		c.Error(err)
+		c.AbortWithStatus(http.StatusInternalServerError)
+
+		return
+	}
+
+	type ResponseJSON struct {
+		Result string `json:"result"`
+	}
+
+	respJSON := ResponseJSON{Result: URL.String()}
+
+	rawURL, err := json.Marshal(respJSON)
+	if err != nil {
+		c.Error(err)
+		c.AbortWithStatus(http.StatusInternalServerError)
+
+		return
+	}
+
+	c.Header("Content-Type", "application/json")
+	c.Status(http.StatusCreated)
+
+	c.Writer.Write(rawURL)
 }

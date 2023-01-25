@@ -1,28 +1,11 @@
 package storage
 
-import (
-	"database/sql"
-)
-
-type IRealStorage interface {
-	Ping() error
-	Close() error
-	Query(string, ...any) (*sql.Rows, error)
-	Exec(string, ...any) (sql.Result, error)
-	QueryRow(string, ...any) *sql.Row
+type IStorage interface {
+	FindMaxID() (int, error)
+	AddLink(longURL string, id int) (string, error)
+	GetLongLink(shortURL string) (longURL string, err error)
 }
 
-type RealStorage struct {
-	IRealStorage
-}
-
-func NewRealStorage(db IRealStorage) RealStorage {
-	return RealStorage{db}
-}
-
-type MapStorage map[string]string
-
-func NewMapStorage() MapStorage {
-	db := make(MapStorage, 10)
-	return db
+type Storage struct {
+	IStorage
 }

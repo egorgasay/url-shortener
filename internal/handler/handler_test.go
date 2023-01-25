@@ -13,7 +13,7 @@ import (
 )
 
 func TestHandler_GetLinkHandler(t *testing.T) {
-	type mockBehavior func(r *service_mocks.MockGetLink)
+	type mockBehavior func(r *service_mocks.MockIService)
 
 	tests := []struct {
 		name                 string
@@ -25,7 +25,7 @@ func TestHandler_GetLinkHandler(t *testing.T) {
 		{
 			name:   "Ok",
 			target: "/IVI",
-			mockBehavior: func(r *service_mocks.MockGetLink) {
+			mockBehavior: func(r *service_mocks.MockIService) {
 				r.EXPECT().GetLink("IVI").Return(
 					"http://zrnzruvv7qfdy.ru/hlc65i", nil).AnyTimes()
 			},
@@ -35,7 +35,7 @@ func TestHandler_GetLinkHandler(t *testing.T) {
 		{
 			name:   "Err",
 			target: "/IVI1",
-			mockBehavior: func(r *service_mocks.MockGetLink) {
+			mockBehavior: func(r *service_mocks.MockIService) {
 				r.EXPECT().GetLink("IVI1").Return(
 					"", errors.New("bad url")).AnyTimes()
 			},
@@ -49,10 +49,10 @@ func TestHandler_GetLinkHandler(t *testing.T) {
 			c := gomock.NewController(t)
 			defer c.Finish()
 
-			repo := service_mocks.NewMockGetLink(c)
+			repo := service_mocks.NewMockIService(c)
 			test.mockBehavior(repo)
 
-			services := &service.Service{GetLink: repo}
+			services := &service.Service{IService: repo}
 			handler := Handler{services}
 
 			req := httptest.NewRequest("GET", test.target,
@@ -71,7 +71,7 @@ func TestHandler_GetLinkHandler(t *testing.T) {
 }
 
 func TestHandler_CreateLinkHandler(t *testing.T) {
-	type mockBehavior func(r *service_mocks.MockCreateLink)
+	type mockBehavior func(r *service_mocks.MockIService)
 
 	tests := []struct {
 		name                 string
@@ -83,7 +83,7 @@ func TestHandler_CreateLinkHandler(t *testing.T) {
 		{
 			name:      "Ok",
 			inputBody: "vk.com/gasayminajj",
-			mockBehavior: func(r *service_mocks.MockCreateLink) {
+			mockBehavior: func(r *service_mocks.MockIService) {
 				r.EXPECT().CreateLink("vk.com/gasayminajj").Return(
 					"BEh6", nil)
 			},
@@ -93,7 +93,7 @@ func TestHandler_CreateLinkHandler(t *testing.T) {
 		{
 			name:      "already exists",
 			inputBody: "http://zrnzqddy.ru/hlc65i",
-			mockBehavior: func(r *service_mocks.MockCreateLink) {
+			mockBehavior: func(r *service_mocks.MockIService) {
 				r.EXPECT().CreateLink("http://zrnzqddy.ru/hlc65i").Return(
 					"", gin.Error{Err: errors.New("URL уже существует")})
 			},
@@ -103,7 +103,7 @@ func TestHandler_CreateLinkHandler(t *testing.T) {
 		{
 			name:      "server error",
 			inputBody: "q",
-			mockBehavior: func(r *service_mocks.MockCreateLink) {
+			mockBehavior: func(r *service_mocks.MockIService) {
 				r.EXPECT().CreateLink("q").Return(
 					"", gin.Error{Err: errors.New("недопустимый URL")}).
 					AnyTimes()
@@ -118,10 +118,10 @@ func TestHandler_CreateLinkHandler(t *testing.T) {
 			c := gomock.NewController(t)
 			defer c.Finish()
 
-			repo := service_mocks.NewMockCreateLink(c)
+			repo := service_mocks.NewMockIService(c)
 			test.mockBehavior(repo)
 
-			services := &service.Service{CreateLink: repo}
+			services := &service.Service{IService: repo}
 			handler := Handler{services}
 
 			req := httptest.NewRequest("POST", "/",
@@ -130,6 +130,75 @@ func TestHandler_CreateLinkHandler(t *testing.T) {
 			// определяем хендлер
 			router := gin.Default()
 			router.Use(handler.CreateLinkHandler)
+
+			router.ServeHTTP(w, req)
+			// Assert
+			assert.Equal(t, test.expectedStatusCode, w.Code)
+			assert.Equal(t, test.expectedResponseBody, w.Body.String())
+		})
+	}
+}
+
+func TestHandler_APICreateLinkHandler(t *testing.T) {
+	type mockBehavior func(r *service_mocks.MockIService)
+
+	tests := []struct {
+		name                 string
+		inputBody            string
+		mockBehavior         mockBehavior
+		expectedStatusCode   int
+		expectedResponseBody string
+	}{
+		{
+			name:      "Ok",
+			inputBody: `{"url":"vk.com/gasayminajj"}`,
+			mockBehavior: func(r *service_mocks.MockIService) {
+				r.EXPECT().CreateLink("vk.com/gasayminajj").Return(
+					"BEh6", nil).AnyTimes()
+			},
+			expectedStatusCode:   201,
+			expectedResponseBody: `{"result":"http://127.0.0.1:8080/BEh6"}`,
+		},
+		{
+			name:      "already exists",
+			inputBody: `{"url":"http://zrnzqddy.ru/hlc65i"}`,
+			mockBehavior: func(r *service_mocks.MockIService) {
+				r.EXPECT().CreateLink("http://zrnzqddy.ru/hlc65i").Return(
+					"", gin.Error{Err: errors.New("URL уже существует")})
+			},
+			expectedStatusCode:   500,
+			expectedResponseBody: "",
+		},
+		{
+			name:      "server error",
+			inputBody: "q",
+			mockBehavior: func(r *service_mocks.MockIService) {
+				r.EXPECT().CreateLink("q").Return(
+					"", gin.Error{Err: errors.New("недопустимый URL")}).
+					AnyTimes()
+			},
+			expectedStatusCode:   500,
+			expectedResponseBody: "",
+		},
+	}
+
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			c := gomock.NewController(t)
+			defer c.Finish()
+
+			repo := service_mocks.NewMockIService(c)
+			test.mockBehavior(repo)
+
+			services := &service.Service{IService: repo}
+			handler := Handler{services}
+
+			req := httptest.NewRequest("POST", "/api/shorten",
+				bytes.NewBufferString(test.inputBody))
+			w := httptest.NewRecorder()
+			// определяем хендлер
+			router := gin.Default()
+			router.Use(handler.APICreateLinkHandler)
 
 			router.ServeHTTP(w, req)
 			// Assert

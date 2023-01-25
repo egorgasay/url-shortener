@@ -1,12 +1,13 @@
 package main
 
 import (
+	"github.com/gin-contrib/gzip"
 	"github.com/gin-gonic/gin"
 	"log"
-	"net/http"
 	"url-shortener/config"
 	handlers "url-shortener/internal/handler"
 	"url-shortener/internal/repository"
+	"url-shortener/internal/routes"
 )
 
 func main() {
@@ -19,10 +20,9 @@ func main() {
 
 	router := gin.Default()
 	handler := handlers.NewHandler(storage)
+	public := router.Group("/")
+	routes.PublicRoutes(public, handler)
 
-	router.GET("/:id", handler.GetLinkHandler)
-	router.POST("/", handler.CreateLinkHandler)
-	http.Handle("/", router)
-
-	log.Fatal(http.ListenAndServe(":8080", router))
+	router.Use(gzip.Gzip(gzip.BestSpeed))
+	router.Run(cfg.Host)
 }
