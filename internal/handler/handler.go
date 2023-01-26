@@ -168,12 +168,14 @@ func (h Handler) APICreateLinkHandler(c *gin.Context) {
 }
 
 func GetCookies(c *gin.Context) (string, error) {
-	cookie, err := c.Cookie("token")
-	if err != nil {
-		return "", err
-	}
+	cookie := c.Request.Header.Get("Authorization")
 
-	return cookie, err
+	//cookie, err := c.Cookie("token")
+	//if err != nil {
+	//	return "", err
+	//}
+
+	return cookie, nil
 }
 
 func SetCookies(c *gin.Context, host string, key []byte) (cookie string) {
@@ -181,6 +183,7 @@ func SetCookies(c *gin.Context, host string, key []byte) (cookie string) {
 	domain := strings.Split(host, ":")[0]
 	c.SetCookie("token", cookie, 10, "",
 		domain, true, false)
+	c.Header("Authorization", cookie)
 
 	return cookie
 }
