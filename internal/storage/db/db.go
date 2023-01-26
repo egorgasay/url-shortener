@@ -56,6 +56,10 @@ func (s RealStorage) GetAllLinksByCookie(cookie string) ([]schema.URL, error) {
 	if err != nil {
 		return nil, err
 	}
+	err = stm.Err()
+	if err != nil {
+		return nil, err
+	}
 
 	var URLs []schema.URL
 	for stm.Next() {
@@ -67,6 +71,7 @@ func (s RealStorage) GetAllLinksByCookie(cookie string) ([]schema.URL, error) {
 		}
 
 		lineArr := strings.Split(tmp, " ")
+
 		URLs = append(URLs, schema.URL{LongURL: lineArr[1], ShortURL: lineArr[2]})
 	}
 

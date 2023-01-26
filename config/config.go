@@ -12,7 +12,7 @@ import (
 
 const (
 	defaultURL     = "http://127.0.0.1:8080/"
-	defaultHost    = "localhost:8080"
+	defaultHost    = "127.0.0.1:8080"
 	defaultPath    = "urlshortener.txt"
 	defaultStorage = mapStorage.MapStorageType
 )
