@@ -143,7 +143,7 @@ func (h Handler) APICreateLinkHandler(c *gin.Context) {
 		return
 	}
 
-	URL, err := CreateLink(charsForURL, h.conf.Host)
+	URL, err := CreateLink(charsForURL, h.conf.BaseURL)
 	if err != nil {
 		c.Error(err)
 		c.AbortWithStatus(http.StatusInternalServerError)
