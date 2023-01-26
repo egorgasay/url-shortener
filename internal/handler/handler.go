@@ -167,13 +167,14 @@ func (h Handler) APICreateLinkHandler(c *gin.Context) {
 	c.Writer.Write(rawURL)
 }
 
-func GetCookies(c *gin.Context) (string, error) {
-	cookie := c.Request.Header.Get("Authorization")
-
-	//cookie, err := c.Cookie("token")
-	//if err != nil {
-	//	return "", err
-	//}
+func GetCookies(c *gin.Context) (cookie string, err error) {
+	cookie = c.Request.Header.Get("Authorization")
+	if cookie == "" {
+		cookie, err = c.Cookie("token")
+		if err != nil {
+			return "", err
+		}
+	}
 
 	return cookie, nil
 }
