@@ -5,7 +5,6 @@ import (
 	"strings"
 	"url-shortener/internal/schema"
 	"url-shortener/internal/storage"
-	shortenalgorithm "url-shortener/pkg/shortenAlgorithm"
 )
 
 type RealStorage struct {
@@ -18,15 +17,10 @@ func NewRealStorage(db *sql.DB) storage.IStorage {
 	return &RealStorage{DB: db}
 }
 
-func (s RealStorage) AddLink(longURL string, id int, cookie string) (string, error) {
-	shortURL, err := shortenalgorithm.GetShortName(id)
-	if err != nil {
-		return "", err
-	}
-
+func (s RealStorage) AddLink(longURL, shortURL, cookie string) (string, error) {
 	stmt := "INSERT INTO urls (long, short, cookie) VALUES (?, ?, ?)"
 
-	_, err = s.DB.Exec(stmt, longURL, shortURL, cookie)
+	_, err := s.DB.Exec(stmt, longURL, shortURL, cookie)
 
 	if err != nil {
 		return "", err
@@ -51,17 +45,19 @@ func (s RealStorage) GetLongLink(shortURL string) (longURL string, err error) {
 	return longURL, err
 }
 
-func (s RealStorage) GetAllLinksByCookie(cookie string) ([]schema.URL, error) {
+func (s RealStorage) GetAllLinksByCookie(cookie, baseURL string) ([]schema.URL, error) {
 	stm, err := s.DB.Query("SELECT short, long FROM urls WHERE cookie = ?", cookie)
 	if err != nil {
 		return nil, err
 	}
+
 	err = stm.Err()
 	if err != nil {
 		return nil, err
 	}
 
 	var URLs []schema.URL
+
 	for stm.Next() {
 		tmp := ""
 
@@ -72,7 +68,7 @@ func (s RealStorage) GetAllLinksByCookie(cookie string) ([]schema.URL, error) {
 
 		lineArr := strings.Split(tmp, " ")
 
-		URLs = append(URLs, schema.URL{LongURL: lineArr[1], ShortURL: lineArr[2]})
+		URLs = append(URLs, schema.URL{LongURL: lineArr[1], ShortURL: baseURL + lineArr[0]})
 	}
 
 	return URLs, err

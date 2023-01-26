@@ -5,7 +5,6 @@ import (
 	"sync"
 	"url-shortener/internal/schema"
 	"url-shortener/internal/storage"
-	shortenalgorithm "url-shortener/pkg/shortenAlgorithm"
 )
 
 type MapStorage struct {
@@ -26,12 +25,7 @@ func NewMapStorage() storage.IStorage {
 	return &MapStorage{container: db}
 }
 
-func (s *MapStorage) AddLink(longURL string, id int, cookie string) (string, error) {
-	ShortURL, err := shortenalgorithm.GetShortName(id)
-	if err != nil {
-		return "", err
-	}
-
+func (s *MapStorage) AddLink(longURL, ShortURL, cookie string) (string, error) {
 	s.mu.RLock()
 	defer s.mu.RUnlock()
 	s.container[shortURL(ShortURL)] = data{cookie: cookie, longURL: longURL}
@@ -58,7 +52,7 @@ func (s *MapStorage) GetLongLink(ShortURL string) (string, error) {
 	return Data.longURL, nil
 }
 
-func (s *MapStorage) GetAllLinksByCookie(cookie string) ([]schema.URL, error) {
+func (s *MapStorage) GetAllLinksByCookie(cookie, baseURL string) ([]schema.URL, error) {
 	s.mu.RLock()
 	defer s.mu.RUnlock()
 
@@ -66,7 +60,7 @@ func (s *MapStorage) GetAllLinksByCookie(cookie string) ([]schema.URL, error) {
 
 	for short, dt := range s.container {
 		if dt.cookie == cookie {
-			URLs = append(URLs, schema.URL{LongURL: dt.longURL, ShortURL: string(short)})
+			URLs = append(URLs, schema.URL{LongURL: dt.longURL, ShortURL: baseURL + string(short)})
 		}
 	}
 

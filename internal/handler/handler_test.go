@@ -60,7 +60,7 @@ func TestHandler_GetLinkHandler(t *testing.T) {
 				t.Fatal(err)
 			}
 
-			repo.AddLink("http://zrnzruvv7qfdy.ru/hlc65i", 1, "qwe")
+			repo.AddLink("http://zrnzruvv7qfdy.ru/hlc65i", "zE", "df")
 
 			conf := &config.Config{Host: "127.0.0.1", DBConfig: cfg}
 			handler := Handler{storage: repo, conf: conf}

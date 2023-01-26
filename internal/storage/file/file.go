@@ -10,7 +10,6 @@ import (
 	"sync"
 	"url-shortener/internal/schema"
 	"url-shortener/internal/storage"
-	shortenalgorithm "url-shortener/pkg/shortenAlgorithm"
 )
 
 type FileStorage struct {
@@ -41,13 +40,8 @@ func (fs *FileStorage) Close() error {
 	return fs.File.Close()
 }
 
-func (fs *FileStorage) AddLink(longURL string, id int, cookie string) (string, error) {
-	shortURL, err := shortenalgorithm.GetShortName(id)
-	if err != nil {
-		return "", err
-	}
-
-	err = fs.Open()
+func (fs *FileStorage) AddLink(longURL, shortURL, cookie string) (string, error) {
+	err := fs.Open()
 	if err != nil {
 		return "", err
 	}
@@ -117,7 +111,7 @@ func (fs *FileStorage) GetLongLink(shortURL string) (longURL string, err error) 
 	return longURL, errors.New("not found")
 }
 
-func (fs *FileStorage) GetAllLinksByCookie(cookie string) ([]schema.URL, error) {
+func (fs *FileStorage) GetAllLinksByCookie(cookie, baseURL string) ([]schema.URL, error) {
 	err := fs.Open()
 	if err != nil {
 		return nil, err
@@ -133,7 +127,7 @@ func (fs *FileStorage) GetAllLinksByCookie(cookie string) ([]schema.URL, error) 
 		split := strings.Split(line, " - ")
 
 		if len(split) == 3 && split[2] == cookie {
-			URLs = append(URLs, schema.URL{LongURL: split[1], ShortURL: split[0]})
+			URLs = append(URLs, schema.URL{LongURL: split[1], ShortURL: baseURL + split[0]})
 		}
 	}
 

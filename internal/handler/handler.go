@@ -60,13 +60,16 @@ func (h Handler) GetAllLinksHandler(c *gin.Context) {
 		cookie = SetCookies(c, h.conf.Host, h.conf.Key)
 	}
 
-	URLs, err := usecase.GetAllLinksByCookie(h.storage, cookie)
+	URLs, err := usecase.GetAllLinksByCookie(h.storage, cookie, h.conf.BaseURL)
 	if err != nil {
 		log.Println(err)
 		c.AbortWithStatus(http.StatusBadRequest)
 
 		return
 	}
+
+	c.Header("Content-Type", "application/json")
+
 	if URLs == "null" {
 		c.Status(http.StatusNoContent)
 	} else {
