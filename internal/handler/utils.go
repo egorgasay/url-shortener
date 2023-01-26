@@ -2,15 +2,19 @@ package handler
 
 import (
 	"compress/gzip"
+	"crypto/hmac"
+	"crypto/sha256"
+	"encoding/hex"
 	"errors"
+	"fmt"
 	"io"
 	"net/url"
 	"strings"
-	"url-shortener/config"
+	"time"
 )
 
-func CreateLink(chars string) (*url.URL, error) {
-	URL, err := url.Parse(*(config.F.BaseURL))
+func CreateLink(chars, baseURL string) (*url.URL, error) {
+	URL, err := url.Parse(baseURL)
 	if err != nil {
 		return nil, err
 	}
@@ -54,4 +58,12 @@ func DecompressGzip(body io.Reader) ([]byte, error) {
 	}
 
 	return data, nil
+}
+
+func NewCookie(key []byte) string {
+	h := hmac.New(sha256.New, key)
+	src := []byte(fmt.Sprint(time.Now().UnixNano()))
+	h.Write(src)
+
+	return hex.EncodeToString(h.Sum(nil)) + "-" + hex.EncodeToString(src)
 }

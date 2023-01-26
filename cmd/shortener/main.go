@@ -19,7 +19,7 @@ func main() {
 	}
 
 	router := gin.Default()
-	handler := handlers.NewHandler(storage)
+	handler := handlers.NewHandler(storage, cfg)
 	public := router.Group("/")
 	routes.PublicRoutes(public, handler)
 

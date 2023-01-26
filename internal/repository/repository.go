@@ -9,43 +9,37 @@ import (
 )
 
 type Config struct {
-	DriverName     string
+	DriverName     storage.Type
 	DataSourceName string
 }
 
-type Repository struct {
-	repo storage.IStorage
-}
-
-func New(cfg *Config) (*Repository, error) {
+func New(cfg *Config) (storage.IStorage, error) {
 	if cfg == nil {
 		panic("конфигурация задана некорректно")
 	}
 
 	switch cfg.DriverName {
 	case "sqlite3":
+		exists := storage.IsDatabaseExist(cfg.DataSourceName)
 
-		exists := IsDatabaseExist(cfg.DataSourceName)
-
-		db, err := sql.Open(cfg.DriverName, cfg.DataSourceName)
+		db, err := sql.Open(string(cfg.DriverName), cfg.DataSourceName)
 		if err != nil {
 			return nil, err
 		}
 
 		if !exists {
-			err = InitDatabase(db)
+			err = storage.InitDatabase(db)
 			if err != nil {
 				return nil, err
 			}
 		}
 
-		return &Repository{repo: dbStorage.NewRealStorage(db)}, nil
+		return dbStorage.NewRealStorage(db), nil
 	case "file":
 		filename := cfg.DataSourceName
-		return &Repository{repo: filestorage.NewFileStorage(filename)}, nil
-
+		return filestorage.NewFileStorage(filename), nil
 	default:
 		db := mapStorage.NewMapStorage()
-		return &Repository{repo: db}, nil
+		return db, nil
 	}
 }

@@ -4,39 +4,39 @@ import (
 	"flag"
 	"os"
 	"url-shortener/internal/repository"
-)
-
-const (
-	mapStorage  string = "map"
-	fileStorage string = "file"
-	dbStorage   string = "sqlite3"
+	"url-shortener/internal/storage"
+	dbstorage "url-shortener/internal/storage/db"
+	fileStorage "url-shortener/internal/storage/file"
+	mapStorage "url-shortener/internal/storage/map"
 )
 
 const (
 	defaultURL     = "http://127.0.0.1:8080/"
 	defaultHost    = "localhost:8080"
 	defaultPath    = "urlshortener.txt"
-	defaultStorage = mapStorage
+	defaultStorage = mapStorage.MapStorageType
 )
 
 type Flag struct {
 	host    *string
-	BaseURL *string
+	baseURL *string
 	path    *string
-	storage *string
+	storage storage.Type
 }
 
-var F Flag
+var f Flag
 
 func init() {
-	F.host = flag.String("a", defaultHost, "-a=host")
-	F.BaseURL = flag.String("b", defaultURL, "-b=URL")
-	F.path = flag.String("f", defaultPath, "-f=path")
-	F.storage = flag.String("s", defaultStorage, "-s=storage")
+	f.host = flag.String("a", defaultHost, "-a=host")
+	f.baseURL = flag.String("b", defaultURL, "-b=URL")
+	f.path = flag.String("f", defaultPath, "-f=path")
+	f.storage = storage.Type(*flag.String("s", string(defaultStorage), "-s=storage"))
 }
 
 type Config struct {
 	Host     string
+	BaseURL  string
+	Key      []byte
 	DBConfig *repository.Config
 }
 
@@ -44,27 +44,29 @@ func New() *Config {
 	flag.Parse()
 
 	if addr, ok := os.LookupEnv("BASE_URL"); ok {
-		F.BaseURL = &addr
+		f.baseURL = &addr
 	}
 
 	if fsp, ok := os.LookupEnv("FILE_STORAGE_PATH"); ok {
-		F.path = &fsp
+		f.path = &fsp
 	}
 
 	if addr, ok := os.LookupEnv("SERVER_ADDRESS"); ok {
-		F.host = &addr
+		f.host = &addr
 	}
 
-	if *F.storage != mapStorage && *F.storage != fileStorage &&
-		*F.storage != dbStorage {
+	if f.storage != mapStorage.MapStorageType && f.storage != fileStorage.FileStorageType &&
+		f.storage != dbstorage.DBStorageType {
 		panic("Type of storage is not supported")
 	}
 
 	return &Config{
-		Host: *F.host,
+		Host:    *f.host,
+		BaseURL: *f.baseURL,
+		Key:     []byte("CHANGE ME"),
 		DBConfig: &repository.Config{
-			DriverName:     *F.storage,
-			DataSourceName: *F.path,
+			DriverName:     f.storage,
+			DataSourceName: *f.path,
 		},
 	}
 }
