@@ -10,7 +10,8 @@ import (
 
 type Config struct {
 	DriverName     storage.Type
-	DataSourceName string
+	DataSourceCred string
+	DataSourcePath string
 }
 
 func New(cfg *Config) (storage.IStorage, error) {
@@ -20,9 +21,9 @@ func New(cfg *Config) (storage.IStorage, error) {
 
 	switch cfg.DriverName {
 	case "sqlite3":
-		exists := storage.IsDatabaseExist(cfg.DataSourceName)
+		exists := storage.IsDBSqliteExist(cfg.DataSourcePath)
 
-		db, err := sql.Open(string(cfg.DriverName), cfg.DataSourceName)
+		db, err := sql.Open(string(cfg.DriverName), cfg.DataSourcePath)
 		if err != nil {
 			return nil, err
 		}
@@ -35,8 +36,24 @@ func New(cfg *Config) (storage.IStorage, error) {
 		}
 
 		return dbStorage.NewRealStorage(db), nil
+	case "mysql", "postgres":
+		used := storage.IsDBUsedBefore(string(cfg.DriverName), cfg.DataSourceCred)
+
+		db, err := sql.Open(string(cfg.DriverName), cfg.DataSourceCred)
+		if err != nil {
+			return nil, err
+		}
+
+		if !used {
+			err := storage.InitDatabase(db)
+			if err != nil {
+				return nil, err
+			}
+		}
+
+		return dbStorage.NewRealStorage(db), nil
 	case "file":
-		filename := cfg.DataSourceName
+		filename := cfg.DataSourcePath
 		return filestorage.NewFileStorage(filename), nil
 	default:
 		db := mapStorage.NewMapStorage()

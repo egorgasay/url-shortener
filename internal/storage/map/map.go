@@ -66,3 +66,11 @@ func (s *MapStorage) GetAllLinksByCookie(cookie, baseURL string) ([]schema.URL, 
 
 	return URLs, nil
 }
+
+func (s *MapStorage) Ping() error {
+	if s.container == nil {
+		return errors.New("хранилище не существует")
+	}
+
+	return nil
+}

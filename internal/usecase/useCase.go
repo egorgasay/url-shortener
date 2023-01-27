@@ -39,3 +39,7 @@ func GetAllLinksByCookie(repo storage.IStorage, shortURL, baseURL string) (URLs 
 
 	return string(b), nil
 }
+
+func Ping(repo storage.IStorage) error {
+	return repo.Ping()
+}

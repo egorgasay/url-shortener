@@ -133,3 +133,17 @@ func (fs *FileStorage) GetAllLinksByCookie(cookie, baseURL string) ([]schema.URL
 
 	return URLs, nil
 }
+
+func (fs *FileStorage) Ping() error {
+	err := fs.Open()
+	if err != nil {
+		return err
+	}
+
+	err = fs.Close()
+	if err != nil {
+		return err
+	}
+
+	return nil
+}

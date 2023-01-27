@@ -4,11 +4,45 @@ import (
 	"bufio"
 	"database/sql"
 	"errors"
+	"log"
 	"os"
 	"strings"
 )
 
-func IsDatabaseExist(path string) bool {
+func IsDBUsedBefore(driver, cred string) bool {
+	db, err := sql.Open(driver, cred)
+	if err != nil {
+		log.Println(err)
+		return false
+	}
+	defer db.Close()
+
+	stmt, err := db.Prepare("SELECT short FROM urls")
+	if err != nil {
+		log.Println(err)
+		return false
+	}
+
+	row := stmt.QueryRow()
+
+	err = row.Err()
+	if err != nil {
+		log.Println(err)
+		return false
+	}
+
+	var s string
+
+	err = row.Scan(&s)
+	if err != nil {
+		log.Println(err)
+		return false
+	}
+
+	return true
+}
+
+func IsDBSqliteExist(path string) bool {
 	if _, err := os.Stat(path); errors.Is(err, os.ErrNotExist) {
 		return false
 	}

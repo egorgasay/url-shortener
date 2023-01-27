@@ -1,8 +1,8 @@
 CREATE TABLE urls
 (
-    id INTEGER primary key autoincrement,
-    long TEXT unique,
+    id SERIAL PRIMARY KEY,
+    long TEXT,
     short TEXT unique,
-    cookie TEXT unique
+    cookie TEXT
 );
 INSERT INTO urls VALUES (0, 'http://localhost:8080/', '0', 'start');

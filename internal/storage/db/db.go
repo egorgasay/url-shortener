@@ -1,24 +1,27 @@
 package dbstorage
 
 import (
+	"context"
 	"database/sql"
-	"strings"
 	"url-shortener/internal/schema"
 	"url-shortener/internal/storage"
+
+	_ "github.com/lib/pq"
+	_ "github.com/mattn/go-sqlite3"
 )
 
 type RealStorage struct {
 	DB *sql.DB
 }
 
-const DBStorageType storage.Type = "sqlite3"
+const DBStorageType storage.Type = "postgres"
 
 func NewRealStorage(db *sql.DB) storage.IStorage {
 	return &RealStorage{DB: db}
 }
 
 func (s RealStorage) AddLink(longURL, shortURL, cookie string) (string, error) {
-	stmt := "INSERT INTO urls (long, short, cookie) VALUES (?, ?, ?)"
+	stmt := "INSERT INTO urls (long, short, cookie) VALUES ($1, $2, $3)"
 
 	_, err := s.DB.Exec(stmt, longURL, shortURL, cookie)
 
@@ -39,14 +42,14 @@ func (s RealStorage) FindMaxID() (int, error) {
 }
 
 func (s RealStorage) GetLongLink(shortURL string) (longURL string, err error) {
-	stm := s.DB.QueryRow("SELECT long FROM urls WHERE short = ?", shortURL)
+	stm := s.DB.QueryRow("SELECT long FROM urls WHERE short = $1", shortURL)
 	err = stm.Scan(&longURL)
 
 	return longURL, err
 }
 
 func (s RealStorage) GetAllLinksByCookie(cookie, baseURL string) ([]schema.URL, error) {
-	stm, err := s.DB.Query("SELECT short, long FROM urls WHERE cookie = ?", cookie)
+	stm, err := s.DB.Query("SELECT short, long FROM urls WHERE cookie = $1", cookie)
 	if err != nil {
 		return nil, err
 	}
@@ -59,17 +62,20 @@ func (s RealStorage) GetAllLinksByCookie(cookie, baseURL string) ([]schema.URL, 
 	var URLs []schema.URL
 
 	for stm.Next() {
-		tmp := ""
+		short, long := "", ""
 
-		err = stm.Scan(&tmp)
+		err = stm.Scan(&short, &long)
 		if err != nil {
 			return nil, err
 		}
 
-		lineArr := strings.Split(tmp, " ")
-
-		URLs = append(URLs, schema.URL{LongURL: lineArr[1], ShortURL: baseURL + lineArr[0]})
+		URLs = append(URLs, schema.URL{LongURL: long, ShortURL: baseURL + short})
 	}
 
 	return URLs, err
+}
+
+func (s RealStorage) Ping() error {
+	ctx := context.TODO()
+	return s.DB.PingContext(ctx)
 }

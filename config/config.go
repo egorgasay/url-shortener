@@ -2,19 +2,24 @@ package config
 
 import (
 	"flag"
+	"github.com/sethvargo/go-password/password"
+	"log"
 	"os"
+	"url-shortener/internal/dockerdb"
 	"url-shortener/internal/repository"
 	"url-shortener/internal/storage"
 	dbstorage "url-shortener/internal/storage/db"
-	fileStorage "url-shortener/internal/storage/file"
-	mapStorage "url-shortener/internal/storage/map"
+	"url-shortener/pkg/connStrBuilder"
+	"url-shortener/pkg/getFreePort"
 )
 
 const (
 	defaultURL     = "http://127.0.0.1:8080/"
 	defaultHost    = "127.0.0.1:8080"
 	defaultPath    = "urlshortener.txt"
-	defaultStorage = mapStorage.MapStorageType
+	defaultStorage = dbstorage.DBStorageType
+	defaultdsn     = ""
+	defaultvdb     = ""
 )
 
 type Flag struct {
@@ -22,6 +27,8 @@ type Flag struct {
 	baseURL *string
 	path    *string
 	storage storage.Type
+	dsn     *string
+	vdb     *string
 }
 
 var f Flag
@@ -31,6 +38,8 @@ func init() {
 	f.baseURL = flag.String("b", defaultURL, "-b=URL")
 	f.path = flag.String("f", defaultPath, "-f=path")
 	f.storage = storage.Type(*flag.String("s", string(defaultStorage), "-s=storage"))
+	f.dsn = flag.String("d", defaultdsn, "-d=connection_string")
+	f.vdb = flag.String("v", defaultvdb, "-v=vendor (available :postgres, mysql)")
 }
 
 type Config struct {
@@ -55,18 +64,64 @@ func New() *Config {
 		f.host = &addr
 	}
 
-	if f.storage != mapStorage.MapStorageType && f.storage != fileStorage.FileStorageType &&
-		f.storage != dbstorage.DBStorageType {
-		panic("Type of storage is not supported")
+	if dsn, ok := os.LookupEnv("DATABASE_DSN"); ok {
+		f.dsn = &dsn
 	}
+
+	if *f.dsn == "" && f.storage != "file" {
+		f.storage = "map"
+	}
+
+	generated, err := password.Generate(17, 5, 0, false, false)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	log.Println(*f.dsn, *f.path, f.storage)
+
+	if vdb := *f.vdb; vdb != "" {
+		err := dockerdb.Pull(vdb)
+		if err != nil {
+			log.Fatalf(err.Error())
+		}
+
+		port, err := getFreePort.GetFreePort()
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		cfg := dockerdb.CustomDB{
+			DB: dockerdb.DB{
+				Name:     "urls",
+				User:     "admin",
+				Password: generated,
+			},
+			Port:   port,
+			Vendor: vdb,
+		}
+
+		_, err = dockerdb.New(cfg)
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		connStr := connStrBuilder.Build(cfg)
+		f.dsn = &connStr
+	}
+
+	//if f.storage != mapStorage.MapStorageType && f.storage != fileStorage.FileStorageType &&
+	//	f.storage != dbstorage.DBStorageType {
+	//	panic("Type of storage is not supported")
+	//}
 
 	return &Config{
 		Host:    *f.host,
 		BaseURL: *f.baseURL,
-		Key:     []byte("CHANGE ME"),
+		Key:     []byte(generated),
 		DBConfig: &repository.Config{
 			DriverName:     f.storage,
-			DataSourceName: *f.path,
+			DataSourcePath: *f.path,
+			DataSourceCred: *f.dsn,
 		},
 	}
 }

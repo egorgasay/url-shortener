@@ -1,21 +1,15 @@
 package handler
 
 import (
-	"crypto/hmac"
-	"crypto/sha256"
-	"encoding/hex"
 	"encoding/json"
 	"errors"
 	"github.com/gin-gonic/gin"
 	"log"
 	"net/http"
-	"strings"
 	"url-shortener/config"
 	"url-shortener/internal/schema"
 	"url-shortener/internal/storage"
 	"url-shortener/internal/usecase"
-
-	_ "github.com/mattn/go-sqlite3"
 )
 
 type Handler struct {
@@ -36,10 +30,10 @@ func NewHandler(storage storage.IStorage, cfg *config.Config) *Handler {
 }
 
 func (h Handler) GetLinkHandler(c *gin.Context) {
-	cookie, err := GetCookies(c)
-	if err != nil || !CheckCookies(cookie, h.conf.Key) {
+	cookie, err := getCookies(c)
+	if err != nil || !checkCookies(cookie, h.conf.Key) {
 		log.Println("New cookie was created")
-		SetCookies(c, h.conf.Host, h.conf.Key)
+		setCookies(c, h.conf.Host, h.conf.Key)
 	}
 
 	longURL, err := usecase.GetLink(h.storage, c.Param("id"))
@@ -55,9 +49,9 @@ func (h Handler) GetLinkHandler(c *gin.Context) {
 }
 
 func (h Handler) GetAllLinksHandler(c *gin.Context) {
-	cookie, err := GetCookies(c)
-	if err != nil || !CheckCookies(cookie, h.conf.Key) {
-		cookie = SetCookies(c, h.conf.Host, h.conf.Key)
+	cookie, err := getCookies(c)
+	if err != nil || !checkCookies(cookie, h.conf.Key) {
+		cookie = setCookies(c, h.conf.Host, h.conf.Key)
 	}
 
 	URLs, err := usecase.GetAllLinksByCookie(h.storage, cookie, h.conf.BaseURL)
@@ -80,9 +74,9 @@ func (h Handler) GetAllLinksHandler(c *gin.Context) {
 }
 
 func (h Handler) CreateLinkHandler(c *gin.Context) {
-	cookie, err := GetCookies(c)
-	if err != nil || !CheckCookies(cookie, h.conf.Key) {
-		cookie = SetCookies(c, h.conf.Host, h.conf.Key)
+	cookie, err := getCookies(c)
+	if err != nil || !checkCookies(cookie, h.conf.Key) {
+		cookie = setCookies(c, h.conf.Host, h.conf.Key)
 	}
 
 	data, err := UseGzip(c.Request.Body, c.Request.Header.Get("Content-Type"))
@@ -115,9 +109,9 @@ func (h Handler) CreateLinkHandler(c *gin.Context) {
 }
 
 func (h Handler) APICreateLinkHandler(c *gin.Context) {
-	cookie, err := GetCookies(c)
-	if err != nil || !CheckCookies(cookie, h.conf.Key) {
-		SetCookies(c, h.conf.Host, h.conf.Key)
+	cookie, err := getCookies(c)
+	if err != nil || !checkCookies(cookie, h.conf.Key) {
+		setCookies(c, h.conf.Host, h.conf.Key)
 	}
 
 	b, err := UseGzip(c.Request.Body, c.Request.Header.Get("Content-Type"))
@@ -170,44 +164,12 @@ func (h Handler) APICreateLinkHandler(c *gin.Context) {
 	c.Writer.Write(rawURL)
 }
 
-func GetCookies(c *gin.Context) (cookie string, err error) {
-	cookie = c.Request.Header.Get("Authorization")
-	if cookie == "" {
-		cookie, err = c.Cookie("token")
-		if err != nil {
-			return "", err
-		}
-	}
-
-	return cookie, nil
-}
-
-func SetCookies(c *gin.Context, host string, key []byte) (cookie string) {
-	cookie = NewCookie(key)
-	domain := strings.Split(host, ":")[0]
-	c.SetCookie("token", cookie, 10, "",
-		domain, true, false)
-	c.Header("Authorization", cookie)
-
-	return cookie
-}
-
-func CheckCookies(cookie string, key []byte) bool {
-	arr := strings.Split(cookie, "-")
-	k, v := arr[0], arr[1]
-
-	sign, err := hex.DecodeString(k)
+func (h Handler) Ping(c *gin.Context) {
+	err := usecase.Ping(h.storage)
 	if err != nil {
-		return false
+		c.Status(http.StatusInternalServerError)
+		return
 	}
 
-	data, err := hex.DecodeString(v)
-	if err != nil {
-		return false
-	}
-
-	h := hmac.New(sha256.New, key)
-	h.Write(data)
-
-	return hmac.Equal(sign, h.Sum(nil))
+	c.Status(http.StatusOK)
 }

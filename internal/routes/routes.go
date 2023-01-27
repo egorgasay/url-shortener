@@ -12,6 +12,8 @@ func PublicRoutes(r *gin.RouterGroup, h *handlers.Handler) {
 
 	r.GET("/:id", h.GetLinkHandler)
 	r.GET("/api/user/urls", h.GetAllLinksHandler)
+	r.GET("/ping", h.Ping)
+
 	r.POST("/", h.CreateLinkHandler)
 	r.POST("/api/shorten", h.APICreateLinkHandler)
 }

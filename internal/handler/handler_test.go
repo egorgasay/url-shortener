@@ -53,7 +53,7 @@ func TestHandler_GetLinkHandler(t *testing.T) {
 			//test.mockBehavior(repos)
 			cfg := &repository.Config{
 				DriverName:     "map",
-				DataSourceName: "test",
+				DataSourcePath: "test",
 			}
 			repo, err := repository.New(cfg)
 			if err != nil {
@@ -132,7 +132,7 @@ func TestHandler_CreateLinkHandler(t *testing.T) {
 			//test.mockBehavior(repos)
 			cfg := &repository.Config{
 				DriverName:     "map",
-				DataSourceName: "test",
+				DataSourcePath: "test",
 			}
 			repo, err := repository.New(cfg)
 			if err != nil {
@@ -209,7 +209,7 @@ func TestHandler_APICreateLinkHandler(t *testing.T) {
 			//test.mockBehavior(repos)
 			cfg := &repository.Config{
 				DriverName:     "map",
-				DataSourceName: "test",
+				DataSourcePath: "test",
 			}
 			repo, err := repository.New(cfg)
 			if err != nil {
