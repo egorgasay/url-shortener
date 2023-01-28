@@ -173,3 +173,28 @@ func (h Handler) Ping(c *gin.Context) {
 
 	c.Status(http.StatusOK)
 }
+
+func (h Handler) BatchHandler(c *gin.Context) {
+	cookie, err := getCookies(c)
+	if err != nil || !checkCookies(cookie, h.conf.Key) {
+		setCookies(c, h.conf.Host, h.conf.Key)
+	}
+
+	var batchURLs []schema.BatchURL
+	err = c.BindJSON(&batchURLs)
+	if err != nil {
+		log.Println(err)
+		c.Status(http.StatusInternalServerError)
+		return
+	}
+
+	data, err := usecase.Batch(h.storage, batchURLs, cookie, h.conf.BaseURL)
+	if err != nil {
+		log.Println(err)
+		c.Status(http.StatusInternalServerError)
+		return
+	}
+
+	c.Header("Content-Type", "application/json")
+	c.IndentedJSON(http.StatusOK, data)
+}
