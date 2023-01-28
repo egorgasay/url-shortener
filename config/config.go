@@ -9,6 +9,7 @@ import (
 	"url-shortener/internal/repository"
 	"url-shortener/internal/storage"
 	dbstorage "url-shortener/internal/storage/db"
+	filestorage "url-shortener/internal/storage/file"
 	mapstorage "url-shortener/internal/storage/map"
 	getfreeport "url-shortener/pkg/getFreePort"
 )
@@ -70,7 +71,11 @@ func New() *Config {
 	}
 
 	if *f.dsn == "" && f.storage == defaultStorage {
-		f.storage = mapstorage.MapStorageType
+		if *f.path != "" {
+			f.storage = filestorage.FileStorageType
+		} else {
+			f.storage = mapstorage.MapStorageType
+		}
 	}
 
 	generated, err := password.Generate(17, 5, 0, false, false)
