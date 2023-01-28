@@ -1,3 +1,4 @@
+// Package dockerdb allows user to create virtual databases using docker.
 package dockerdb
 
 import (
