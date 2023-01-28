@@ -9,6 +9,7 @@ import (
 	"url-shortener/internal/repository"
 	"url-shortener/internal/storage"
 	dbstorage "url-shortener/internal/storage/db"
+	mapstorage "url-shortener/internal/storage/map"
 	getfreeport "url-shortener/pkg/getFreePort"
 )
 
@@ -68,11 +69,8 @@ func New() *Config {
 		f.dsn = &dsn
 	}
 
-	log.Println(*f.dsn)
-
 	if *f.dsn == "" && f.storage == defaultStorage {
-		name := "urls"
-		f.vdb = &name
+		f.storage = mapstorage.MapStorageType
 	}
 
 	generated, err := password.Generate(17, 5, 0, false, false)
