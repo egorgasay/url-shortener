@@ -7,7 +7,7 @@ import (
 type DockerDB struct {
 	ID   string
 	cli  *client.Client
-	conf CustomDB
+	Conf CustomDB
 }
 
 type DB struct {
@@ -29,5 +29,5 @@ func New(conf CustomDB) (*DockerDB, error) {
 		return nil, err
 	}
 
-	return &DockerDB{cli: cli, conf: conf}, nil
+	return &DockerDB{cli: cli, Conf: conf}, nil
 }

@@ -4,22 +4,13 @@ import (
 	"bufio"
 	"database/sql"
 	"errors"
-	"log"
 	"os"
 	"strings"
 )
 
-func IsDBUsedBefore(driver, cred string) bool {
-	db, err := sql.Open(driver, cred)
-	if err != nil {
-		log.Println(err)
-		return false
-	}
-	defer db.Close()
-
+func IsDBUsedBefore(db *sql.DB) bool {
 	stmt, err := db.Prepare("SELECT short FROM urls")
 	if err != nil {
-		log.Println(err)
 		return false
 	}
 
@@ -27,7 +18,6 @@ func IsDBUsedBefore(driver, cred string) bool {
 
 	err = row.Err()
 	if err != nil {
-		log.Println(err)
 		return false
 	}
 
@@ -35,7 +25,6 @@ func IsDBUsedBefore(driver, cred string) bool {
 
 	err = row.Scan(&s)
 	if err != nil {
-		log.Println(err)
 		return false
 	}
 
@@ -50,8 +39,8 @@ func IsDBSqliteExist(path string) bool {
 	return true
 }
 
-func InitDatabase(db *sql.DB) error {
-	file, err := os.Open("schema.sql")
+func InitDatabase(db *sql.DB, schema string) error {
+	file, err := os.Open(schema)
 	if err != nil {
 		return err
 	}

@@ -1,11 +1,8 @@
-package connStrBuilder
+package dockerdb
 
-import (
-	"fmt"
-	"url-shortener/internal/dockerdb"
-)
+import "fmt"
 
-func Build(conf dockerdb.CustomDB) (connStr string) {
+func Build(conf CustomDB) (connStr string) {
 	if conf.Vendor == "postgres" {
 		connStr = fmt.Sprintf(
 			"host=localhost user=%s password='%s' dbname=%s port=%s sslmode=disable",

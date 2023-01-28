@@ -9,8 +9,7 @@ import (
 	"url-shortener/internal/repository"
 	"url-shortener/internal/storage"
 	dbstorage "url-shortener/internal/storage/db"
-	"url-shortener/pkg/connStrBuilder"
-	"url-shortener/pkg/getFreePort"
+	getfreeport "url-shortener/pkg/getFreePort"
 )
 
 const (
@@ -28,6 +27,7 @@ type Flag struct {
 	path    *string
 	storage storage.Type
 	dsn     *string
+	vendor  *string
 	vdb     *string
 }
 
@@ -39,7 +39,7 @@ func init() {
 	f.path = flag.String("f", defaultPath, "-f=path")
 	f.storage = storage.Type(*flag.String("s", string(defaultStorage), "-s=storage"))
 	f.dsn = flag.String("d", defaultdsn, "-d=connection_string")
-	f.vdb = flag.String("v", defaultvdb, "-v=vendor (available :postgres, mysql)")
+	f.vdb = flag.String("vdb", defaultvdb, "-vdb=virtual_db_name")
 }
 
 type Config struct {
@@ -68,45 +68,44 @@ func New() *Config {
 		f.dsn = &dsn
 	}
 
-	if *f.dsn == "" && f.storage != "file" {
-		f.storage = "map"
+	if *f.dsn == "" && f.storage == defaultStorage {
+		name := "urls"
+		f.vdb = &name
 	}
 
 	generated, err := password.Generate(17, 5, 0, false, false)
 	if err != nil {
-		log.Fatal(err)
+		log.Fatal("Generate: ", err)
 	}
 
 	log.Println(*f.dsn, *f.path, f.storage)
+	var ddb *dockerdb.DockerDB
 
 	if vdb := *f.vdb; vdb != "" {
-		err := dockerdb.Pull(vdb)
+		err := dockerdb.Pull(string(f.storage))
 		if err != nil {
-			log.Fatalf(err.Error())
+			log.Fatal("Pull: ", err)
 		}
 
-		port, err := getFreePort.GetFreePort()
+		port, err := getfreeport.GetFreePort()
 		if err != nil {
-			log.Fatal(err)
+			log.Fatal("GetFreePort: ", err)
 		}
 
 		cfg := dockerdb.CustomDB{
 			DB: dockerdb.DB{
-				Name:     "urls",
+				Name:     vdb,
 				User:     "admin",
 				Password: generated,
 			},
 			Port:   port,
-			Vendor: vdb,
+			Vendor: string(f.storage),
 		}
 
-		_, err = dockerdb.New(cfg)
+		ddb, err = dockerdb.New(cfg)
 		if err != nil {
 			log.Fatal(err)
 		}
-
-		connStr := connStrBuilder.Build(cfg)
-		f.dsn = &connStr
 	}
 
 	//if f.storage != mapStorage.MapStorageType && f.storage != fileStorage.FileStorageType &&
@@ -122,6 +121,7 @@ func New() *Config {
 			DriverName:     f.storage,
 			DataSourcePath: *f.path,
 			DataSourceCred: *f.dsn,
+			DockerDB:       ddb,
 		},
 	}
 }
