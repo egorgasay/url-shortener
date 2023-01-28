@@ -196,5 +196,5 @@ func (h Handler) BatchHandler(c *gin.Context) {
 	}
 
 	c.Header("Content-Type", "application/json")
-	c.IndentedJSON(http.StatusOK, data)
+	c.IndentedJSON(http.StatusCreated, data)
 }
