@@ -27,6 +27,7 @@ func (ddb *DockerDB) Init(ctx context.Context) error {
 		env = []string{"MYSQL_DATABASE=" + ddb.Conf.DB.Name, "MYSQL_USER=" + ddb.Conf.DB.User,
 			"MYSQL_ROOT_PASSWORD=" + ddb.Conf.DB.Password,
 			"MYSQL_PASSWORD=" + ddb.Conf.DB.Password}
+	case "mssql":
 	}
 
 	hostConfig := &container.HostConfig{
