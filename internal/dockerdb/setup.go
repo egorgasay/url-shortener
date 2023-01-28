@@ -38,6 +38,7 @@ func (ddb *DockerDB) Setup(strConn string) (*sql.DB, string) {
 
 func (ddb *DockerDB) getDB(connStr string) (*sql.DB, error) {
 	after := time.After(20 * time.Second)
+	log.Println(connStr)
 	for {
 		select {
 		case <-after:

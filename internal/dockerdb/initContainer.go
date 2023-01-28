@@ -14,7 +14,7 @@ func (ddb *DockerDB) Init(ctx context.Context) error {
 	var portDocker nat.Port
 
 	if ddb.Conf.Port == "" {
-		return errors.New("Conf must be not empty")
+		return errors.New("config must be not empty")
 	}
 
 	switch ddb.Conf.Vendor {

@@ -68,6 +68,8 @@ func New() *Config {
 		f.dsn = &dsn
 	}
 
+	log.Println(*f.dsn)
+
 	if *f.dsn == "" && f.storage == defaultStorage {
 		name := "urls"
 		f.vdb = &name

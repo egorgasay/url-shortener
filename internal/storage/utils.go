@@ -24,11 +24,7 @@ func IsDBUsedBefore(db *sql.DB) bool {
 	var s string
 
 	err = row.Scan(&s)
-	if err != nil {
-		return false
-	}
-
-	return true
+	return err == nil
 }
 
 func IsDBSqliteExist(path string) bool {
