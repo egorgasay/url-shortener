@@ -90,7 +90,7 @@ func (h Handler) CreateLinkHandler(c *gin.Context) {
 
 	charsForURL, err := usecase.CreateLink(h.storage, string(data), cookie)
 	if err != nil {
-		if !errors.Is(err, dbStorage.Exists) {
+		if !errors.Is(err, dbStorage.ErrExists) {
 			c.Error(err)
 			c.AbortWithStatus(http.StatusInternalServerError)
 			return
@@ -149,7 +149,7 @@ func (h Handler) APICreateLinkHandler(c *gin.Context) {
 	var isConflict bool
 	charsForURL, err := usecase.CreateLink(h.storage, rj.URL, cookie)
 	if err != nil {
-		if !errors.Is(err, dbStorage.Exists) {
+		if !errors.Is(err, dbStorage.ErrExists) {
 			c.Error(err)
 			c.AbortWithStatus(http.StatusInternalServerError)
 			return

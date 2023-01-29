@@ -56,7 +56,7 @@ func Batch(repo storage.IStorage, batchURLs []schema.BatchURL, cookie, baseURL s
 	var respJSON []schema.ResponseBatchURL
 	for _, pair := range batchURLs {
 		short, err := CreateLink(repo, pair.Original, cookie, pair.Chars)
-		if err != nil && !errors.Is(err, dbstorage.Exists) {
+		if err != nil && !errors.Is(err, dbstorage.ErrExists) {
 			return nil, err
 		}
 
