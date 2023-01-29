@@ -26,7 +26,7 @@ func NewRealStorage(db *sql.DB, vendor storage.Type) storage.IStorage {
 	return &RealStorage{DB: db, Vendor: vendor}
 }
 
-var Exists = errors.New("the shortened URL already exists")
+var ErrExists = errors.New("the shortened URL already exists")
 
 func getQuery(vendor storage.Type, oper operation) (query, error) {
 	v, ok := queryStorage[vendor]
@@ -79,7 +79,7 @@ func (s RealStorage) AddLink(longURL, shortURL, cookie string) (string, error) {
 			return "", err
 		}
 
-		return shortURL, Exists
+		return shortURL, ErrExists
 	}
 
 	return shortURL, nil
@@ -105,7 +105,7 @@ func (s RealStorage) FindMaxID() (int, error) {
 }
 
 func (s RealStorage) GetLongLink(shortURL string) (longURL string, err error) {
-	GetLongLinkQuery, err := getQuery(s.Vendor, findMaxID)
+	GetLongLinkQuery, err := getQuery(s.Vendor, getLongLink)
 	if err != nil {
 		return "", nil
 	}
