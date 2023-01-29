@@ -11,6 +11,7 @@ import (
 
 	"github.com/jackc/pgerrcode"
 
+	_ "github.com/go-sql-driver/mysql"
 	_ "github.com/mattn/go-sqlite3"
 )
 
@@ -52,7 +53,11 @@ func (s RealStorage) AddLink(longURL, shortURL, cookie string) (string, error) {
 		return "", err
 	}
 
-	_, err = stmt.Exec(longURL, shortURL, cookie)
+	_, err = stmt.Exec(
+		sql.Named("long", longURL).Value,
+		sql.Named("short", shortURL).Value,
+		sql.Named("cookie", cookie).Value,
+	)
 	if err != nil {
 		e, ok := err.(*pq.Error)
 		if !ok {
@@ -68,7 +73,7 @@ func (s RealStorage) AddLink(longURL, shortURL, cookie string) (string, error) {
 			return "", err
 		}
 
-		row := s.DB.QueryRow(string(getShortLinkQuery), longURL)
+		row := s.DB.QueryRow(string(getShortLinkQuery), sql.Named("long", longURL).Value)
 		if row.Err() != nil {
 			return "", err
 		}
@@ -114,7 +119,7 @@ func (s RealStorage) GetLongLink(shortURL string) (longURL string, err error) {
 		return "", nil
 	}
 
-	stm := stmt.QueryRow(shortURL)
+	stm := stmt.QueryRow(sql.Named("short", shortURL).Value)
 	err = stm.Scan(&longURL)
 
 	return longURL, err
@@ -131,7 +136,7 @@ func (s RealStorage) GetAllLinksByCookie(cookie, baseURL string) ([]schema.URL, 
 		return nil, nil
 	}
 
-	stm, err := stmt.Query(cookie)
+	stm, err := stmt.Query(sql.Named("cookie", cookie).Value)
 	if err != nil {
 		return nil, err
 	}

@@ -24,7 +24,7 @@ func New(cfg *Config) (storage.IStorage, error) {
 
 	switch cfg.DriverName {
 	case "sqlite3":
-		db, err := upSqlite(cfg, "schema.sql")
+		db, err := upSqlite(cfg, "sqlite3-schema.sql")
 		if err != nil {
 			return nil, err
 		}
@@ -36,7 +36,7 @@ func New(cfg *Config) (storage.IStorage, error) {
 
 		if cfg.DockerDB != nil {
 			cfg.DataSourcePath = "dockerDBs"
-			sqlitedb, err := upSqlite(cfg, "sqlite-schema.sql")
+			sqlitedb, err := upSqlite(cfg, "DockerDBs-schema.sql")
 			if err != nil {
 				return nil, err
 			}
@@ -86,7 +86,7 @@ func New(cfg *Config) (storage.IStorage, error) {
 		used := storage.IsDBUsedBefore(db)
 
 		if !used {
-			err := storage.InitDatabase(db, "schema.sql")
+			err := storage.InitDatabase(db, string(cfg.DriverName+"-schema.sql"))
 			if err != nil {
 				return nil, err
 			}

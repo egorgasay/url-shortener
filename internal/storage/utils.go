@@ -2,6 +2,7 @@ package storage
 
 import (
 	"bufio"
+	"context"
 	"database/sql"
 	"errors"
 	"os"
@@ -9,7 +10,7 @@ import (
 )
 
 func IsDBUsedBefore(db *sql.DB) bool {
-	stmt, err := db.Prepare("SELECT short FROM urls")
+	stmt, err := db.Prepare("SELECT id FROM urls")
 	if err != nil {
 		return false
 	}
@@ -42,6 +43,13 @@ func InitDatabase(db *sql.DB, schema string) error {
 	}
 	defer file.Close()
 
+	ctx := context.TODO()
+	tx, err := db.BeginTx(ctx, &sql.TxOptions{Isolation: sql.LevelSerializable})
+	if err != nil {
+		return err
+	}
+	defer tx.Rollback()
+
 	var scanner = bufio.NewScanner(file)
 	var queries strings.Builder
 
@@ -49,7 +57,16 @@ func InitDatabase(db *sql.DB, schema string) error {
 		queries.Write([]byte(scanner.Text()))
 	}
 
-	_, err = db.Exec(queries.String())
+	queriesArr := strings.Split(queries.String(), ";EOQ")
+
+	for _, query := range queriesArr {
+		_, err = tx.Exec(query)
+		if err != nil {
+			return err
+		}
+	}
+
+	err = tx.Commit()
 	if err != nil {
 		return err
 	}
