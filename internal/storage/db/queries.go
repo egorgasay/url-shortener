@@ -22,7 +22,7 @@ const getLongLinkPostgres query = "SELECT long FROM urls WHERE short = $1"
 
 // Queries for MySQL
 const insertURLMySQL query = "INSERT INTO urls (`longURL`, `shortURL`, `cookie`) VALUES (?, ?, ?)"
-const getLongLinkMySQL query = "SELECT longURL FROM urls WHERE shortURL = ?"
+const getLongLinkMySQL query = "SELECT `longURL` FROM urls WHERE `shortURL` = ?"
 
 // Queries for Sqlite3
 const insertURLSqlite3 query = "INSERT INTO urls (long, short, cookie) VALUES (?, ?, ?)"
