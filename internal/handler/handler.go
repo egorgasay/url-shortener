@@ -9,6 +9,7 @@ import (
 	"url-shortener/config"
 	"url-shortener/internal/schema"
 	"url-shortener/internal/storage"
+	dbStorage "url-shortener/internal/storage/db"
 	"url-shortener/internal/usecase"
 )
 
@@ -89,9 +90,22 @@ func (h Handler) CreateLinkHandler(c *gin.Context) {
 
 	charsForURL, err := usecase.CreateLink(h.storage, string(data), cookie)
 	if err != nil {
-		c.Error(err)
-		c.AbortWithStatus(http.StatusInternalServerError)
+		if !errors.Is(err, dbStorage.Exists) {
+			c.Error(err)
+			c.AbortWithStatus(http.StatusInternalServerError)
+			return
+		}
+		c.Status(http.StatusConflict)
 
+		URL, err := CreateLink(charsForURL, h.conf.BaseURL)
+		if err != nil {
+			c.Error(err)
+			c.AbortWithStatus(http.StatusInternalServerError)
+
+			return
+		}
+
+		c.Writer.WriteString(URL.String())
 		return
 	}
 
@@ -132,12 +146,15 @@ func (h Handler) APICreateLinkHandler(c *gin.Context) {
 		return
 	}
 
+	var isConflict bool
 	charsForURL, err := usecase.CreateLink(h.storage, rj.URL, cookie)
 	if err != nil {
-		c.Error(err)
-		c.AbortWithStatus(http.StatusInternalServerError)
-
-		return
+		if !errors.Is(err, dbStorage.Exists) {
+			c.Error(err)
+			c.AbortWithStatus(http.StatusInternalServerError)
+			return
+		}
+		isConflict = true
 	}
 
 	URL, err := CreateLink(charsForURL, h.conf.BaseURL)
@@ -158,9 +175,13 @@ func (h Handler) APICreateLinkHandler(c *gin.Context) {
 		return
 	}
 
-	c.Header("Content-Type", "application/json")
-	c.Status(http.StatusCreated)
+	if isConflict {
+		c.Status(http.StatusConflict)
+	} else {
+		c.Status(http.StatusCreated)
+	}
 
+	c.Header("Content-Type", "application/json")
 	c.Writer.Write(rawURL)
 }
 

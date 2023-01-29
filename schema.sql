@@ -1,7 +1,7 @@
 CREATE TABLE urls
 (
     id SERIAL PRIMARY KEY,
-    long TEXT,
+    long TEXT unique,
     short TEXT unique,
     cookie TEXT
 );

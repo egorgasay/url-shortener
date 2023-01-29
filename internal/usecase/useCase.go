@@ -2,9 +2,11 @@ package usecase
 
 import (
 	"encoding/json"
+	"errors"
 	"log"
 	"url-shortener/internal/schema"
 	"url-shortener/internal/storage"
+	dbstorage "url-shortener/internal/storage/db"
 	shortenalgorithm "url-shortener/pkg/shortenAlgorithm"
 )
 
@@ -54,7 +56,7 @@ func Batch(repo storage.IStorage, batchURLs []schema.BatchURL, cookie, baseURL s
 	var respJSON []schema.ResponseBatchURL
 	for _, pair := range batchURLs {
 		short, err := CreateLink(repo, pair.Original, cookie, pair.Chars)
-		if err != nil {
+		if err != nil && !errors.Is(err, dbstorage.Exists) {
 			return nil, err
 		}
 

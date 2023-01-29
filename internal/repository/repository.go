@@ -29,7 +29,7 @@ func New(cfg *Config) (storage.IStorage, error) {
 			return nil, err
 		}
 
-		return dbStorage.NewRealStorage(db), nil
+		return dbStorage.NewRealStorage(db, cfg.DriverName), nil
 	case "mysql", "postgres":
 		var db *sql.DB
 		var err error
@@ -92,7 +92,7 @@ func New(cfg *Config) (storage.IStorage, error) {
 			}
 		}
 
-		return dbStorage.NewRealStorage(db), nil
+		return dbStorage.NewRealStorage(db, cfg.DriverName), nil
 	case "file":
 		filename := cfg.DataSourcePath
 		return filestorage.NewFileStorage(filename), nil
