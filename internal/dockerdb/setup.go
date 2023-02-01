@@ -38,7 +38,7 @@ func (ddb *VDB) Setup(strConn string) (*sql.DB, string) {
 
 func (ddb *VDB) getDB(connStr string) (*sql.DB, error) {
 	after := time.After(maxWaitTime)
-	ticker := time.Tick(tryInterval)
+	ticker := time.NewTicker(tryInterval)
 	for {
 		select {
 		case <-after:
@@ -49,7 +49,7 @@ func (ddb *VDB) getDB(connStr string) (*sql.DB, error) {
 			if pingErr == nil && err == nil {
 				return db, nil
 			}
-			<-ticker
+			<-ticker.C
 		}
 	}
 }
