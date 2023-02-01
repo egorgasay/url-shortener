@@ -8,27 +8,22 @@ import (
 	"net/http"
 	"url-shortener/config"
 	"url-shortener/internal/schema"
-	"url-shortener/internal/storage"
 	"url-shortener/internal/storage/db/service"
 	"url-shortener/internal/usecase"
 )
 
 type Handler struct {
-	storage storage.IStorage
-	conf    *config.Config
-	logic   usecase.UseCase
+	//storage storage.IStorage
+	conf  *config.Config
+	logic usecase.UseCase
 }
 
-func NewHandler(storage storage.IStorage, cfg *config.Config, logic usecase.UseCase) *Handler {
-	if storage == nil {
-		panic("storage равен nil")
-	}
-
+func NewHandler(cfg *config.Config, logic usecase.UseCase) *Handler {
 	if cfg == nil {
 		panic("конфиг равен nil")
 	}
 
-	return &Handler{storage: storage, conf: cfg, logic: logic}
+	return &Handler{conf: cfg, logic: logic}
 }
 
 func (h Handler) GetLinkHandler(c *gin.Context) {

@@ -48,7 +48,7 @@ func TestHandler_GetLinkHandler(t *testing.T) {
 			repo.AddLink("http://zrnzruvv7qfdy.ru/hlc65i", "zE", "df")
 
 			conf := &config.Config{Host: "127.0.0.1", DBConfig: cfg}
-			handler := Handler{storage: repo, conf: conf, logic: logic}
+			handler := Handler{conf: conf, logic: logic}
 
 			req := httptest.NewRequest("GET", test.target,
 				nil)
@@ -100,7 +100,7 @@ func TestHandler_CreateLinkHandler(t *testing.T) {
 			logic := usecase.New(repo)
 
 			conf := &config.Config{Host: "127.0.0.1", DBConfig: cfg}
-			handler := Handler{storage: repo, conf: conf, logic: logic}
+			handler := Handler{conf: conf, logic: logic}
 
 			req := httptest.NewRequest("POST", "/",
 				bytes.NewBufferString(test.inputBody))
@@ -152,7 +152,7 @@ func TestHandler_APICreateLinkHandler(t *testing.T) {
 			logic := usecase.New(repo)
 
 			conf := &config.Config{Host: "127.0.0.1", DBConfig: cfg}
-			handler := Handler{storage: repo, conf: conf, logic: logic}
+			handler := Handler{conf: conf, logic: logic}
 
 			req := httptest.NewRequest("POST", "/api/shorten",
 				bytes.NewBufferString(test.inputBody))
