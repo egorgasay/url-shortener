@@ -70,7 +70,7 @@ func New() *Config {
 		f.dsn = &dsn
 	}
 
-	if *f.dsn == "" && storage.Type(*f.storage) == defaultStorage {
+	if *f.dsn == "" && storage.Type(*f.storage) == defaultStorage && *f.vdb == "" {
 		s := ""
 		if *f.path != "" {
 			s = string(filestorage.FileStorageType)
@@ -87,7 +87,7 @@ func New() *Config {
 	}
 
 	log.Println(*f.dsn, *f.path, *f.storage)
-	var ddb *dockerdb.DockerDB
+	var ddb *dockerdb.VDB
 
 	if vdb := *f.vdb; vdb != "" {
 		err := dockerdb.Pull(*f.storage)
@@ -116,11 +116,6 @@ func New() *Config {
 		}
 	}
 
-	//if f.storage != mapStorage.MapStorageType && f.storage != fileStorage.FileStorageType &&
-	//	f.storage != dbstorage.DBStorageType {
-	//	panic("Type of storage is not supported")
-	//}
-
 	return &Config{
 		Host:    *f.host,
 		BaseURL: *f.baseURL,
@@ -129,7 +124,7 @@ func New() *Config {
 			DriverName:     storage.Type(*f.storage),
 			DataSourcePath: *f.path,
 			DataSourceCred: *f.dsn,
-			DockerDB:       ddb,
+			VDB:            ddb,
 		},
 	}
 }

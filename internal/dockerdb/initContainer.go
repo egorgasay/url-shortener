@@ -9,7 +9,7 @@ import (
 )
 
 // Init инициализирует docker контейнер с выбранной базой данных
-func (ddb *DockerDB) Init(ctx context.Context) error {
+func (ddb *VDB) Init(ctx context.Context) error {
 	var env []string
 	var portDocker nat.Port
 

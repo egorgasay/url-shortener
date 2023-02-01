@@ -3,9 +3,13 @@ package dockerdb
 
 import (
 	"github.com/docker/docker/client"
+	"time"
 )
 
-type DockerDB struct {
+const maxWaitTime = 20 * time.Second
+const tryInterval = 1 * time.Second
+
+type VDB struct {
 	ID   string
 	cli  *client.Client
 	Conf CustomDB
@@ -23,12 +27,12 @@ type CustomDB struct {
 	Vendor string
 }
 
-func New(conf CustomDB) (*DockerDB, error) {
+func New(conf CustomDB) (*VDB, error) {
 	cli, err := client.NewClientWithOpts(client.FromEnv,
 		client.WithAPIVersionNegotiation())
 	if err != nil {
 		return nil, err
 	}
 
-	return &DockerDB{cli: cli, Conf: conf}, nil
+	return &VDB{cli: cli, Conf: conf}, nil
 }

@@ -8,7 +8,7 @@ import (
 	"time"
 )
 
-func (ddb *DockerDB) Setup(strConn string) (*sql.DB, string) {
+func (ddb *VDB) Setup(strConn string) (*sql.DB, string) {
 	ctx := context.TODO()
 	if ddb.ID == "" {
 		err := ddb.Init(ctx)
@@ -36,9 +36,9 @@ func (ddb *DockerDB) Setup(strConn string) (*sql.DB, string) {
 	return db, strConn
 }
 
-func (ddb *DockerDB) getDB(connStr string) (*sql.DB, error) {
-	after := time.After(20 * time.Second)
-	log.Println(connStr)
+func (ddb *VDB) getDB(connStr string) (*sql.DB, error) {
+	after := time.After(maxWaitTime)
+	ticker := time.Tick(tryInterval)
 	for {
 		select {
 		case <-after:
@@ -49,8 +49,7 @@ func (ddb *DockerDB) getDB(connStr string) (*sql.DB, error) {
 			if pingErr == nil && err == nil {
 				return db, nil
 			}
-			log.Println(pingErr)
-			time.Sleep(1 * time.Second)
+			<-ticker
 		}
 	}
 }

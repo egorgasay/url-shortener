@@ -9,16 +9,17 @@ import (
 	"url-shortener/config"
 	"url-shortener/internal/schema"
 	"url-shortener/internal/storage"
-	dbStorage "url-shortener/internal/storage/db"
+	"url-shortener/internal/storage/db/service"
 	"url-shortener/internal/usecase"
 )
 
 type Handler struct {
 	storage storage.IStorage
 	conf    *config.Config
+	logic   usecase.UseCase
 }
 
-func NewHandler(storage storage.IStorage, cfg *config.Config) *Handler {
+func NewHandler(storage storage.IStorage, cfg *config.Config, logic usecase.UseCase) *Handler {
 	if storage == nil {
 		panic("storage равен nil")
 	}
@@ -27,7 +28,7 @@ func NewHandler(storage storage.IStorage, cfg *config.Config) *Handler {
 		panic("конфиг равен nil")
 	}
 
-	return &Handler{storage: storage, conf: cfg}
+	return &Handler{storage: storage, conf: cfg, logic: logic}
 }
 
 func (h Handler) GetLinkHandler(c *gin.Context) {
@@ -37,7 +38,7 @@ func (h Handler) GetLinkHandler(c *gin.Context) {
 		setCookies(c, h.conf.Host, h.conf.Key)
 	}
 
-	longURL, err := usecase.GetLink(h.storage, c.Param("id"))
+	longURL, err := h.logic.GetLink(c.Param("id"))
 	if err != nil {
 		log.Println(err)
 		c.AbortWithStatus(http.StatusBadRequest)
@@ -55,7 +56,7 @@ func (h Handler) GetAllLinksHandler(c *gin.Context) {
 		cookie = setCookies(c, h.conf.Host, h.conf.Key)
 	}
 
-	URLs, err := usecase.GetAllLinksByCookie(h.storage, cookie, h.conf.BaseURL)
+	URLs, err := h.logic.GetAllLinksByCookie(cookie, h.conf.BaseURL)
 	if err != nil {
 		log.Println(err)
 		c.AbortWithStatus(http.StatusBadRequest)
@@ -88,9 +89,9 @@ func (h Handler) CreateLinkHandler(c *gin.Context) {
 		return
 	}
 
-	charsForURL, err := usecase.CreateLink(h.storage, string(data), cookie)
+	charsForURL, err := h.logic.CreateLink(string(data), cookie)
 	if err != nil {
-		if !errors.Is(err, dbStorage.ErrExists) {
+		if !errors.Is(err, service.ErrExists) {
 			c.Error(err)
 			c.AbortWithStatus(http.StatusInternalServerError)
 			return
@@ -147,9 +148,9 @@ func (h Handler) APICreateLinkHandler(c *gin.Context) {
 	}
 
 	var isConflict bool
-	charsForURL, err := usecase.CreateLink(h.storage, rj.URL, cookie)
+	charsForURL, err := h.logic.CreateLink(rj.URL, cookie)
 	if err != nil {
-		if !errors.Is(err, dbStorage.ErrExists) {
+		if !errors.Is(err, service.ErrExists) {
 			c.Error(err)
 			c.AbortWithStatus(http.StatusInternalServerError)
 			return
@@ -186,7 +187,7 @@ func (h Handler) APICreateLinkHandler(c *gin.Context) {
 }
 
 func (h Handler) Ping(c *gin.Context) {
-	err := usecase.Ping(h.storage)
+	err := h.logic.Ping()
 	if err != nil {
 		c.Status(http.StatusInternalServerError)
 		return
@@ -209,7 +210,7 @@ func (h Handler) BatchHandler(c *gin.Context) {
 		return
 	}
 
-	data, err := usecase.Batch(h.storage, batchURLs, cookie, h.conf.BaseURL)
+	data, err := h.logic.Batch(batchURLs, cookie, h.conf.BaseURL)
 	if err != nil {
 		log.Println(err)
 		c.Status(http.StatusInternalServerError)
