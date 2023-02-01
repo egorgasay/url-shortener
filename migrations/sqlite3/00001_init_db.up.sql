@@ -4,5 +4,5 @@ CREATE TABLE urls
     long TEXT,
     short TEXT,
     cookie TEXT
-);EOQ
+);
 INSERT INTO urls VALUES (0, 'http://localhost:8080/', '0', 'start');

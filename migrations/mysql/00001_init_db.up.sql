@@ -4,5 +4,5 @@ CREATE TABLE urls
     longURL TEXT,
     shortURL TEXT,
     cookie TEXT
-);EOQ
+);
 INSERT INTO urls (id) VALUES (1);
