@@ -27,7 +27,7 @@ type Flag struct {
 	host    *string
 	baseURL *string
 	path    *string
-	storage storage.Type
+	storage *string
 	dsn     *string
 	vendor  *string
 	vdb     *string
@@ -39,7 +39,7 @@ func init() {
 	f.host = flag.String("a", defaultHost, "-a=host")
 	f.baseURL = flag.String("b", defaultURL, "-b=URL")
 	f.path = flag.String("f", defaultPath, "-f=path")
-	f.storage = storage.Type(*flag.String("s", string(defaultStorage), "-s=storage"))
+	f.storage = flag.String("s", string(defaultStorage), "-s=storage")
 	f.dsn = flag.String("d", defaultdsn, "-d=connection_string")
 	f.vdb = flag.String("vdb", defaultvdb, "-vdb=virtual_db_name")
 }
@@ -70,11 +70,14 @@ func New() *Config {
 		f.dsn = &dsn
 	}
 
-	if *f.dsn == "" && f.storage == defaultStorage {
+	if *f.dsn == "" && storage.Type(*f.storage) == defaultStorage && *f.vdb == "" {
+		s := ""
 		if *f.path != "" {
-			f.storage = filestorage.FileStorageType
+			s = string(filestorage.FileStorageType)
+			f.storage = &s
 		} else {
-			f.storage = mapstorage.MapStorageType
+			s = string(mapstorage.MapStorageType)
+			f.storage = &s
 		}
 	}
 
@@ -83,11 +86,11 @@ func New() *Config {
 		log.Fatal("Generate: ", err)
 	}
 
-	log.Println(*f.dsn, *f.path, f.storage)
-	var ddb *dockerdb.DockerDB
+	log.Println(*f.dsn, *f.path, *f.storage)
+	var ddb *dockerdb.VDB
 
 	if vdb := *f.vdb; vdb != "" {
-		err := dockerdb.Pull(string(f.storage))
+		err := dockerdb.Pull(*f.storage)
 		if err != nil {
 			log.Fatal("Pull: ", err)
 		}
@@ -104,7 +107,7 @@ func New() *Config {
 				Password: generated,
 			},
 			Port:   port,
-			Vendor: string(f.storage),
+			Vendor: *f.storage,
 		}
 
 		ddb, err = dockerdb.New(cfg)
@@ -113,20 +116,15 @@ func New() *Config {
 		}
 	}
 
-	//if f.storage != mapStorage.MapStorageType && f.storage != fileStorage.FileStorageType &&
-	//	f.storage != dbstorage.DBStorageType {
-	//	panic("Type of storage is not supported")
-	//}
-
 	return &Config{
 		Host:    *f.host,
 		BaseURL: *f.baseURL,
 		Key:     []byte(generated),
 		DBConfig: &repository.Config{
-			DriverName:     f.storage,
+			DriverName:     storage.Type(*f.storage),
 			DataSourcePath: *f.path,
 			DataSourceCred: *f.dsn,
-			DockerDB:       ddb,
+			VDB:            ddb,
 		},
 	}
 }

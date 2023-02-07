@@ -6,7 +6,7 @@ import (
 )
 
 // Run запускает docker контейнер
-func (ddb *DockerDB) Run(ctx context.Context) error {
+func (ddb *VDB) Run(ctx context.Context) error {
 	if err := ddb.cli.ContainerStart(ctx, ddb.ID, types.ContainerStartOptions{}); err != nil {
 		return err
 	}

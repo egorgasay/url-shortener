@@ -2,18 +2,19 @@ package usecase
 
 import (
 	"encoding/json"
+	"errors"
 	"log"
 	"url-shortener/internal/schema"
-	"url-shortener/internal/storage"
+	"url-shortener/internal/storage/db/service"
 	shortenalgorithm "url-shortener/pkg/shortenAlgorithm"
 )
 
-func GetLink(repo storage.IStorage, shortURL string) (longURL string, err error) {
-	return repo.GetLongLink(shortURL)
+func (uc UseCase) GetLink(shortURL string) (longURL string, err error) {
+	return uc.storage.GetLongLink(shortURL)
 }
 
-func CreateLink(repo storage.IStorage, longURL, cookie string, chars ...string) (string, error) {
-	id, err := repo.FindMaxID()
+func (uc UseCase) CreateLink(longURL, cookie string, chars ...string) (string, error) {
+	id, err := uc.storage.FindMaxID()
 	if err != nil {
 		log.Println(err)
 		return "", err
@@ -29,11 +30,11 @@ func CreateLink(repo storage.IStorage, longURL, cookie string, chars ...string) 
 		}
 	}
 
-	return repo.AddLink(longURL, shortURL, cookie)
+	return uc.storage.AddLink(longURL, shortURL, cookie)
 }
 
-func GetAllLinksByCookie(repo storage.IStorage, shortURL, baseURL string) (URLs string, err error) {
-	links, err := repo.GetAllLinksByCookie(shortURL, baseURL)
+func (uc UseCase) GetAllLinksByCookie(shortURL, baseURL string) (URLs string, err error) {
+	links, err := uc.storage.GetAllLinksByCookie(shortURL, baseURL)
 	if err != nil {
 		return "", err
 	}
@@ -46,15 +47,15 @@ func GetAllLinksByCookie(repo storage.IStorage, shortURL, baseURL string) (URLs 
 	return string(b), nil
 }
 
-func Ping(repo storage.IStorage) error {
-	return repo.Ping()
+func (uc UseCase) Ping() error {
+	return uc.storage.Ping()
 }
 
-func Batch(repo storage.IStorage, batchURLs []schema.BatchURL, cookie, baseURL string) ([]schema.ResponseBatchURL, error) {
+func (uc UseCase) Batch(batchURLs []schema.BatchURL, cookie, baseURL string) ([]schema.ResponseBatchURL, error) {
 	var respJSON []schema.ResponseBatchURL
 	for _, pair := range batchURLs {
-		short, err := CreateLink(repo, pair.Original, cookie, pair.Chars)
-		if err != nil {
+		short, err := uc.CreateLink(pair.Original, cookie, pair.Chars)
+		if err != nil && !errors.Is(err, service.ErrExists) {
 			return nil, err
 		}
 

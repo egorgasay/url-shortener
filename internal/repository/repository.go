@@ -14,7 +14,7 @@ type Config struct {
 	DriverName     storage.Type
 	DataSourceCred string
 	DataSourcePath string
-	DockerDB       *dockerdb.DockerDB
+	VDB            *dockerdb.VDB
 }
 
 func New(cfg *Config) (storage.IStorage, error) {
@@ -24,19 +24,19 @@ func New(cfg *Config) (storage.IStorage, error) {
 
 	switch cfg.DriverName {
 	case "sqlite3":
-		db, err := upSqlite(cfg, "schema.sql")
+		db, err := upSqlite(cfg, "sqlite3-schema.sql")
 		if err != nil {
 			return nil, err
 		}
 
-		return dbStorage.NewRealStorage(db), nil
+		return dbStorage.NewRealStorage(db, cfg.DriverName), nil
 	case "mysql", "postgres":
 		var db *sql.DB
 		var err error
 
-		if cfg.DockerDB != nil {
+		if cfg.VDB != nil {
 			cfg.DataSourcePath = "dockerDBs"
-			sqlitedb, err := upSqlite(cfg, "sqlite-schema.sql")
+			sqlitedb, err := upSqlite(cfg, "DockerDBs-schema.sql")
 			if err != nil {
 				return nil, err
 			}
@@ -46,22 +46,22 @@ func New(cfg *Config) (storage.IStorage, error) {
 				return nil, err
 			}
 
-			row := stmt.QueryRow(cfg.DockerDB.Conf.DB.Name)
+			row := stmt.QueryRow(cfg.VDB.Conf.DB.Name)
 
 			err = row.Err()
 			if err != nil {
 				return nil, err
 			}
 
-			err = row.Scan(&cfg.DockerDB.ID, &cfg.DataSourceCred)
+			err = row.Scan(&cfg.VDB.ID, &cfg.DataSourceCred)
 			if err != sql.ErrNoRows && err != nil {
 				return nil, err
 			}
 
 			if cfg.DataSourceCred == "" {
-				db, cfg.DataSourceCred = cfg.DockerDB.Setup("")
+				db, cfg.DataSourceCred = cfg.VDB.Setup("")
 			} else {
-				db, _ = cfg.DockerDB.Setup(cfg.DataSourceCred)
+				db, _ = cfg.VDB.Setup(cfg.DataSourceCred)
 			}
 
 			if errors.Is(err, sql.ErrNoRows) {
@@ -70,7 +70,7 @@ func New(cfg *Config) (storage.IStorage, error) {
 					return nil, err
 				}
 
-				_, err = stmt.Exec(cfg.DockerDB.Conf.DB.Name, cfg.DockerDB.ID, cfg.DataSourceCred)
+				_, err = stmt.Exec(cfg.VDB.Conf.DB.Name, cfg.VDB.ID, cfg.DataSourceCred)
 				if err != nil {
 					return nil, err
 				}
@@ -83,16 +83,16 @@ func New(cfg *Config) (storage.IStorage, error) {
 			}
 		}
 
-		used := storage.IsDBUsedBefore(db)
+		//used := storage.IsDBUsedBefore(db)
+		//
+		//if !used {
+		//	err := storage.InitDatabase(db, string(cfg.DriverName+"-schema.sql"))
+		//	if err != nil {
+		//		return nil, err
+		//	}
+		//}
 
-		if !used {
-			err := storage.InitDatabase(db, "schema.sql")
-			if err != nil {
-				return nil, err
-			}
-		}
-
-		return dbStorage.NewRealStorage(db), nil
+		return dbStorage.NewRealStorage(db, cfg.DriverName), nil
 	case "file":
 		filename := cfg.DataSourcePath
 		return filestorage.NewFileStorage(filename), nil
