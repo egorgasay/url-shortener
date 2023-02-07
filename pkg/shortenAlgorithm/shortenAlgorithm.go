@@ -6,13 +6,19 @@ const (
 	alphabet string = "AB1CDEFG2HIJKLM3NOPQRS4TUVW5XYZabc6defgh7ijklmn8opqrs9tuvw0xyz"
 )
 
-// GetShortName will be used from here when I commit it to the main branch
-func GetShortName(lastID int) string {
+func GetShortName(lastID int) (string, error) {
 	hd := hashids.NewData()
 	hd.Salt = alphabet
 
-	h, _ := hashids.NewWithData(hd)
-	id, _ := h.Encode([]int{lastID})
+	h, err := hashids.NewWithData(hd)
+	if err != nil {
+		return "", err
+	}
 
-	return id
+	id, err := h.Encode([]int{lastID})
+	if err != nil {
+		return "", err
+	}
+
+	return id, nil
 }

@@ -1,11 +1,13 @@
 package storage
 
+import "url-shortener/internal/schema"
+
 type IStorage interface {
 	FindMaxID() (int, error)
-	AddLink(longURL string, id int) (string, error)
+	AddLink(longURL, shortURL, cookie string) (string, error)
 	GetLongLink(shortURL string) (longURL string, err error)
+	GetAllLinksByCookie(cookie string, baseURL string) (URLs []schema.URL, err error)
+	Ping() error
 }
 
-type Storage struct {
-	IStorage
-}
+type Type string

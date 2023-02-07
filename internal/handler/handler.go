@@ -6,25 +6,34 @@ import (
 	"github.com/gin-gonic/gin"
 	"log"
 	"net/http"
-	"url-shortener/internal/service"
-
-	_ "github.com/mattn/go-sqlite3"
+	"url-shortener/config"
+	"url-shortener/internal/schema"
+	"url-shortener/internal/storage/db/service"
+	"url-shortener/internal/usecase"
 )
 
 type Handler struct {
-	services *service.Service
+	//storage storage.IStorage
+	conf  *config.Config
+	logic usecase.UseCase
 }
 
-func NewHandler(storage service.IService) *Handler {
-	if storage == nil {
-		panic("переменная storage равна nil")
+func NewHandler(cfg *config.Config, logic usecase.UseCase) *Handler {
+	if cfg == nil {
+		panic("конфиг равен nil")
 	}
 
-	return &Handler{service.NewService(storage)}
+	return &Handler{conf: cfg, logic: logic}
 }
 
 func (h Handler) GetLinkHandler(c *gin.Context) {
-	longURL, err := h.services.GetLink(c.Param("id"))
+	cookie, err := getCookies(c)
+	if err != nil || !checkCookies(cookie, h.conf.Key) {
+		log.Println("New cookie was created")
+		setCookies(c, h.conf.Host, h.conf.Key)
+	}
+
+	longURL, err := h.logic.GetLink(c.Param("id"))
 	if err != nil {
 		log.Println(err)
 		c.AbortWithStatus(http.StatusBadRequest)
@@ -36,7 +45,37 @@ func (h Handler) GetLinkHandler(c *gin.Context) {
 	c.Status(http.StatusTemporaryRedirect)
 }
 
+func (h Handler) GetAllLinksHandler(c *gin.Context) {
+	cookie, err := getCookies(c)
+	if err != nil || !checkCookies(cookie, h.conf.Key) {
+		cookie = setCookies(c, h.conf.Host, h.conf.Key)
+	}
+
+	URLs, err := h.logic.GetAllLinksByCookie(cookie, h.conf.BaseURL)
+	if err != nil {
+		log.Println(err)
+		c.AbortWithStatus(http.StatusBadRequest)
+
+		return
+	}
+
+	c.Header("Content-Type", "application/json")
+
+	if URLs == "null" {
+		c.Status(http.StatusNoContent)
+	} else {
+		c.Status(http.StatusOK)
+	}
+
+	c.Writer.WriteString(URLs)
+}
+
 func (h Handler) CreateLinkHandler(c *gin.Context) {
+	cookie, err := getCookies(c)
+	if err != nil || !checkCookies(cookie, h.conf.Key) {
+		cookie = setCookies(c, h.conf.Host, h.conf.Key)
+	}
+
 	data, err := UseGzip(c.Request.Body, c.Request.Header.Get("Content-Type"))
 	if err != nil {
 		c.Error(err)
@@ -45,15 +84,28 @@ func (h Handler) CreateLinkHandler(c *gin.Context) {
 		return
 	}
 
-	charsForURL, err := h.services.CreateLink(string(data))
+	charsForURL, err := h.logic.CreateLink(string(data), cookie)
 	if err != nil {
-		c.Error(err)
-		c.AbortWithStatus(http.StatusInternalServerError)
+		if !errors.Is(err, service.ErrExists) {
+			c.Error(err)
+			c.AbortWithStatus(http.StatusInternalServerError)
+			return
+		}
+		c.Status(http.StatusConflict)
 
+		URL, err := CreateLink(charsForURL, h.conf.BaseURL)
+		if err != nil {
+			c.Error(err)
+			c.AbortWithStatus(http.StatusInternalServerError)
+
+			return
+		}
+
+		c.Writer.WriteString(URL.String())
 		return
 	}
 
-	URL, err := CreateLink(charsForURL)
+	URL, err := CreateLink(charsForURL, h.conf.BaseURL)
 	if err != nil {
 		c.Error(err)
 		c.AbortWithStatus(http.StatusInternalServerError)
@@ -67,6 +119,11 @@ func (h Handler) CreateLinkHandler(c *gin.Context) {
 }
 
 func (h Handler) APICreateLinkHandler(c *gin.Context) {
+	cookie, err := getCookies(c)
+	if err != nil || !checkCookies(cookie, h.conf.Key) {
+		setCookies(c, h.conf.Host, h.conf.Key)
+	}
+
 	b, err := UseGzip(c.Request.Body, c.Request.Header.Get("Content-Type"))
 	if err != nil {
 		c.Error(err)
@@ -75,11 +132,7 @@ func (h Handler) APICreateLinkHandler(c *gin.Context) {
 		return
 	}
 
-	type RequestJSON struct {
-		URL string `json:"url"`
-	}
-
-	var rj RequestJSON
+	var rj schema.RequestJSON
 
 	err = json.Unmarshal(b, &rj)
 	if err != nil {
@@ -89,7 +142,18 @@ func (h Handler) APICreateLinkHandler(c *gin.Context) {
 		return
 	}
 
-	charsForURL, err := h.services.CreateLink(rj.URL)
+	var isConflict bool
+	charsForURL, err := h.logic.CreateLink(rj.URL, cookie)
+	if err != nil {
+		if !errors.Is(err, service.ErrExists) {
+			c.Error(err)
+			c.AbortWithStatus(http.StatusInternalServerError)
+			return
+		}
+		isConflict = true
+	}
+
+	URL, err := CreateLink(charsForURL, h.conf.BaseURL)
 	if err != nil {
 		c.Error(err)
 		c.AbortWithStatus(http.StatusInternalServerError)
@@ -97,19 +161,7 @@ func (h Handler) APICreateLinkHandler(c *gin.Context) {
 		return
 	}
 
-	URL, err := CreateLink(charsForURL)
-	if err != nil {
-		c.Error(err)
-		c.AbortWithStatus(http.StatusInternalServerError)
-
-		return
-	}
-
-	type ResponseJSON struct {
-		Result string `json:"result"`
-	}
-
-	respJSON := ResponseJSON{Result: URL.String()}
+	respJSON := schema.ResponseJSON{Result: URL.String()}
 
 	rawURL, err := json.Marshal(respJSON)
 	if err != nil {
@@ -119,8 +171,47 @@ func (h Handler) APICreateLinkHandler(c *gin.Context) {
 		return
 	}
 
-	c.Header("Content-Type", "application/json")
-	c.Status(http.StatusCreated)
+	if isConflict {
+		c.Status(http.StatusConflict)
+	} else {
+		c.Status(http.StatusCreated)
+	}
 
+	c.Header("Content-Type", "application/json")
 	c.Writer.Write(rawURL)
+}
+
+func (h Handler) Ping(c *gin.Context) {
+	err := h.logic.Ping()
+	if err != nil {
+		c.Status(http.StatusInternalServerError)
+		return
+	}
+
+	c.Status(http.StatusOK)
+}
+
+func (h Handler) BatchHandler(c *gin.Context) {
+	cookie, err := getCookies(c)
+	if err != nil || !checkCookies(cookie, h.conf.Key) {
+		setCookies(c, h.conf.Host, h.conf.Key)
+	}
+
+	var batchURLs []schema.BatchURL
+	err = c.BindJSON(&batchURLs)
+	if err != nil {
+		log.Println(err)
+		c.Status(http.StatusInternalServerError)
+		return
+	}
+
+	data, err := h.logic.Batch(batchURLs, cookie, h.conf.BaseURL)
+	if err != nil {
+		log.Println(err)
+		c.Status(http.StatusInternalServerError)
+		return
+	}
+
+	c.Header("Content-Type", "application/json")
+	c.IndentedJSON(http.StatusCreated, data)
 }

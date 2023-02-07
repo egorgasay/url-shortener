@@ -3,42 +3,23 @@ package dbstorage
 import (
 	"database/sql"
 	"url-shortener/internal/storage"
-	shortenalgorithm "url-shortener/pkg/shortenAlgorithm"
+	"url-shortener/internal/storage/db/mysql"
+	"url-shortener/internal/storage/db/postgres"
+	"url-shortener/internal/storage/db/service"
+	"url-shortener/internal/storage/db/sqlite3"
 )
 
-type RealStorage struct {
-	DB *sql.DB
-}
+const DBStorageType storage.Type = "postgres"
 
-func NewRealStorage(db *sql.DB) storage.IStorage {
-	return &RealStorage{DB: db}
-}
-
-func (s RealStorage) AddLink(longURL string, id int) (string, error) {
-	shortURL := shortenalgorithm.GetShortName(id)
-	stmt := "INSERT INTO urls (long, short) VALUES (?, ?)"
-
-	_, err := s.DB.Exec(stmt, longURL, shortURL)
-
-	if err != nil {
-		return "", err
+func NewRealStorage(db *sql.DB, vendor storage.Type) service.IRealStorage {
+	switch vendor {
+	case "postgres":
+		return postgres.New(db)
+	case "mysql":
+		return mysql.New(db)
+	case "sqlite3":
+		return sqlite3.New(db)
 	}
 
-	return shortURL, nil
-}
-
-func (s RealStorage) FindMaxID() (int, error) {
-	var id int
-
-	stm := s.DB.QueryRow("SELECT MAX(id) FROM urls")
-	err := stm.Scan(&id)
-
-	return id, err
-}
-
-func (s RealStorage) GetLongLink(shortURL string) (longURL string, err error) {
-	stm := s.DB.QueryRow("SELECT long FROM urls WHERE short = ?", shortURL)
-	err = stm.Scan(&longURL)
-
-	return longURL, err
+	return nil
 }

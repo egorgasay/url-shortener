@@ -3,28 +3,34 @@ package mapstorage
 import (
 	"errors"
 	"sync"
+	"url-shortener/internal/schema"
 	"url-shortener/internal/storage"
-	shortenalgorithm "url-shortener/pkg/shortenAlgorithm"
 )
 
 type MapStorage struct {
 	mu        sync.RWMutex
-	container map[string]string
+	container map[shortURL]data
+}
+
+const MapStorageType storage.Type = "map"
+
+type shortURL string
+type data struct {
+	cookie  string
+	longURL string
 }
 
 func NewMapStorage() storage.IStorage {
-	db := make(map[string]string, 10)
+	db := make(map[shortURL]data, 10)
 	return &MapStorage{container: db}
 }
 
-func (s *MapStorage) AddLink(longURL string, id int) (string, error) {
-	shortURL := shortenalgorithm.GetShortName(id)
-
+func (s *MapStorage) AddLink(longURL, ShortURL, cookie string) (string, error) {
 	s.mu.RLock()
 	defer s.mu.RUnlock()
-	s.container[shortURL] = longURL
+	s.container[shortURL(ShortURL)] = data{cookie: cookie, longURL: longURL}
 
-	return shortURL, nil
+	return ShortURL, nil
 }
 
 func (s *MapStorage) FindMaxID() (int, error) {
@@ -34,14 +40,37 @@ func (s *MapStorage) FindMaxID() (int, error) {
 	return len(s.container), nil
 }
 
-func (s *MapStorage) GetLongLink(shortURL string) (string, error) {
+func (s *MapStorage) GetLongLink(ShortURL string) (string, error) {
 	s.mu.RLock()
 	defer s.mu.RUnlock()
 
-	longURL, ok := s.container[shortURL]
+	Data, ok := s.container[shortURL(ShortURL)]
 	if !ok {
-		return longURL, errors.New("короткой ссылки не существует")
+		return "", errors.New("короткой ссылки не существует")
 	}
 
-	return longURL, nil
+	return Data.longURL, nil
+}
+
+func (s *MapStorage) GetAllLinksByCookie(cookie, baseURL string) ([]schema.URL, error) {
+	s.mu.RLock()
+	defer s.mu.RUnlock()
+
+	var URLs []schema.URL
+
+	for short, dt := range s.container {
+		if dt.cookie == cookie {
+			URLs = append(URLs, schema.URL{LongURL: dt.longURL, ShortURL: baseURL + string(short)})
+		}
+	}
+
+	return URLs, nil
+}
+
+func (s *MapStorage) Ping() error {
+	if s.container == nil {
+		return errors.New("хранилище не существует")
+	}
+
+	return nil
 }

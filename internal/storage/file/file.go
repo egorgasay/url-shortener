@@ -8,8 +8,8 @@ import (
 	"os"
 	"strings"
 	"sync"
+	"url-shortener/internal/schema"
 	"url-shortener/internal/storage"
-	shortenalgorithm "url-shortener/pkg/shortenAlgorithm"
 )
 
 type FileStorage struct {
@@ -17,6 +17,8 @@ type FileStorage struct {
 	File *os.File
 	Mu   sync.Mutex
 }
+
+const FileStorageType storage.Type = "file"
 
 func NewFileStorage(path string) storage.IStorage {
 	return &FileStorage{Path: path}
@@ -38,9 +40,7 @@ func (fs *FileStorage) Close() error {
 	return fs.File.Close()
 }
 
-func (fs *FileStorage) AddLink(longURL string, id int) (string, error) {
-	shortURL := shortenalgorithm.GetShortName(id)
-
+func (fs *FileStorage) AddLink(longURL, shortURL, cookie string) (string, error) {
 	err := fs.Open()
 	if err != nil {
 		return "", err
@@ -50,7 +50,7 @@ func (fs *FileStorage) AddLink(longURL string, id int) (string, error) {
 
 	writer := bufio.NewWriter(fs.File)
 
-	_, err = writer.Write([]byte(shortURL + " - " + longURL + "\n"))
+	_, err = writer.Write([]byte(shortURL + " - " + longURL + " - " + cookie + "\n"))
 	if err != nil {
 		return "", err
 	}
@@ -109,4 +109,41 @@ func (fs *FileStorage) GetLongLink(shortURL string) (longURL string, err error) 
 	}
 
 	return longURL, errors.New("not found")
+}
+
+func (fs *FileStorage) GetAllLinksByCookie(cookie, baseURL string) ([]schema.URL, error) {
+	err := fs.Open()
+	if err != nil {
+		return nil, err
+	}
+
+	defer fs.Close()
+
+	scanner := bufio.NewScanner(fs.File)
+	var URLs []schema.URL
+
+	for scanner.Scan() {
+		line := scanner.Text()
+		split := strings.Split(line, " - ")
+
+		if len(split) == 3 && split[2] == cookie {
+			URLs = append(URLs, schema.URL{LongURL: split[1], ShortURL: baseURL + split[0]})
+		}
+	}
+
+	return URLs, nil
+}
+
+func (fs *FileStorage) Ping() error {
+	err := fs.Open()
+	if err != nil {
+		return err
+	}
+
+	err = fs.Close()
+	if err != nil {
+		return err
+	}
+
+	return nil
 }

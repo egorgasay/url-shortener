@@ -2,15 +2,20 @@ package handler
 
 import (
 	"compress/gzip"
+	"crypto/hmac"
+	"crypto/sha256"
+	"encoding/hex"
 	"errors"
+	"fmt"
+	"github.com/gin-gonic/gin"
 	"io"
 	"net/url"
 	"strings"
-	"url-shortener/config"
+	"time"
 )
 
-func CreateLink(chars string) (*url.URL, error) {
-	URL, err := url.Parse(*(config.F.BaseURL))
+func CreateLink(chars, baseURL string) (*url.URL, error) {
+	URL, err := url.Parse(baseURL)
 	if err != nil {
 		return nil, err
 	}
@@ -54,4 +59,54 @@ func DecompressGzip(body io.Reader) ([]byte, error) {
 	}
 
 	return data, nil
+}
+
+func NewCookie(key []byte) string {
+	h := hmac.New(sha256.New, key)
+	src := []byte(fmt.Sprint(time.Now().UnixNano()))
+	h.Write(src)
+
+	return hex.EncodeToString(h.Sum(nil)) + "-" + hex.EncodeToString(src)
+}
+
+func getCookies(c *gin.Context) (cookie string, err error) {
+	cookie = c.Request.Header.Get("Authorization")
+	if cookie == "" {
+		cookie, err = c.Cookie("token")
+		if err != nil {
+			return "", err
+		}
+	}
+
+	return cookie, nil
+}
+
+func setCookies(c *gin.Context, host string, key []byte) (cookie string) {
+	cookie = NewCookie(key)
+	domain := strings.Split(host, ":")[0]
+	c.SetCookie("token", cookie, 10, "",
+		domain, true, false)
+	c.Header("Authorization", cookie)
+
+	return cookie
+}
+
+func checkCookies(cookie string, key []byte) bool {
+	arr := strings.Split(cookie, "-")
+	k, v := arr[0], arr[1]
+
+	sign, err := hex.DecodeString(k)
+	if err != nil {
+		return false
+	}
+
+	data, err := hex.DecodeString(v)
+	if err != nil {
+		return false
+	}
+
+	h := hmac.New(sha256.New, key)
+	h.Write(data)
+
+	return hmac.Equal(sign, h.Sum(nil))
 }

@@ -2,43 +2,31 @@ package handler
 
 import (
 	"bytes"
-	"errors"
 	"github.com/gin-gonic/gin"
-	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/assert"
 	"net/http/httptest"
 	"testing"
-	"url-shortener/internal/service"
-	service_mocks "url-shortener/internal/service/mocks"
+	"url-shortener/config"
+	"url-shortener/internal/repository"
+	"url-shortener/internal/usecase"
 )
 
 func TestHandler_GetLinkHandler(t *testing.T) {
-	type mockBehavior func(r *service_mocks.MockIService)
-
 	tests := []struct {
 		name                 string
 		target               string
-		mockBehavior         mockBehavior
 		expectedStatusCode   int
 		expectedResponseHead string
 	}{
 		{
-			name:   "Ok",
-			target: "/IVI",
-			mockBehavior: func(r *service_mocks.MockIService) {
-				r.EXPECT().GetLink("IVI").Return(
-					"http://zrnzruvv7qfdy.ru/hlc65i", nil).AnyTimes()
-			},
+			name:                 "Ok",
+			target:               "/zE",
 			expectedStatusCode:   307,
 			expectedResponseHead: "http://zrnzruvv7qfdy.ru/hlc65i",
 		},
 		{
-			name:   "Err",
-			target: "/IVI1",
-			mockBehavior: func(r *service_mocks.MockIService) {
-				r.EXPECT().GetLink("IVI1").Return(
-					"", errors.New("bad url")).AnyTimes()
-			},
+			name:                 "Err",
+			target:               "/IVI1",
 			expectedStatusCode:   400,
 			expectedResponseHead: "",
 		},
@@ -46,14 +34,21 @@ func TestHandler_GetLinkHandler(t *testing.T) {
 
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
-			c := gomock.NewController(t)
-			defer c.Finish()
+			cfg := &repository.Config{
+				DriverName:     "map",
+				DataSourcePath: "test",
+			}
+			repo, err := repository.New(cfg)
+			if err != nil {
+				t.Fatal(err)
+			}
 
-			repo := service_mocks.NewMockIService(c)
-			test.mockBehavior(repo)
+			logic := usecase.New(repo)
 
-			services := &service.Service{IService: repo}
-			handler := Handler{services}
+			repo.AddLink("http://zrnzruvv7qfdy.ru/hlc65i", "zE", "df")
+
+			conf := &config.Config{Host: "127.0.0.1", DBConfig: cfg}
+			handler := Handler{conf: conf, logic: logic}
 
 			req := httptest.NewRequest("GET", test.target,
 				nil)
@@ -71,43 +66,21 @@ func TestHandler_GetLinkHandler(t *testing.T) {
 }
 
 func TestHandler_CreateLinkHandler(t *testing.T) {
-	type mockBehavior func(r *service_mocks.MockIService)
-
 	tests := []struct {
 		name                 string
 		inputBody            string
-		mockBehavior         mockBehavior
 		expectedStatusCode   int
 		expectedResponseBody string
 	}{
 		{
-			name:      "Ok",
-			inputBody: "vk.com/gasayminajj",
-			mockBehavior: func(r *service_mocks.MockIService) {
-				r.EXPECT().CreateLink("vk.com/gasayminajj").Return(
-					"BEh6", nil)
-			},
+			name:                 "Ok",
+			inputBody:            "vk.com/gasayminajj",
 			expectedStatusCode:   201,
-			expectedResponseBody: `http://127.0.0.1:8080/BEh6`,
+			expectedResponseBody: `zE`,
 		},
 		{
-			name:      "already exists",
-			inputBody: "http://zrnzqddy.ru/hlc65i",
-			mockBehavior: func(r *service_mocks.MockIService) {
-				r.EXPECT().CreateLink("http://zrnzqddy.ru/hlc65i").Return(
-					"", gin.Error{Err: errors.New("URL уже существует")})
-			},
-			expectedStatusCode:   500,
-			expectedResponseBody: "",
-		},
-		{
-			name:      "server error",
-			inputBody: "q",
-			mockBehavior: func(r *service_mocks.MockIService) {
-				r.EXPECT().CreateLink("q").Return(
-					"", gin.Error{Err: errors.New("недопустимый URL")}).
-					AnyTimes()
-			},
+			name:                 "server error",
+			inputBody:            "q",
 			expectedStatusCode:   500,
 			expectedResponseBody: "",
 		},
@@ -115,14 +88,19 @@ func TestHandler_CreateLinkHandler(t *testing.T) {
 
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
-			c := gomock.NewController(t)
-			defer c.Finish()
+			cfg := &repository.Config{
+				DriverName:     "map",
+				DataSourcePath: "test",
+			}
+			repo, err := repository.New(cfg)
+			if err != nil {
+				t.Fatal(err)
+			}
 
-			repo := service_mocks.NewMockIService(c)
-			test.mockBehavior(repo)
+			logic := usecase.New(repo)
 
-			services := &service.Service{IService: repo}
-			handler := Handler{services}
+			conf := &config.Config{Host: "127.0.0.1", DBConfig: cfg}
+			handler := Handler{conf: conf, logic: logic}
 
 			req := httptest.NewRequest("POST", "/",
 				bytes.NewBufferString(test.inputBody))
@@ -140,43 +118,21 @@ func TestHandler_CreateLinkHandler(t *testing.T) {
 }
 
 func TestHandler_APICreateLinkHandler(t *testing.T) {
-	type mockBehavior func(r *service_mocks.MockIService)
-
 	tests := []struct {
 		name                 string
 		inputBody            string
-		mockBehavior         mockBehavior
 		expectedStatusCode   int
 		expectedResponseBody string
 	}{
 		{
-			name:      "Ok",
-			inputBody: `{"url":"vk.com/gasayminajj"}`,
-			mockBehavior: func(r *service_mocks.MockIService) {
-				r.EXPECT().CreateLink("vk.com/gasayminajj").Return(
-					"BEh6", nil).AnyTimes()
-			},
+			name:                 "Ok",
+			inputBody:            `{"url":"vk.com/gasayminajj"}`,
 			expectedStatusCode:   201,
-			expectedResponseBody: `{"result":"http://127.0.0.1:8080/BEh6"}`,
+			expectedResponseBody: `{"result":"zE"}`,
 		},
 		{
-			name:      "already exists",
-			inputBody: `{"url":"http://zrnzqddy.ru/hlc65i"}`,
-			mockBehavior: func(r *service_mocks.MockIService) {
-				r.EXPECT().CreateLink("http://zrnzqddy.ru/hlc65i").Return(
-					"", gin.Error{Err: errors.New("URL уже существует")})
-			},
-			expectedStatusCode:   500,
-			expectedResponseBody: "",
-		},
-		{
-			name:      "server error",
-			inputBody: "q",
-			mockBehavior: func(r *service_mocks.MockIService) {
-				r.EXPECT().CreateLink("q").Return(
-					"", gin.Error{Err: errors.New("недопустимый URL")}).
-					AnyTimes()
-			},
+			name:                 "server error",
+			inputBody:            "q",
 			expectedStatusCode:   500,
 			expectedResponseBody: "",
 		},
@@ -184,14 +140,19 @@ func TestHandler_APICreateLinkHandler(t *testing.T) {
 
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
-			c := gomock.NewController(t)
-			defer c.Finish()
+			cfg := &repository.Config{
+				DriverName:     "map",
+				DataSourcePath: "test",
+			}
+			repo, err := repository.New(cfg)
+			if err != nil {
+				t.Fatal(err)
+			}
 
-			repo := service_mocks.NewMockIService(c)
-			test.mockBehavior(repo)
+			logic := usecase.New(repo)
 
-			services := &service.Service{IService: repo}
-			handler := Handler{services}
+			conf := &config.Config{Host: "127.0.0.1", DBConfig: cfg}
+			handler := Handler{conf: conf, logic: logic}
 
 			req := httptest.NewRequest("POST", "/api/shorten",
 				bytes.NewBufferString(test.inputBody))
