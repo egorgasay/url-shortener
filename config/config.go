@@ -1,17 +1,17 @@
 package config
 
 import (
+	"context"
 	"flag"
+	"github.com/egorgasay/dockerdb"
 	"github.com/sethvargo/go-password/password"
 	"log"
 	"os"
-	"url-shortener/internal/dockerdb"
 	"url-shortener/internal/repository"
 	"url-shortener/internal/storage"
 	dbstorage "url-shortener/internal/storage/db"
 	filestorage "url-shortener/internal/storage/file"
 	mapstorage "url-shortener/internal/storage/map"
-	getfreeport "url-shortener/pkg/getFreePort"
 )
 
 const (
@@ -88,29 +88,25 @@ func New() *Config {
 
 	log.Println(*f.dsn, *f.path, *f.storage)
 	var ddb *dockerdb.VDB
+	var vdb = *f.vdb
 
-	if vdb := *f.vdb; vdb != "" {
-		err := dockerdb.Pull(*f.storage)
-		if err != nil {
-			log.Fatal("Pull: ", err)
-		}
-
-		port, err := getfreeport.GetFreePort()
-		if err != nil {
-			log.Fatal("GetFreePort: ", err)
-		}
+	if vdb != "" {
+		ctx := context.TODO()
 
 		cfg := dockerdb.CustomDB{
 			DB: dockerdb.DB{
 				Name:     vdb,
 				User:     "admin",
-				Password: generated,
+				Password: "admin",
 			},
-			Port:   port,
-			Vendor: *f.storage,
+			Port: "1254",
+			Vendor: dockerdb.Vendor{
+				Name:  *f.storage,
+				Image: *f.storage,
+			},
 		}
 
-		ddb, err = dockerdb.New(cfg)
+		ddb, err = dockerdb.New(ctx, cfg)
 		if err != nil {
 			log.Fatal(err)
 		}
@@ -125,6 +121,7 @@ func New() *Config {
 			DataSourcePath: *f.path,
 			DataSourceCred: *f.dsn,
 			VDB:            ddb,
+			Name:           vdb,
 		},
 	}
 }

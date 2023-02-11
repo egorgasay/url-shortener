@@ -45,6 +45,7 @@ const insertURL = "INSERT INTO urls (`longURL`, `shortURL`, `cookie`) VALUES (?,
 const getLongLink = "SELECT `longURL` FROM urls WHERE `shortURL` = ?"
 const findMaxURL = "SELECT MAX(id) FROM urls"
 const getAllLinksByCookie = "SELECT `short`, `long` FROM urls WHERE `cookie` = ?"
+const markAsDeleted = "UPDATE urls SET `deleted` = 1 WHERE `short` = ? AND `cookie` = ?"
 
 func (m MySQL) AddLink(longURL, shortURL, cookie string) (string, error) {
 	stmt, err := m.DB.Prepare(insertURL)
@@ -89,6 +90,22 @@ func (m MySQL) GetLongLink(shortURL string) (longURL string, err error) {
 	err = stm.Scan(&longURL)
 
 	return longURL, err
+}
+
+func (m MySQL) MarkAsDeleted(shortURL, cookie string) {
+	stmt, err := m.DB.Prepare(markAsDeleted)
+	if err != nil {
+		log.Println(err)
+	}
+
+	_, err = stmt.Exec(
+		sql.Named("short", shortURL).Value,
+		sql.Named("cookie", cookie).Value,
+	)
+
+	if err != nil {
+		log.Println(err)
+	}
 }
 
 func (m MySQL) GetAllLinksByCookie(cookie, baseURL string) ([]schema.URL, error) {

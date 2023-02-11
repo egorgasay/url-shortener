@@ -25,6 +25,7 @@ func main() {
 	logic := usecase.New(storage)
 	router := gin.Default()
 	handler := handlers.NewHandler(cfg, logic)
+
 	public := router.Group("/")
 	routes.PublicRoutes(public, handler)
 

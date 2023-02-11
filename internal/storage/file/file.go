@@ -18,6 +18,11 @@ type FileStorage struct {
 	Mu   sync.Mutex
 }
 
+func (fs *FileStorage) MarkAsDeleted(shortURL, cookie string) {
+	//TODO implement me
+	panic("implement me")
+}
+
 const FileStorageType storage.Type = "file"
 
 func NewFileStorage(path string) storage.IStorage {

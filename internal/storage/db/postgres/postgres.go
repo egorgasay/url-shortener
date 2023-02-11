@@ -9,6 +9,7 @@ import (
 	"github.com/lib/pq"
 	"log"
 	"url-shortener/internal/schema"
+	"url-shortener/internal/storage"
 	"url-shortener/internal/storage/db/service"
 
 	_ "github.com/golang-migrate/migrate/v4/source/file"
@@ -16,9 +17,17 @@ import (
 
 const insertURL = "INSERT INTO urls (long, short, cookie) VALUES ($1, $2, $3)"
 const getShortLink = "SELECT short FROM urls WHERE long = $1"
-const getLongLink = "SELECT long FROM urls WHERE short = $1"
+const getLongLink = `
+SELECT case
+			when deleted = 1 then 'deleted'
+			else 
+				long
+		end as deleted
+FROM urls 
+WHERE short = $1`
 const findMaxURL = "SELECT MAX(id) FROM urls"
 const getAllLinksByCookie = "SELECT short, long FROM urls WHERE cookie = $1"
+const markAsDeleted = "UPDATE urls SET deleted = 1 WHERE short = $1 AND cookie = $2"
 
 type Postgres struct {
 	DB *sql.DB
@@ -109,7 +118,24 @@ func (p Postgres) GetLongLink(shortURL string) (longURL string, err error) {
 	stm := stmt.QueryRow(sql.Named("short", shortURL).Value)
 	err = stm.Scan(&longURL)
 
+	if longURL == "deleted" {
+		return "", storage.ErrDeleted
+	}
+
 	return longURL, err
+}
+
+func (p Postgres) MarkAsDeleted(shortURL, cookie string) {
+	stmt, err := p.DB.Prepare(markAsDeleted)
+	if err != nil {
+		log.Println(err)
+	}
+
+	_, err = stmt.Exec(shortURL, cookie)
+
+	if err != nil {
+		log.Println(err)
+	}
 }
 
 func (p Postgres) GetAllLinksByCookie(cookie, baseURL string) ([]schema.URL, error) {

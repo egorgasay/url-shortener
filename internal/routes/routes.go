@@ -17,4 +17,6 @@ func PublicRoutes(r *gin.RouterGroup, h *handlers.Handler) {
 	r.POST("/api/shorten/batch", h.BatchHandler)
 	r.POST("/", h.CreateLinkHandler)
 	r.POST("/api/shorten", h.APICreateLinkHandler)
+
+	r.DELETE("/api/user/urls", h.APIDeleteLinksHandler)
 }

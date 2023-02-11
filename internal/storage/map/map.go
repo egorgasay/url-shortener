@@ -12,6 +12,11 @@ type MapStorage struct {
 	container map[shortURL]data
 }
 
+func (s *MapStorage) MarkAsDeleted(shortURL, cookie string) {
+	//TODO implement me
+	panic("implement me")
+}
+
 const MapStorageType storage.Type = "map"
 
 type shortURL string
