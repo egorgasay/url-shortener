@@ -22,7 +22,7 @@ func (uc UseCase) MarkAsDeleted(shortURL, cookie string) {
 func (uc UseCase) CreateLink(longURL, cookie string, chars ...string) (string, error) {
 	id, err := uc.storage.FindMaxID()
 	if err != nil {
-		log.Println(err)
+		log.Println("can't find max id", err)
 		return "", err
 	}
 

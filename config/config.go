@@ -4,7 +4,6 @@ import (
 	"context"
 	"flag"
 	"github.com/egorgasay/dockerdb"
-	"github.com/sethvargo/go-password/password"
 	"log"
 	"os"
 	"url-shortener/internal/repository"
@@ -81,10 +80,10 @@ func New() *Config {
 		}
 	}
 
-	generated, err := password.Generate(17, 5, 0, false, false)
-	if err != nil {
-		log.Fatal("Generate: ", err)
-	}
+	//generated, err := password.Generate(17, 5, 0, false, false)
+	//if err != nil {
+	//	log.Fatal("Generate: ", err)
+	//}
 
 	log.Println(*f.dsn, *f.path, *f.storage)
 	var ddb *dockerdb.VDB
@@ -106,6 +105,7 @@ func New() *Config {
 			},
 		}
 
+		var err error
 		ddb, err = dockerdb.New(ctx, cfg)
 		if err != nil {
 			log.Fatal(err)
@@ -115,7 +115,7 @@ func New() *Config {
 	return &Config{
 		Host:    *f.host,
 		BaseURL: *f.baseURL,
-		Key:     []byte(generated),
+		Key:     []byte("CHANGE ME"),
 		DBConfig: &repository.Config{
 			DriverName:     storage.Type(*f.storage),
 			DataSourcePath: *f.path,

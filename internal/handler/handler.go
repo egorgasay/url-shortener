@@ -28,12 +28,6 @@ func NewHandler(cfg *config.Config, logic usecase.UseCase) *Handler {
 }
 
 func (h Handler) GetLinkHandler(c *gin.Context) {
-	cookie, err := getCookies(c)
-	if err != nil || !checkCookies(cookie, h.conf.Key) {
-		log.Println("New cookie was created")
-		setCookies(c, h.conf.Host, h.conf.Key)
-	}
-
 	longURL, err := h.logic.GetLink(c.Param("id"))
 	if err != nil {
 		log.Println(err)
@@ -222,34 +216,20 @@ func (h Handler) BatchHandler(c *gin.Context) {
 }
 
 func (h Handler) APIDeleteLinksHandler(c *gin.Context) {
-	cookie, err := getCookies(c)
-	if err != nil || !checkCookies(cookie, h.conf.Key) {
-		setCookies(c, h.conf.Host, h.conf.Key)
-	}
-
-	b, err := UseGzip(c.Request.Body, c.Request.Header.Get("Content-Type"))
-	if err != nil {
-		c.Error(err)
-		c.AbortWithStatus(http.StatusInternalServerError)
-
+	var s []string
+	if err := c.ShouldBindJSON(&s); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Not allowed request"})
 		return
 	}
 
-	var rj []string
+	cookie, _ := getCookies(c)
 
-	err = json.Unmarshal(b, &rj)
-	if err != nil {
-		c.Error(errors.New("некорректный JSON"))
-		c.AbortWithStatus(http.StatusInternalServerError)
-
-		return
-	}
-
-	for _, URL := range rj {
+	for i, URL := range s {
+		log.Println(URL, i+1)
 		go h.logic.MarkAsDeleted(URL, cookie)
+		log.Println(URL, i+1, "end")
 	}
 
 	c.Status(http.StatusAccepted)
-
 	c.Header("Content-Type", "application/json")
 }

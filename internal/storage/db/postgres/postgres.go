@@ -5,29 +5,26 @@ import (
 	"database/sql"
 	"github.com/golang-migrate/migrate/v4"
 	"github.com/golang-migrate/migrate/v4/database/postgres"
+	_ "github.com/golang-migrate/migrate/v4/source/file"
 	"github.com/jackc/pgerrcode"
 	"github.com/lib/pq"
 	"log"
 	"url-shortener/internal/schema"
 	"url-shortener/internal/storage"
 	"url-shortener/internal/storage/db/service"
-
-	_ "github.com/golang-migrate/migrate/v4/source/file"
+	shortenalgorithm "url-shortener/pkg/shortenAlgorithm"
 )
 
-const insertURL = "INSERT INTO urls (long, short, cookie) VALUES ($1, $2, $3)"
+const insertURL = "INSERT INTO urls (long, short, cookie, deleted) VALUES ($1, $2, $3, false)"
 const getShortLink = "SELECT short FROM urls WHERE long = $1"
 const getLongLink = `
-SELECT case
-			when deleted = 1 then 'deleted'
-			else 
-				long
-		end as deleted
+SELECT long, deleted
 FROM urls 
-WHERE short = $1`
+WHERE short = $1
+`
 const findMaxURL = "SELECT MAX(id) FROM urls"
 const getAllLinksByCookie = "SELECT short, long FROM urls WHERE cookie = $1"
-const markAsDeleted = "UPDATE urls SET deleted = 1 WHERE short = $1 AND cookie = $2"
+const markAsDeleted = "UPDATE urls SET deleted = true WHERE short = $1"
 
 type Postgres struct {
 	DB *sql.DB
@@ -58,41 +55,73 @@ func New(db *sql.DB) service.IRealStorage {
 	return Postgres{DB: db}
 }
 
+//type lastInsertedID struct {
+//	id int
+//	mu sync.Mutex
+//}
+//
+//var lastID = lastInsertedID{}
+
 func (p Postgres) AddLink(longURL, shortURL, cookie string) (string, error) {
 	stmt, err := p.DB.Prepare(insertURL)
 	if err != nil {
 		return "", err
 	}
 
+	//lastID.mu.Lock()
+	//defer lastID.mu.Unlock()
+
+	//if lastID.id == 0 {
+	//	lastID.id, err = p.FindMaxID()
+	//	if err != nil {
+	//		return "", err
+	//	}
+	//}
+
+	//lastID.id++
 	_, err = stmt.Exec(
 		sql.Named("long", longURL).Value,
 		sql.Named("short", shortURL).Value,
 		sql.Named("cookie", cookie).Value,
 	)
-	if err != nil {
-		e, ok := err.(*pq.Error)
-		if !ok {
-			return "", err
-		}
 
-		if e.Code != pgerrcode.UniqueViolation {
-			return "", err
-		}
+	if err == nil {
+		return shortURL, nil
+	}
 
-		row := p.DB.QueryRow(getShortLink, sql.Named("long", longURL).Value)
-		if row.Err() != nil {
-			return "", err
-		}
+	e, ok := err.(*pq.Error)
+	if !ok {
+		log.Println("shouldn't be this ", err)
+		return "", err
+	}
 
-		err = row.Scan(&shortURL)
-		if err != nil {
-			return "", err
-		}
+	if e.Code != pgerrcode.UniqueViolation {
+		return "", err
+	}
 
+	row := p.DB.QueryRow(getShortLink, sql.Named("long", longURL).Value)
+	if row.Err() != nil {
+		return "", err
+	}
+
+	err = row.Scan(&shortURL)
+	if err == nil {
 		return shortURL, service.ErrExists
 	}
 
-	return shortURL, nil
+	log.Println("cycle")
+
+	lastID, err := p.FindMaxID()
+	if err != nil {
+		return "", err
+	}
+
+	shortURL, err = shortenalgorithm.GetShortName(lastID + 1)
+	if err != nil {
+		return "", err
+	}
+
+	return p.AddLink(longURL, shortURL, cookie)
 }
 
 func (p Postgres) FindMaxID() (int, error) {
@@ -112,13 +141,14 @@ func (p Postgres) FindMaxID() (int, error) {
 func (p Postgres) GetLongLink(shortURL string) (longURL string, err error) {
 	stmt, err := p.DB.Prepare(getLongLink)
 	if err != nil {
-		return "", nil
+		return "", err
 	}
 
 	stm := stmt.QueryRow(sql.Named("short", shortURL).Value)
-	err = stm.Scan(&longURL)
+	var isDeleted bool
+	err = stm.Scan(&longURL, &isDeleted)
 
-	if longURL == "deleted" {
+	if isDeleted {
 		return "", storage.ErrDeleted
 	}
 
@@ -131,7 +161,7 @@ func (p Postgres) MarkAsDeleted(shortURL, cookie string) {
 		log.Println(err)
 	}
 
-	_, err = stmt.Exec(shortURL, cookie)
+	_, err = stmt.Exec(shortURL)
 
 	if err != nil {
 		log.Println(err)
