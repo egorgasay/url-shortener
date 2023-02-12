@@ -120,7 +120,7 @@ func (h Handler) CreateLinkHandler(c *gin.Context) {
 func (h Handler) APICreateLinkHandler(c *gin.Context) {
 	cookie, err := getCookies(c)
 	if err != nil || !checkCookies(cookie, h.conf.Key) {
-		setCookies(c, h.conf.Host, h.conf.Key)
+		cookie = setCookies(c, h.conf.Host, h.conf.Key)
 	}
 
 	b, err := UseGzip(c.Request.Body, c.Request.Header.Get("Content-Type"))
@@ -216,19 +216,22 @@ func (h Handler) BatchHandler(c *gin.Context) {
 }
 
 func (h Handler) APIDeleteLinksHandler(c *gin.Context) {
+	cookie, err := getCookies(c)
+	if err != nil || !checkCookies(cookie, h.conf.Key) {
+		cookie = setCookies(c, h.conf.Host, h.conf.Key)
+	}
+
 	var s []string
 	if err := c.ShouldBindJSON(&s); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Not allowed request"})
 		return
 	}
 
-	cookie, _ := getCookies(c)
-
-	for i, URL := range s {
-		log.Println(URL, i+1)
-		go h.logic.MarkAsDeleted(URL, cookie)
-		log.Println(URL, i+1, "end")
-	}
+	go func() {
+		for _, URL := range s {
+			go h.logic.MarkAsDeleted(URL, cookie)
+		}
+	}()
 
 	c.Status(http.StatusAccepted)
 	c.Header("Content-Type", "application/json")

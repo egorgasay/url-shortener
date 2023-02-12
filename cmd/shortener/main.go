@@ -24,13 +24,12 @@ func main() {
 
 	logic := usecase.New(storage)
 	router := gin.Default()
-	handler := handlers.NewHandler(cfg, logic)
+	h := handlers.NewHandler(cfg, logic)
 
 	public := router.Group("/")
-	routes.PublicRoutes(public, handler)
+	routes.PublicRoutes(public, h)
 
 	router.Use(gzip.Gzip(gzip.BestSpeed))
-
 	go func() {
 		router.Run(cfg.Host)
 	}()

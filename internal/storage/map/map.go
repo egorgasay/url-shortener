@@ -40,8 +40,8 @@ func NewMapStorage() storage.IStorage {
 }
 
 func (s *MapStorage) AddLink(longURL, ShortURL, cookie string) (string, error) {
-	s.mu.RLock()
-	defer s.mu.RUnlock()
+	s.mu.Lock()
+	defer s.mu.Unlock()
 	s.container[shortURL(ShortURL)] = data{cookie: cookie, longURL: longURL}
 
 	return ShortURL, nil

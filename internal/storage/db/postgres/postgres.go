@@ -55,30 +55,12 @@ func New(db *sql.DB) service.IRealStorage {
 	return Postgres{DB: db}
 }
 
-//type lastInsertedID struct {
-//	id int
-//	mu sync.Mutex
-//}
-//
-//var lastID = lastInsertedID{}
-
 func (p Postgres) AddLink(longURL, shortURL, cookie string) (string, error) {
 	stmt, err := p.DB.Prepare(insertURL)
 	if err != nil {
 		return "", err
 	}
 
-	//lastID.mu.Lock()
-	//defer lastID.mu.Unlock()
-
-	//if lastID.id == 0 {
-	//	lastID.id, err = p.FindMaxID()
-	//	if err != nil {
-	//		return "", err
-	//	}
-	//}
-
-	//lastID.id++
 	_, err = stmt.Exec(
 		sql.Named("long", longURL).Value,
 		sql.Named("short", shortURL).Value,

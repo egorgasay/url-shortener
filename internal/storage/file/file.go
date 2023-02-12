@@ -19,30 +19,6 @@ type FileStorage struct {
 	Mu   sync.Mutex
 }
 
-func (fs *FileStorage) MarkAsDeleted(shortURL, cookie string) {
-	err := fs.OpenForWriteAt()
-	if err != nil {
-		log.Println("can't open a file ", err)
-	}
-	defer fs.Close()
-
-	scanner := bufio.NewScanner(fs.File)
-	var i int64 = 1
-	for scanner.Scan() {
-		line := scanner.Text()
-		split := strings.Split(line, " - ")
-		if len(split) > 2 && split[1] == shortURL {
-			lineWithDeletedMark := "0" + line[1:] + "\n"
-			_, err = fs.File.WriteAt([]byte(lineWithDeletedMark), i-1)
-			if err != nil {
-				log.Println(err)
-				return
-			}
-		}
-		i += int64(1 + len(line))
-	}
-}
-
 const FileStorageType storage.Type = "file"
 
 func NewFileStorage(path string) storage.IStorage {
@@ -182,4 +158,28 @@ func (fs *FileStorage) Ping() error {
 	}
 
 	return nil
+}
+
+func (fs *FileStorage) MarkAsDeleted(shortURL, cookie string) {
+	err := fs.OpenForWriteAt()
+	if err != nil {
+		log.Println("can't open a file ", err)
+	}
+	defer fs.Close()
+
+	scanner := bufio.NewScanner(fs.File)
+	var i int64 = 1
+	for scanner.Scan() {
+		line := scanner.Text()
+		split := strings.Split(line, " - ")
+		if len(split) > 2 && split[1] == shortURL {
+			lineWithDeletedMark := "0" + line[1:] + "\n"
+			_, err = fs.File.WriteAt([]byte(lineWithDeletedMark), i-1)
+			if err != nil {
+				log.Println(err)
+				return
+			}
+		}
+		i += int64(1 + len(line))
+	}
 }
