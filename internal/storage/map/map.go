@@ -2,6 +2,7 @@ package mapstorage
 
 import (
 	"errors"
+	"log"
 	"sync"
 	"url-shortener/internal/schema"
 	"url-shortener/internal/storage"
@@ -18,6 +19,11 @@ func (s *MapStorage) MarkAsDeleted(ShortURL, cookie string) {
 
 	Data, ok := s.container[shortURL(ShortURL)]
 	if !ok {
+		return
+	}
+
+	if cookie != Data.cookie {
+		log.Println("wrong cookie")
 		return
 	}
 

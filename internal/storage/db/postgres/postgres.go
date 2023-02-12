@@ -24,7 +24,7 @@ WHERE short = $1
 `
 const findMaxURL = "SELECT MAX(id) FROM urls"
 const getAllLinksByCookie = "SELECT short, long FROM urls WHERE cookie = $1"
-const markAsDeleted = "UPDATE urls SET deleted = true WHERE short = $1"
+const markAsDeleted = "UPDATE urls SET deleted = true WHERE short = $1 AND cookie = $2"
 
 type Postgres struct {
 	DB *sql.DB
@@ -143,7 +143,7 @@ func (p Postgres) MarkAsDeleted(shortURL, cookie string) {
 		log.Println(err)
 	}
 
-	_, err = stmt.Exec(shortURL)
+	_, err = stmt.Exec(shortURL, cookie)
 
 	if err != nil {
 		log.Println(err)
