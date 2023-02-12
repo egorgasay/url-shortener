@@ -140,7 +140,7 @@ func (fs *FileStorage) GetLongLink(shortURL string) (longURL string, err error) 
 		split := strings.Split(line, " - ")
 
 		if len(split) > 2 && split[1] == shortURL {
-			return split[1], nil
+			return split[2], nil
 		}
 	}
 
