@@ -172,7 +172,7 @@ func (fs *FileStorage) MarkAsDeleted(shortURL, cookie string) {
 	for scanner.Scan() {
 		line := scanner.Text()
 		split := strings.Split(line, " - ")
-		if len(split) > 2 && split[1] == shortURL {
+		if len(split) > 2 && split[1] == shortURL && split[3] == cookie {
 			lineWithDeletedMark := "0" + line[1:] + "\n"
 			_, err = fs.File.WriteAt([]byte(lineWithDeletedMark), i-1)
 			if err != nil {

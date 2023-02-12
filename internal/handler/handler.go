@@ -216,20 +216,20 @@ func (h Handler) BatchHandler(c *gin.Context) {
 }
 
 func (h Handler) APIDeleteLinksHandler(c *gin.Context) {
+	var s []string
+	if err := c.ShouldBindJSON(&s); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Not allowed request"})
+		return
+	}
+
 	go func() {
 		cookie, err := getCookies(c)
 		if err != nil || !checkCookies(cookie, h.conf.Key) {
 			cookie = setCookies(c, h.conf.Host, h.conf.Key)
 		}
 
-		var s []string
-		if err := c.ShouldBindJSON(&s); err != nil {
-			c.JSON(http.StatusBadRequest, gin.H{"error": "Not allowed request"})
-			return
-		}
-
 		for _, URL := range s {
-			go h.logic.MarkAsDeleted(URL, cookie)
+			h.logic.MarkAsDeleted(URL, cookie)
 		}
 	}()
 
