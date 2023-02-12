@@ -22,9 +22,9 @@ SELECT long, deleted
 FROM urls 
 WHERE short = $1
 `
-const findMaxURL = "SELECT MAX(id) FROM urls"
+const findMaxURL = "SELECT count(*) FROM urls"
 const getAllLinksByCookie = "SELECT short, long FROM urls WHERE cookie = $1"
-const markAsDeleted = "UPDATE urls SET deleted = true WHERE short = $1 AND cookie = $2"
+const markAsDeleted = "UPDATE urls SET deleted = true WHERE short = $1 and cookie = $2"
 
 type Postgres struct {
 	DB *sql.DB
@@ -127,13 +127,14 @@ func (p Postgres) GetLongLink(shortURL string) (longURL string, err error) {
 	}
 
 	stm := stmt.QueryRow(sql.Named("short", shortURL).Value)
-	var isDeleted bool
+	var isDeleted = false
 	err = stm.Scan(&longURL, &isDeleted)
 
 	if isDeleted {
 		return "", storage.ErrDeleted
 	}
 
+	log.Println("Url exists ", shortURL)
 	return longURL, err
 }
 
@@ -143,11 +144,14 @@ func (p Postgres) MarkAsDeleted(shortURL, cookie string) {
 		log.Println(err)
 	}
 
+	log.Println(shortURL, cookie)
 	_, err = stmt.Exec(shortURL, cookie)
 
 	if err != nil {
 		log.Println(err)
+		return
 	}
+
 }
 
 func (p Postgres) GetAllLinksByCookie(cookie, baseURL string) ([]schema.URL, error) {

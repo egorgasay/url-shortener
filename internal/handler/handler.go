@@ -222,16 +222,16 @@ func (h Handler) APIDeleteLinksHandler(c *gin.Context) {
 		return
 	}
 
-	go func() {
-		cookie, err := getCookies(c)
-		if err != nil || !checkCookies(cookie, h.conf.Key) {
-			cookie = setCookies(c, h.conf.Host, h.conf.Key)
-		}
+	cookie, _ := getCookies(c)
+	//if err != nil || !checkCookies(cookie, h.conf.Key) {
+	//	cookie = setCookies(c, h.conf.Host, h.conf.Key)
+	//}
 
+	go func(cookie string, s []string) {
 		for _, URL := range s {
 			h.logic.MarkAsDeleted(URL, cookie)
 		}
-	}()
+	}(cookie, s)
 
 	c.Status(http.StatusAccepted)
 	c.Header("Content-Type", "application/json")
