@@ -71,7 +71,7 @@ func New() *Config {
 
 	if *f.dsn == "" && storage.Type(*f.storage) == defaultStorage && *f.vdb == "" {
 		s := ""
-		if *f.path != "" {
+		if *f.path != defaultPath {
 			s = string(filestorage.FileStorageType)
 			f.storage = &s
 		} else {
