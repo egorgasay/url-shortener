@@ -78,16 +78,15 @@ func getCookies(c *gin.Context) (cookie string, err error) {
 	}
 
 	cookie, err = c.Cookie("session")
-	if cookie != "" {
+	if err == nil {
 		return cookie, nil
 	}
 
 	return cookie, errors.New("no cookies was provided")
 }
 
-func setCookies(c *gin.Context, host string, key []byte) (cookie string) {
+func setCookies(c *gin.Context, key []byte) (cookie string) {
 	cookie = NewCookie(key)
-	//domain := strings.Split(host, ":")[0]
 
 	c.SetCookie("session", cookie, 3600, "", "localhost", false, true)
 	c.Header("Authorization", cookie)

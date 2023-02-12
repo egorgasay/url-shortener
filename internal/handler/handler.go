@@ -47,7 +47,7 @@ func (h Handler) GetLinkHandler(c *gin.Context) {
 func (h Handler) GetAllLinksHandler(c *gin.Context) {
 	cookie, err := getCookies(c)
 	if err != nil || !checkCookies(cookie, h.conf.Key) {
-		cookie = setCookies(c, h.conf.Host, h.conf.Key)
+		cookie = setCookies(c, h.conf.Key)
 	}
 
 	URLs, err := h.logic.GetAllLinksByCookie(cookie, h.conf.BaseURL)
@@ -72,7 +72,7 @@ func (h Handler) GetAllLinksHandler(c *gin.Context) {
 func (h Handler) CreateLinkHandler(c *gin.Context) {
 	cookie, err := getCookies(c)
 	if err != nil || !checkCookies(cookie, h.conf.Key) {
-		cookie = setCookies(c, h.conf.Host, h.conf.Key)
+		cookie = setCookies(c, h.conf.Key)
 	}
 
 	data, err := UseGzip(c.Request.Body, c.Request.Header.Get("Content-Type"))
@@ -120,7 +120,7 @@ func (h Handler) CreateLinkHandler(c *gin.Context) {
 func (h Handler) APICreateLinkHandler(c *gin.Context) {
 	cookie, err := getCookies(c)
 	if err != nil || !checkCookies(cookie, h.conf.Key) {
-		cookie = setCookies(c, h.conf.Host, h.conf.Key)
+		cookie = setCookies(c, h.conf.Key)
 	}
 
 	b, err := UseGzip(c.Request.Body, c.Request.Header.Get("Content-Type"))
@@ -193,7 +193,7 @@ func (h Handler) Ping(c *gin.Context) {
 func (h Handler) BatchHandler(c *gin.Context) {
 	cookie, err := getCookies(c)
 	if err != nil || !checkCookies(cookie, h.conf.Key) {
-		cookie = setCookies(c, h.conf.Host, h.conf.Key)
+		cookie = setCookies(c, h.conf.Key)
 	}
 
 	var batchURLs []schema.BatchURL
@@ -223,10 +223,6 @@ func (h Handler) APIDeleteLinksHandler(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Not allowed request"})
 		return
 	}
-
-	//if err != nil || !checkCookies(cookie, h.conf.Key) {
-	//	cookie = setCookies(c, h.conf.Host, h.conf.Key)
-	//}
 
 	go func(cookie string, s []string) {
 		for _, URL := range s {
