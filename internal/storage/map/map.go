@@ -12,9 +12,17 @@ type MapStorage struct {
 	container map[shortURL]data
 }
 
-func (s *MapStorage) MarkAsDeleted(shortURL, cookie string) {
-	//TODO implement me
-	panic("implement me")
+func (s *MapStorage) MarkAsDeleted(ShortURL, cookie string) {
+	s.mu.RLock()
+	defer s.mu.RUnlock()
+
+	Data, ok := s.container[shortURL(ShortURL)]
+	if !ok {
+		return
+	}
+
+	Data.deleted = true
+	s.container[shortURL(ShortURL)] = Data
 }
 
 const MapStorageType storage.Type = "map"
@@ -23,6 +31,7 @@ type shortURL string
 type data struct {
 	cookie  string
 	longURL string
+	deleted bool
 }
 
 func NewMapStorage() storage.IStorage {
@@ -52,6 +61,10 @@ func (s *MapStorage) GetLongLink(ShortURL string) (string, error) {
 	Data, ok := s.container[shortURL(ShortURL)]
 	if !ok {
 		return "", errors.New("короткой ссылки не существует")
+	}
+
+	if Data.deleted {
+		return "", storage.ErrDeleted
 	}
 
 	return Data.longURL, nil
