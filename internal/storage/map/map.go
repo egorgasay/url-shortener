@@ -13,8 +13,8 @@ type MapStorage struct {
 }
 
 func (s *MapStorage) MarkAsDeleted(ShortURL, cookie string) {
-	s.mu.RLock()
-	defer s.mu.RUnlock()
+	s.mu.Lock()
+	defer s.mu.Unlock()
 
 	Data, ok := s.container[shortURL(ShortURL)]
 	if !ok {
