@@ -16,6 +16,7 @@ const insertURL = "INSERT INTO urls (long, short, cookie) VALUES (?, ?, ?)"
 const getLongLink = "SELECT long FROM urls WHERE short = ?"
 const findMaxURL = "SELECT MAX(id) FROM urls"
 const getAllLinksByCookie = "SELECT short, long FROM urls WHERE cookie = ?"
+const markAsDeleted = "UPDATE urls SET deleted = 1 WHERE short = ? AND cookie = ?"
 
 type Sqlite3 struct {
 	DB *sql.DB
@@ -89,6 +90,22 @@ func (s Sqlite3) GetLongLink(shortURL string) (longURL string, err error) {
 	err = stm.Scan(&longURL)
 
 	return longURL, err
+}
+
+func (s Sqlite3) MarkAsDeleted(shortURL, cookie string) {
+	stmt, err := s.DB.Prepare(markAsDeleted)
+	if err != nil {
+		log.Println(err)
+	}
+
+	_, err = stmt.Exec(
+		sql.Named("short", shortURL).Value,
+		sql.Named("cookie", cookie).Value,
+	)
+
+	if err != nil {
+		log.Println(err)
+	}
 }
 
 func (s Sqlite3) GetAllLinksByCookie(cookie, baseURL string) ([]schema.URL, error) {

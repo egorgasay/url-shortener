@@ -1,9 +1,11 @@
 package repository
 
 import (
+	"context"
 	"database/sql"
 	"errors"
-	"url-shortener/internal/dockerdb"
+	"fmt"
+	"github.com/egorgasay/dockerdb"
 	"url-shortener/internal/storage"
 	dbStorage "url-shortener/internal/storage/db"
 	filestorage "url-shortener/internal/storage/file"
@@ -15,6 +17,7 @@ type Config struct {
 	DataSourceCred string
 	DataSourcePath string
 	VDB            *dockerdb.VDB
+	Name           string
 }
 
 func New(cfg *Config) (storage.IStorage, error) {
@@ -34,65 +37,57 @@ func New(cfg *Config) (storage.IStorage, error) {
 		var db *sql.DB
 		var err error
 
-		if cfg.VDB != nil {
-			cfg.DataSourcePath = "dockerDBs"
-			sqlitedb, err := upSqlite(cfg, "DockerDBs-schema.sql")
-			if err != nil {
-				return nil, err
-			}
-
-			stmt, err := sqlitedb.Prepare("SELECT id, connectionString FROM DockerDBs WHERE name = ?")
-			if err != nil {
-				return nil, err
-			}
-
-			row := stmt.QueryRow(cfg.VDB.Conf.DB.Name)
-
-			err = row.Err()
-			if err != nil {
-				return nil, err
-			}
-
-			err = row.Scan(&cfg.VDB.ID, &cfg.DataSourceCred)
-			if err != sql.ErrNoRows && err != nil {
-				return nil, err
-			}
-
-			if cfg.DataSourceCred == "" {
-				db, cfg.DataSourceCred = cfg.VDB.Setup("")
-			} else {
-				db, _ = cfg.VDB.Setup(cfg.DataSourceCred)
-			}
-
-			if errors.Is(err, sql.ErrNoRows) {
-				stmt, err := sqlitedb.Prepare("INSERT INTO DockerDBs VALUES (?, ?, ?)")
-				if err != nil {
-					return nil, err
-				}
-
-				_, err = stmt.Exec(cfg.VDB.Conf.DB.Name, cfg.VDB.ID, cfg.DataSourceCred)
-				if err != nil {
-					return nil, err
-				}
-			}
-			sqlitedb.Close()
-		} else {
+		if cfg.VDB == nil {
 			db, err = sql.Open(string(cfg.DriverName), cfg.DataSourceCred)
 			if err != nil {
 				return nil, err
 			}
+			return dbStorage.NewRealStorage(db, cfg.DriverName), nil
 		}
 
-		//used := storage.IsDBUsedBefore(db)
-		//
-		//if !used {
-		//	err := storage.InitDatabase(db, string(cfg.DriverName+"-schema.sql"))
-		//	if err != nil {
-		//		return nil, err
-		//	}
-		//}
+		cfg.DataSourcePath = "dockerDBs"
+		sqlitedb, err := upSqlite(cfg, "DockerDBs-schema.sql")
+		if err != nil {
+			return nil, err
+		}
 
-		return dbStorage.NewRealStorage(db, cfg.DriverName), nil
+		stmt, err := sqlitedb.Prepare("SELECT id, connectionString FROM DockerDBs WHERE name = ?")
+		if err != nil {
+			return nil, err
+		}
+
+		row := stmt.QueryRow(cfg.Name)
+
+		err = row.Err()
+		if err != nil {
+			return nil, err
+		}
+
+		err = row.Scan(&cfg.VDB.ID, &cfg.DataSourceCred)
+		if err != sql.ErrNoRows && err != nil {
+			return nil, err
+		}
+
+		ctx := context.TODO()
+		err = cfg.VDB.Run(ctx)
+		if err != nil {
+			return nil, fmt.Errorf("unable to run docker storage %w", err)
+		}
+
+		if errors.Is(err, sql.ErrNoRows) {
+			stmt, err := sqlitedb.Prepare("INSERT INTO DockerDBs VALUES (?, ?, ?)")
+			if err != nil {
+				return nil, err
+			}
+
+			_, err = stmt.Exec(cfg.Name, cfg.VDB.ID, cfg.DataSourceCred)
+			if err != nil {
+				return nil, err
+			}
+		}
+		sqlitedb.Close()
+
+		return dbStorage.NewRealStorage(cfg.VDB.DB, cfg.DriverName), nil
 	case "file":
 		filename := cfg.DataSourcePath
 		return filestorage.NewFileStorage(filename), nil

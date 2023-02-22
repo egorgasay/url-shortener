@@ -9,25 +9,6 @@ import (
 	"strings"
 )
 
-func IsDBUsedBefore(db *sql.DB) bool {
-	stmt, err := db.Prepare("SELECT id FROM urls")
-	if err != nil {
-		return false
-	}
-
-	row := stmt.QueryRow()
-
-	err = row.Err()
-	if err != nil {
-		return false
-	}
-
-	var s string
-
-	err = row.Scan(&s)
-	return err == nil
-}
-
 func IsDBSqliteExist(path string) bool {
 	if _, err := os.Stat(path); errors.Is(err, os.ErrNotExist) {
 		return false

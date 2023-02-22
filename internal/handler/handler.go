@@ -8,6 +8,7 @@ import (
 	"net/http"
 	"url-shortener/config"
 	"url-shortener/internal/schema"
+	"url-shortener/internal/storage"
 	"url-shortener/internal/storage/db/service"
 	"url-shortener/internal/usecase"
 )
@@ -27,17 +28,15 @@ func NewHandler(cfg *config.Config, logic usecase.UseCase) *Handler {
 }
 
 func (h Handler) GetLinkHandler(c *gin.Context) {
-	cookie, err := getCookies(c)
-	if err != nil || !checkCookies(cookie, h.conf.Key) {
-		log.Println("New cookie was created")
-		setCookies(c, h.conf.Host, h.conf.Key)
-	}
-
 	longURL, err := h.logic.GetLink(c.Param("id"))
 	if err != nil {
 		log.Println(err)
-		c.AbortWithStatus(http.StatusBadRequest)
+		if errors.Is(err, storage.ErrDeleted) {
+			c.AbortWithStatus(http.StatusGone)
+			return
+		}
 
+		c.AbortWithStatus(http.StatusBadRequest)
 		return
 	}
 
@@ -48,7 +47,7 @@ func (h Handler) GetLinkHandler(c *gin.Context) {
 func (h Handler) GetAllLinksHandler(c *gin.Context) {
 	cookie, err := getCookies(c)
 	if err != nil || !checkCookies(cookie, h.conf.Key) {
-		cookie = setCookies(c, h.conf.Host, h.conf.Key)
+		cookie = setCookies(c, h.conf.Key)
 	}
 
 	URLs, err := h.logic.GetAllLinksByCookie(cookie, h.conf.BaseURL)
@@ -73,7 +72,7 @@ func (h Handler) GetAllLinksHandler(c *gin.Context) {
 func (h Handler) CreateLinkHandler(c *gin.Context) {
 	cookie, err := getCookies(c)
 	if err != nil || !checkCookies(cookie, h.conf.Key) {
-		cookie = setCookies(c, h.conf.Host, h.conf.Key)
+		cookie = setCookies(c, h.conf.Key)
 	}
 
 	data, err := UseGzip(c.Request.Body, c.Request.Header.Get("Content-Type"))
@@ -121,7 +120,7 @@ func (h Handler) CreateLinkHandler(c *gin.Context) {
 func (h Handler) APICreateLinkHandler(c *gin.Context) {
 	cookie, err := getCookies(c)
 	if err != nil || !checkCookies(cookie, h.conf.Key) {
-		setCookies(c, h.conf.Host, h.conf.Key)
+		cookie = setCookies(c, h.conf.Key)
 	}
 
 	b, err := UseGzip(c.Request.Body, c.Request.Header.Get("Content-Type"))
@@ -194,7 +193,7 @@ func (h Handler) Ping(c *gin.Context) {
 func (h Handler) BatchHandler(c *gin.Context) {
 	cookie, err := getCookies(c)
 	if err != nil || !checkCookies(cookie, h.conf.Key) {
-		setCookies(c, h.conf.Host, h.conf.Key)
+		cookie = setCookies(c, h.conf.Key)
 	}
 
 	var batchURLs []schema.BatchURL
@@ -214,4 +213,23 @@ func (h Handler) BatchHandler(c *gin.Context) {
 
 	c.Header("Content-Type", "application/json")
 	c.IndentedJSON(http.StatusCreated, data)
+}
+
+func (h Handler) APIDeleteLinksHandler(c *gin.Context) {
+	cookie, _ := getCookies(c)
+
+	var s []string
+	if err := c.ShouldBindJSON(&s); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Not allowed request"})
+		return
+	}
+
+	go func(cookie string, s []string) {
+		for _, URL := range s {
+			h.logic.MarkAsDeleted(URL, cookie)
+		}
+	}(cookie, s)
+
+	c.Status(http.StatusAccepted)
+	c.Header("Content-Type", "application/json")
 }

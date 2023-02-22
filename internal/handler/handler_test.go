@@ -157,12 +157,12 @@ func TestHandler_APICreateLinkHandler(t *testing.T) {
 			req := httptest.NewRequest("POST", "/api/shorten",
 				bytes.NewBufferString(test.inputBody))
 			w := httptest.NewRecorder()
-			// определяем хендлер
+
 			router := gin.Default()
 			router.Use(handler.APICreateLinkHandler)
 
 			router.ServeHTTP(w, req)
-			// Assert
+
 			assert.Equal(t, test.expectedStatusCode, w.Code)
 			assert.Equal(t, test.expectedResponseBody, w.Body.String())
 		})

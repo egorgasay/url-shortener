@@ -1,17 +1,16 @@
 package config
 
 import (
+	"context"
 	"flag"
-	"github.com/sethvargo/go-password/password"
+	"github.com/egorgasay/dockerdb"
 	"log"
 	"os"
-	"url-shortener/internal/dockerdb"
 	"url-shortener/internal/repository"
 	"url-shortener/internal/storage"
 	dbstorage "url-shortener/internal/storage/db"
 	filestorage "url-shortener/internal/storage/file"
 	mapstorage "url-shortener/internal/storage/map"
-	getfreeport "url-shortener/pkg/getFreePort"
 )
 
 const (
@@ -72,7 +71,7 @@ func New() *Config {
 
 	if *f.dsn == "" && storage.Type(*f.storage) == defaultStorage && *f.vdb == "" {
 		s := ""
-		if *f.path != "" {
+		if *f.path != defaultPath {
 			s = string(filestorage.FileStorageType)
 			f.storage = &s
 		} else {
@@ -81,36 +80,33 @@ func New() *Config {
 		}
 	}
 
-	generated, err := password.Generate(17, 5, 0, false, false)
-	if err != nil {
-		log.Fatal("Generate: ", err)
-	}
+	//generated, err := password.Generate(17, 5, 0, false, false)
+	//if err != nil {
+	//	log.Fatal("Generate: ", err)
+	//}
 
 	log.Println(*f.dsn, *f.path, *f.storage)
 	var ddb *dockerdb.VDB
+	var vdb = *f.vdb
 
-	if vdb := *f.vdb; vdb != "" {
-		err := dockerdb.Pull(*f.storage)
-		if err != nil {
-			log.Fatal("Pull: ", err)
-		}
-
-		port, err := getfreeport.GetFreePort()
-		if err != nil {
-			log.Fatal("GetFreePort: ", err)
-		}
+	if vdb != "" {
+		ctx := context.TODO()
 
 		cfg := dockerdb.CustomDB{
 			DB: dockerdb.DB{
 				Name:     vdb,
 				User:     "admin",
-				Password: generated,
+				Password: "admin",
 			},
-			Port:   port,
-			Vendor: *f.storage,
+			Port: "1254",
+			Vendor: dockerdb.Vendor{
+				Name:  *f.storage,
+				Image: *f.storage,
+			},
 		}
 
-		ddb, err = dockerdb.New(cfg)
+		var err error
+		ddb, err = dockerdb.New(ctx, cfg)
 		if err != nil {
 			log.Fatal(err)
 		}
@@ -119,12 +115,13 @@ func New() *Config {
 	return &Config{
 		Host:    *f.host,
 		BaseURL: *f.baseURL,
-		Key:     []byte(generated),
+		Key:     []byte("CHANGE ME"),
 		DBConfig: &repository.Config{
 			DriverName:     storage.Type(*f.storage),
 			DataSourcePath: *f.path,
 			DataSourceCred: *f.dsn,
 			VDB:            ddb,
+			Name:           vdb,
 		},
 	}
 }

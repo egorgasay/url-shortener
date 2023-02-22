@@ -5,6 +5,7 @@ import (
 	"bytes"
 	"errors"
 	"io"
+	"log"
 	"os"
 	"strings"
 	"sync"
@@ -35,6 +36,17 @@ func (fs *FileStorage) Open() error {
 	return nil
 }
 
+func (fs *FileStorage) OpenForWriteAt() error {
+	fs.Mu.Lock()
+	file, err := os.OpenFile(fs.Path, os.O_RDWR|os.O_CREATE, 0777)
+	if err != nil {
+		return err
+	}
+
+	fs.File = file
+	return nil
+}
+
 func (fs *FileStorage) Close() error {
 	fs.Mu.Unlock()
 	return fs.File.Close()
@@ -50,7 +62,7 @@ func (fs *FileStorage) AddLink(longURL, shortURL, cookie string) (string, error)
 
 	writer := bufio.NewWriter(fs.File)
 
-	_, err = writer.Write([]byte(shortURL + " - " + longURL + " - " + cookie + "\n"))
+	_, err = writer.Write([]byte("1" + " - " + shortURL + " - " + longURL + " - " + cookie + "\n"))
 	if err != nil {
 		return "", err
 	}
@@ -103,8 +115,8 @@ func (fs *FileStorage) GetLongLink(shortURL string) (longURL string, err error) 
 		line := scanner.Text()
 		split := strings.Split(line, " - ")
 
-		if len(split) > 1 && split[0] == shortURL {
-			return split[1], nil
+		if len(split) > 2 && split[1] == shortURL {
+			return split[2], nil
 		}
 	}
 
@@ -126,8 +138,8 @@ func (fs *FileStorage) GetAllLinksByCookie(cookie, baseURL string) ([]schema.URL
 		line := scanner.Text()
 		split := strings.Split(line, " - ")
 
-		if len(split) == 3 && split[2] == cookie {
-			URLs = append(URLs, schema.URL{LongURL: split[1], ShortURL: baseURL + split[0]})
+		if len(split) == 4 && split[3] == cookie && split[0] == "1" {
+			URLs = append(URLs, schema.URL{LongURL: split[2], ShortURL: baseURL + split[1]})
 		}
 	}
 
@@ -146,4 +158,28 @@ func (fs *FileStorage) Ping() error {
 	}
 
 	return nil
+}
+
+func (fs *FileStorage) MarkAsDeleted(shortURL, cookie string) {
+	err := fs.OpenForWriteAt()
+	if err != nil {
+		log.Println("can't open a file ", err)
+	}
+	defer fs.Close()
+
+	scanner := bufio.NewScanner(fs.File)
+	var i int64 = 1
+	for scanner.Scan() {
+		line := scanner.Text()
+		split := strings.Split(line, " - ")
+		if len(split) > 2 && split[1] == shortURL && split[3] == cookie {
+			lineWithDeletedMark := "0" + line[1:] + "\n"
+			_, err = fs.File.WriteAt([]byte(lineWithDeletedMark), i-1)
+			if err != nil {
+				log.Println(err)
+				return
+			}
+		}
+		i += int64(1 + len(line))
+	}
 }

@@ -1,8 +1,10 @@
 package usecase
 
 import (
+	"context"
 	"encoding/json"
 	"errors"
+	"golang.org/x/sync/errgroup"
 	"log"
 	"url-shortener/internal/schema"
 	"url-shortener/internal/storage/db/service"
@@ -13,10 +15,14 @@ func (uc UseCase) GetLink(shortURL string) (longURL string, err error) {
 	return uc.storage.GetLongLink(shortURL)
 }
 
+func (uc UseCase) MarkAsDeleted(shortURL, cookie string) {
+	uc.storage.MarkAsDeleted(shortURL, cookie)
+}
+
 func (uc UseCase) CreateLink(longURL, cookie string, chars ...string) (string, error) {
 	id, err := uc.storage.FindMaxID()
 	if err != nil {
-		log.Println(err)
+		log.Println("can't find max id", err)
 		return "", err
 	}
 
@@ -53,14 +59,46 @@ func (uc UseCase) Ping() error {
 
 func (uc UseCase) Batch(batchURLs []schema.BatchURL, cookie, baseURL string) ([]schema.ResponseBatchURL, error) {
 	var respJSON []schema.ResponseBatchURL
+	var respJSONch = make(chan schema.ResponseBatchURL, len(batchURLs))
+	var errorsCh = make(chan error)
+
+	g, _ := errgroup.WithContext(context.Background())
+	go func() {
+		errorsCh <- g.Wait()
+	}()
+
 	for _, pair := range batchURLs {
-		short, err := uc.CreateLink(pair.Original, cookie, pair.Chars)
-		if err != nil && !errors.Is(err, service.ErrExists) {
-			return nil, err
+		pair := pair
+		g.Go(func() error {
+			short, err := uc.CreateLink(pair.Original, cookie, pair.Chars)
+			if err != nil && !errors.Is(err, service.ErrExists) {
+				return err
+			}
+
+			respJSONch <- schema.ResponseBatchURL{Chars: pair.Chars,
+				Shorted: baseURL + short}
+
+			return nil
+		})
+	}
+
+	i := 1
+	for resp := range respJSONch {
+		select {
+		case err := <-errorsCh:
+			if err != nil {
+				return nil, err
+			}
+		default:
 		}
 
-		respJSON = append(respJSON, schema.ResponseBatchURL{Chars: pair.Chars,
-			Shorted: baseURL + short})
+		respJSON = append(respJSON, resp)
+
+		if i == len(batchURLs) {
+			close(respJSONch)
+		}
+
+		i++
 	}
 
 	return respJSON, nil
