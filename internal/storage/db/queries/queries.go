@@ -42,8 +42,8 @@ var queriesMySQL = map[Name]Query{
 	MarkAsDeleted:       "UPDATE urls SET `deleted` = 1 WHERE `short` = ? AND `cookie` = ?",
 }
 
-var NotFoundError = errors.New("query not found")
-var NilStatementError = errors.New("query statement is nil")
+var ErrNotFound = errors.New("query not found")
+var ErrNilStatement = errors.New("query statement is nil")
 
 var statements = make(map[Name]*sql.Stmt, 10)
 
@@ -71,11 +71,11 @@ func Prepare(DB *sql.DB, vendor string) error {
 func GetPreparedStatement(name int) (*sql.Stmt, error) {
 	stmt, ok := statements[Name(name)]
 	if !ok {
-		return nil, NotFoundError
+		return nil, ErrNotFound
 	}
 
 	if stmt == nil {
-		return nil, NilStatementError
+		return nil, ErrNilStatement
 	}
 
 	return stmt, nil
