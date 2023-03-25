@@ -80,12 +80,7 @@ func New() *Config {
 		}
 	}
 
-	//generated, err := password.Generate(17, 5, 0, false, false)
-	//if err != nil {
-	//	log.Fatal("Generate: ", err)
-	//}
-
-	log.Println(*f.dsn, *f.path, *f.storage)
+	//log.Println(*f.dsn, *f.path, *f.storage)
 	var ddb *dockerdb.VDB
 	var vdb = *f.vdb
 
@@ -98,7 +93,7 @@ func New() *Config {
 				User:     "admin",
 				Password: "admin",
 			},
-			Port: "1254",
+			Port: "12522",
 			Vendor: dockerdb.Vendor{
 				Name:  *f.storage,
 				Image: *f.storage,
@@ -110,6 +105,7 @@ func New() *Config {
 		if err != nil {
 			log.Fatal(err)
 		}
+		f.dsn = &ddb.ConnString
 	}
 
 	return &Config{

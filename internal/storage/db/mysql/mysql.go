@@ -7,6 +7,7 @@ import (
 	"github.com/golang-migrate/migrate/v4/database/mysql"
 	"log"
 	"url-shortener/internal/schema"
+	"url-shortener/internal/storage/db/queries"
 	"url-shortener/internal/storage/db/service"
 
 	_ "github.com/go-sql-driver/mysql"
@@ -16,7 +17,7 @@ type MySQL struct {
 	DB *sql.DB
 }
 
-func New(db *sql.DB) service.IRealStorage {
+func New(db *sql.DB, path string) service.IRealStorage {
 	driver, err := mysql.WithInstance(db, &mysql.Config{})
 	if err != nil {
 		log.Fatal(err)
@@ -24,7 +25,7 @@ func New(db *sql.DB) service.IRealStorage {
 	}
 
 	m, err := migrate.NewWithDatabaseInstance(
-		"file://migrations/postgres",
+		path,
 		"mysql", driver)
 	if err != nil {
 		log.Fatal(err)
@@ -41,14 +42,8 @@ func New(db *sql.DB) service.IRealStorage {
 	return MySQL{DB: db}
 }
 
-const insertURL = "INSERT INTO urls (`longURL`, `shortURL`, `cookie`) VALUES (?, ?, ?)"
-const getLongLink = "SELECT `longURL` FROM urls WHERE `shortURL` = ?"
-const findMaxURL = "SELECT MAX(id) FROM urls"
-const getAllLinksByCookie = "SELECT `short`, `long` FROM urls WHERE `cookie` = ?"
-const markAsDeleted = "UPDATE urls SET `deleted` = 1 WHERE `short` = ? AND `cookie` = ?"
-
 func (m MySQL) AddLink(longURL, shortURL, cookie string) (string, error) {
-	stmt, err := m.DB.Prepare(insertURL)
+	stmt, err := queries.GetPreparedStatement(queries.InsertURL)
 	if err != nil {
 		return "", err
 	}
@@ -69,7 +64,7 @@ func (m MySQL) AddLink(longURL, shortURL, cookie string) (string, error) {
 func (m MySQL) FindMaxID() (int, error) {
 	var id int
 
-	stmt, err := m.DB.Prepare(findMaxURL)
+	stmt, err := queries.GetPreparedStatement(queries.FindMaxURL)
 	if err != nil {
 		return 0, nil
 	}
@@ -81,7 +76,7 @@ func (m MySQL) FindMaxID() (int, error) {
 }
 
 func (m MySQL) GetLongLink(shortURL string) (longURL string, err error) {
-	stmt, err := m.DB.Prepare(getLongLink)
+	stmt, err := queries.GetPreparedStatement(queries.GetLongLink)
 	if err != nil {
 		return "", nil
 	}
@@ -93,7 +88,7 @@ func (m MySQL) GetLongLink(shortURL string) (longURL string, err error) {
 }
 
 func (m MySQL) MarkAsDeleted(shortURL, cookie string) {
-	stmt, err := m.DB.Prepare(markAsDeleted)
+	stmt, err := queries.GetPreparedStatement(queries.MarkAsDeleted)
 	if err != nil {
 		log.Println(err)
 	}
@@ -109,7 +104,7 @@ func (m MySQL) MarkAsDeleted(shortURL, cookie string) {
 }
 
 func (m MySQL) GetAllLinksByCookie(cookie, baseURL string) ([]schema.URL, error) {
-	stmt, err := m.DB.Prepare(getAllLinksByCookie)
+	stmt, err := queries.GetPreparedStatement(queries.GetAllLinksByCookie)
 	if err != nil {
 		return nil, nil
 	}

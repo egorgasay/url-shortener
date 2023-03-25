@@ -9,7 +9,6 @@ import (
 	"fmt"
 	"github.com/gin-gonic/gin"
 	"io"
-	"log"
 	"net/url"
 	"strings"
 	"time"
@@ -71,7 +70,6 @@ func NewCookie(key []byte) string {
 }
 
 func getCookies(c *gin.Context) (cookie string, err error) {
-	log.Println(c.Request.Cookies())
 	cookie = c.Request.Header.Get("Authorization")
 	if cookie != "" {
 		return cookie, nil

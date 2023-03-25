@@ -11,26 +11,16 @@ import (
 	"log"
 	"url-shortener/internal/schema"
 	"url-shortener/internal/storage"
+	"url-shortener/internal/storage/db/queries"
 	"url-shortener/internal/storage/db/service"
 	shortenalgorithm "url-shortener/pkg/shortenAlgorithm"
 )
-
-const insertURL = "INSERT INTO urls (long, short, cookie, deleted) VALUES ($1, $2, $3, false)"
-const getShortLink = "SELECT short FROM urls WHERE long = $1"
-const getLongLink = `
-SELECT long, deleted
-FROM urls 
-WHERE short = $1
-`
-const findMaxURL = "SELECT count(*) FROM urls"
-const getAllLinksByCookie = "SELECT short, long FROM urls WHERE cookie = $1"
-const markAsDeleted = "UPDATE urls SET deleted = true WHERE short = $1 and cookie = $2"
 
 type Postgres struct {
 	DB *sql.DB
 }
 
-func New(db *sql.DB) service.IRealStorage {
+func New(db *sql.DB, path string) service.IRealStorage {
 	driver, err := postgres.WithInstance(db, &postgres.Config{})
 	if err != nil {
 		log.Fatal(err)
@@ -38,7 +28,7 @@ func New(db *sql.DB) service.IRealStorage {
 	}
 
 	m, err := migrate.NewWithDatabaseInstance(
-		"file://migrations/postgres",
+		path,
 		"postgres", driver)
 	if err != nil {
 		log.Fatal(err)
@@ -56,7 +46,12 @@ func New(db *sql.DB) service.IRealStorage {
 }
 
 func (p Postgres) AddLink(longURL, shortURL, cookie string) (string, error) {
-	stmt, err := p.DB.Prepare(insertURL)
+	stmt, err := queries.GetPreparedStatement(queries.InsertURL)
+	if err != nil {
+		return "", err
+	}
+
+	GetShortLinkSTMT, err := queries.GetPreparedStatement(queries.GetShortLink)
 	if err != nil {
 		return "", err
 	}
@@ -81,7 +76,7 @@ func (p Postgres) AddLink(longURL, shortURL, cookie string) (string, error) {
 		return "", err
 	}
 
-	row := p.DB.QueryRow(getShortLink, sql.Named("long", longURL).Value)
+	row := GetShortLinkSTMT.QueryRow(sql.Named("long", longURL).Value)
 	if row.Err() != nil {
 		return "", err
 	}
@@ -109,7 +104,7 @@ func (p Postgres) AddLink(longURL, shortURL, cookie string) (string, error) {
 func (p Postgres) FindMaxID() (int, error) {
 	var id int
 
-	stmt, err := p.DB.Prepare(findMaxURL)
+	stmt, err := queries.GetPreparedStatement(queries.FindMaxURL)
 	if err != nil {
 		return 0, nil
 	}
@@ -121,7 +116,7 @@ func (p Postgres) FindMaxID() (int, error) {
 }
 
 func (p Postgres) GetLongLink(shortURL string) (longURL string, err error) {
-	stmt, err := p.DB.Prepare(getLongLink)
+	stmt, err := queries.GetPreparedStatement(queries.GetLongLink)
 	if err != nil {
 		return "", err
 	}
@@ -139,7 +134,7 @@ func (p Postgres) GetLongLink(shortURL string) (longURL string, err error) {
 }
 
 func (p Postgres) MarkAsDeleted(shortURL, cookie string) {
-	stmt, err := p.DB.Prepare(markAsDeleted)
+	stmt, err := queries.GetPreparedStatement(queries.MarkAsDeleted)
 	if err != nil {
 		log.Println(err)
 	}
@@ -155,7 +150,7 @@ func (p Postgres) MarkAsDeleted(shortURL, cookie string) {
 }
 
 func (p Postgres) GetAllLinksByCookie(cookie, baseURL string) ([]schema.URL, error) {
-	stmt, err := p.DB.Prepare(getAllLinksByCookie)
+	stmt, err := queries.GetPreparedStatement(queries.GetAllLinksByCookie)
 	if err != nil {
 		return nil, nil
 	}

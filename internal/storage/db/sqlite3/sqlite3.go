@@ -7,22 +7,17 @@ import (
 	"github.com/golang-migrate/migrate/v4/database/sqlite"
 	"log"
 	"url-shortener/internal/schema"
+	"url-shortener/internal/storage/db/queries"
 	"url-shortener/internal/storage/db/service"
 
 	_ "github.com/mattn/go-sqlite3"
 )
 
-const insertURL = "INSERT INTO urls (long, short, cookie) VALUES (?, ?, ?)"
-const getLongLink = "SELECT long FROM urls WHERE short = ?"
-const findMaxURL = "SELECT MAX(id) FROM urls"
-const getAllLinksByCookie = "SELECT short, long FROM urls WHERE cookie = ?"
-const markAsDeleted = "UPDATE urls SET deleted = 1 WHERE short = ? AND cookie = ?"
-
 type Sqlite3 struct {
 	DB *sql.DB
 }
 
-func New(db *sql.DB) service.IRealStorage {
+func New(db *sql.DB, path string) service.IRealStorage {
 	driver, err := sqlite.WithInstance(db, &sqlite.Config{})
 	if err != nil {
 		log.Fatal(err)
@@ -30,7 +25,7 @@ func New(db *sql.DB) service.IRealStorage {
 	}
 
 	m, err := migrate.NewWithDatabaseInstance(
-		"file://migrations/postgres",
+		path,
 		"sqlite", driver)
 	if err != nil {
 		log.Fatal(err)
@@ -48,7 +43,7 @@ func New(db *sql.DB) service.IRealStorage {
 }
 
 func (s Sqlite3) AddLink(longURL, shortURL, cookie string) (string, error) {
-	stmt, err := s.DB.Prepare(insertURL)
+	stmt, err := queries.GetPreparedStatement(queries.InsertURL)
 	if err != nil {
 		return "", err
 	}
@@ -69,7 +64,7 @@ func (s Sqlite3) AddLink(longURL, shortURL, cookie string) (string, error) {
 func (s Sqlite3) FindMaxID() (int, error) {
 	var id int
 
-	stmt, err := s.DB.Prepare(findMaxURL)
+	stmt, err := queries.GetPreparedStatement(queries.FindMaxURL)
 	if err != nil {
 		return 0, nil
 	}
@@ -81,7 +76,7 @@ func (s Sqlite3) FindMaxID() (int, error) {
 }
 
 func (s Sqlite3) GetLongLink(shortURL string) (longURL string, err error) {
-	stmt, err := s.DB.Prepare(getLongLink)
+	stmt, err := queries.GetPreparedStatement(queries.GetLongLink)
 	if err != nil {
 		return "", nil
 	}
@@ -93,7 +88,7 @@ func (s Sqlite3) GetLongLink(shortURL string) (longURL string, err error) {
 }
 
 func (s Sqlite3) MarkAsDeleted(shortURL, cookie string) {
-	stmt, err := s.DB.Prepare(markAsDeleted)
+	stmt, err := queries.GetPreparedStatement(queries.MarkAsDeleted)
 	if err != nil {
 		log.Println(err)
 	}
@@ -109,7 +104,7 @@ func (s Sqlite3) MarkAsDeleted(shortURL, cookie string) {
 }
 
 func (s Sqlite3) GetAllLinksByCookie(cookie, baseURL string) ([]schema.URL, error) {
-	stmt, err := s.DB.Prepare(getAllLinksByCookie)
+	stmt, err := queries.GetPreparedStatement(queries.GetAllLinksByCookie)
 	if err != nil {
 		return nil, nil
 	}
