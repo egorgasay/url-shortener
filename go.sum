@@ -376,8 +376,8 @@ github.com/dustin/go-humanize v0.0.0-20171111073723-bb3d318650d4/go.mod h1:Htrtb
 github.com/dustin/go-humanize v1.0.0 h1:VSnTsYCnlFHaM2/igO1h6X3HA71jcobQuxemgkq4zYo=
 github.com/dustin/go-humanize v1.0.0/go.mod h1:HtrtbFcZ19U5GC7JDqmcUSB87Iq5E25KnS6fMYU6eOk=
 github.com/edsrzf/mmap-go v0.0.0-20170320065105-0bce6a688712/go.mod h1:YO35OhQPt3KJa3ryjFM5Bs14WD66h8eGKpfaBNrHW5M=
-github.com/egorgasay/dockerdb v0.0.4 h1:gBIy8TqVnWR5J2Z+YKOajOYN2puBZxfLGcs6LE3wBWI=
-github.com/egorgasay/dockerdb v0.0.4/go.mod h1:CIZiiOM9jXtCr9iAkTS25G3oD8M6GJDWnf9IGcLu2AQ=
+github.com/egorgasay/dockerdb v1.1.0 h1:qOyFdhdFCspX4wkBtSeefu5fgx6gZjzP5qpN154g3ws=
+github.com/egorgasay/dockerdb v1.1.0/go.mod h1:CIZiiOM9jXtCr9iAkTS25G3oD8M6GJDWnf9IGcLu2AQ=
 github.com/elazarl/goproxy v0.0.0-20180725130230-947c36da3153/go.mod h1:/Zj4wYkgs4iZTTu3o/KG3Itv/qCCa8VVMlb3i9OVuzc=
 github.com/emicklei/go-restful v0.0.0-20170410110728-ff4f55a20633/go.mod h1:otzb+WCGbkyDHkqmQmT5YD2WR4BBwUdeQoFo8l/7tVs=
 github.com/emicklei/go-restful v2.9.5+incompatible/go.mod h1:otzb+WCGbkyDHkqmQmT5YD2WR4BBwUdeQoFo8l/7tVs=
