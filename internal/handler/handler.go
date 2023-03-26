@@ -13,11 +13,14 @@ import (
 	"url-shortener/internal/usecase"
 )
 
+// Handler struct that contains link to the logic layer and conf.
+// It has methods for processing requests.
 type Handler struct {
 	conf  *config.Config
 	logic usecase.UseCase
 }
 
+// NewHandler creates an instance of the Handler.
 func NewHandler(cfg *config.Config, logic usecase.UseCase) *Handler {
 	if cfg == nil {
 		panic("конфиг равен nil")
@@ -45,6 +48,8 @@ func (h Handler) GetLinkHandler(c *gin.Context) {
 	c.Status(http.StatusTemporaryRedirect)
 }
 
+// GetAllLinksHandler returns all URLs that have been shortened by a specific user,
+// which is determined using a cookie provided upon request.
 func (h Handler) GetAllLinksHandler(c *gin.Context) {
 	cookie, err := getCookies(c)
 	if err != nil || !checkCookies(cookie, h.conf.Key) {
@@ -70,6 +75,8 @@ func (h Handler) GetAllLinksHandler(c *gin.Context) {
 	c.Writer.WriteString(URLs)
 }
 
+// CreateLinkHandler accepts original link in the request (as plain text) and
+// returns a shortened equivalent.
 func (h Handler) CreateLinkHandler(c *gin.Context) {
 	cookie, err := getCookies(c)
 	if err != nil || !checkCookies(cookie, h.conf.Key) {
@@ -118,6 +125,8 @@ func (h Handler) CreateLinkHandler(c *gin.Context) {
 	c.Writer.WriteString(URL.String())
 }
 
+// APICreateLinkHandler accepts original link in the request (as json) and
+// returns a shortened equivalent.
 func (h Handler) APICreateLinkHandler(c *gin.Context) {
 	cookie, err := getCookies(c)
 	if err != nil || !checkCookies(cookie, h.conf.Key) {
@@ -181,6 +190,7 @@ func (h Handler) APICreateLinkHandler(c *gin.Context) {
 	c.Writer.Write(rawURL)
 }
 
+// Ping checks the connection to the database.
 func (h Handler) Ping(c *gin.Context) {
 	err := h.logic.Ping()
 	if err != nil {
@@ -191,6 +201,8 @@ func (h Handler) Ping(c *gin.Context) {
 	c.Status(http.StatusOK)
 }
 
+// BatchHandler accepts a batch of URLs and saves them.
+// Returns correlation id and shortened urls in the response.
 func (h Handler) BatchHandler(c *gin.Context) {
 	cookie, err := getCookies(c)
 	if err != nil || !checkCookies(cookie, h.conf.Key) {
@@ -216,6 +228,7 @@ func (h Handler) BatchHandler(c *gin.Context) {
 	c.IndentedJSON(http.StatusCreated, data)
 }
 
+// APIDeleteLinksHandler accepts a batch of URLs and marks them as deleted.
 func (h Handler) APIDeleteLinksHandler(c *gin.Context) {
 	cookie, _ := getCookies(c)
 

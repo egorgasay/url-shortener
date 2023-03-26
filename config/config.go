@@ -22,6 +22,7 @@ const (
 	defaultvdb     = ""
 )
 
+// Flag struct for parsing from env and cmd args.
 type Flag struct {
 	host    *string
 	baseURL *string
@@ -43,6 +44,7 @@ func init() {
 	f.vdb = flag.String("vdb", defaultvdb, "-vdb=virtual_db_name")
 }
 
+// Config contains all the settings for configuring the application.
 type Config struct {
 	Host     string
 	BaseURL  string
@@ -50,6 +52,7 @@ type Config struct {
 	DBConfig *repository.Config
 }
 
+// New initializing the config for the application.
 func New() *Config {
 	flag.Parse()
 
