@@ -37,7 +37,7 @@ var queriesPostgres = map[Name]Query{
 var queriesMySQL = map[Name]Query{
 	InsertURL:           "INSERT INTO urls (`longURL`, `shortURL`, `cookie`) VALUES (?, ?, ?)",
 	GetLongLink:         "SELECT `longURL` FROM urls WHERE `shortURL` = ?",
-	FindMaxURL:          "SELECT MAX(id) FROM urls",
+	FindMaxURL:          "SELECT MAX(`id`) FROM urls",
 	GetAllLinksByCookie: "SELECT `shortURL`, `longURL` FROM urls WHERE `cookie` = ?",
 	MarkAsDeleted:       "UPDATE urls SET `deleted` = 1 WHERE `shortURL` = ? AND `cookie` = ?",
 }

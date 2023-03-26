@@ -11,14 +11,18 @@ import (
 	shortenalgorithm "url-shortener/pkg/shortenAlgorithm"
 )
 
+// GetLink calls storage method GetLink.
+// Returns a long URL and an error.
 func (uc UseCase) GetLink(shortURL string) (longURL string, err error) {
 	return uc.storage.GetLongLink(shortURL)
 }
 
+// MarkAsDeleted calls storage method MarkAsDeleted.
 func (uc UseCase) MarkAsDeleted(shortURL, cookie string) {
 	uc.storage.MarkAsDeleted(shortURL, cookie)
 }
 
+// CreateLink calls FindMaxID, GetShortName and then calls AddLink storage method to save the link.
 func (uc UseCase) CreateLink(longURL, cookie string, chars ...string) (string, error) {
 	id, err := uc.storage.FindMaxID()
 	if err != nil {
@@ -39,6 +43,7 @@ func (uc UseCase) CreateLink(longURL, cookie string, chars ...string) (string, e
 	return uc.storage.AddLink(longURL, shortURL, cookie)
 }
 
+// GetAllLinksByCookie calls storage method GetAllLinksByCookie and execute json from the response.
 func (uc UseCase) GetAllLinksByCookie(shortURL, baseURL string) (URLs string, err error) {
 	links, err := uc.storage.GetAllLinksByCookie(shortURL, baseURL)
 	if err != nil {
@@ -53,10 +58,12 @@ func (uc UseCase) GetAllLinksByCookie(shortURL, baseURL string) (URLs string, er
 	return string(b), nil
 }
 
+// Ping checks connection with db.
 func (uc UseCase) Ping() error {
 	return uc.storage.Ping()
 }
 
+// Batch gets urls for process and processes every url in separate goroutines.
 func (uc UseCase) Batch(batchURLs []schema.BatchURL, cookie, baseURL string) ([]schema.ResponseBatchURL, error) {
 	var respJSON []schema.ResponseBatchURL
 	var respJSONch = make(chan schema.ResponseBatchURL, len(batchURLs))

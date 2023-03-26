@@ -6,4 +6,3 @@ CREATE TABLE urls
     cookie TEXT,
     PRIMARY KEY (id)
 );
-INSERT INTO urls (longURL, shortURL, cookie) VALUES ('http://localhost:8080/', '0', 'start');

@@ -63,7 +63,7 @@ func (m MySQL) AddLink(longURL, shortURL, cookie string) (string, error) {
 }
 
 func (m MySQL) FindMaxID() (int, error) {
-	var id int
+	var id sql.NullInt32
 
 	stmt, err := queries.GetPreparedStatement(queries.FindMaxURL)
 	if err != nil {
@@ -73,7 +73,7 @@ func (m MySQL) FindMaxID() (int, error) {
 	stm := stmt.QueryRow()
 	err = stm.Scan(&id)
 
-	return id, err
+	return int(id.Int32), err
 }
 
 func (m MySQL) GetLongLink(shortURL string) (longURL string, err error) {
