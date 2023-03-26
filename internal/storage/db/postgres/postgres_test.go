@@ -31,7 +31,7 @@ func TestMain(m *testing.M) {
 		},
 	}
 
-	err := dockerdb.Pull(ctx, dockerdb.PostgresImage+":10")
+	err := dockerdb.Pull(ctx, dockerdb.PostgresImage+":15")
 	if err != nil {
 		log.Fatal(err)
 		return
