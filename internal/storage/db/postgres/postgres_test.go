@@ -30,7 +30,14 @@ func TestMain(m *testing.M) {
 			Image: dockerdb.PostgresImage, // TODO: add dockerdb.Postgres15 as image into dockerdb package
 		},
 	}
-	vdb, err := dockerdb.New(ctx, cfg)
+	var vdb *dockerdb.VDB
+	err := vdb.Pull(ctx, dockerdb.PostgresImage)
+	if err != nil {
+		log.Fatal(err)
+		return
+	}
+
+	vdb, err = dockerdb.New(ctx, cfg)
 	if err != nil {
 		log.Fatal(err)
 		return

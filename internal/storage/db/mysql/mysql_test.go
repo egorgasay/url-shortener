@@ -30,7 +30,14 @@ func TestMain(m *testing.M) {
 			Image: "mysql:5.7",
 		},
 	}
-	vdb, err := dockerdb.New(ctx, cfg)
+	var vdb *dockerdb.VDB
+	err := vdb.Pull(ctx, "mysql:5.7")
+	if err != nil {
+		log.Fatal(err)
+		return
+	}
+
+	vdb, err = dockerdb.New(ctx, cfg)
 	if err != nil {
 		log.Fatal(err)
 		return
