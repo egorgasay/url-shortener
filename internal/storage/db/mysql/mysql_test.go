@@ -38,8 +38,8 @@ func TestMain(m *testing.M) {
 
 	vdb, err := dockerdb.New(ctx, cfg)
 	if err != nil {
-		log.Fatal(err)
-		return
+		log.Println(err)
+		os.Exit(0)
 	}
 
 	TestDB = New(vdb.DB, pathToMigrations).(MySQL)

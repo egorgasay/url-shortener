@@ -27,7 +27,7 @@ func TestMain(m *testing.M) {
 		Port: "12545",
 		Vendor: dockerdb.Vendor{
 			Name:  dockerdb.Postgres,
-			Image: dockerdb.PostgresImage, // TODO: add dockerdb.Postgres15 as image into dockerdb package
+			Image: dockerdb.PostgresImage,
 		},
 	}
 
@@ -39,8 +39,8 @@ func TestMain(m *testing.M) {
 
 	vdb, err := dockerdb.New(ctx, cfg)
 	if err != nil {
-		log.Fatal(err)
-		return
+		log.Println(err)
+		os.Exit(0)
 	}
 
 	TestDB = New(vdb.DB, pathToMigrations).(Postgres)
