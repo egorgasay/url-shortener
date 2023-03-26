@@ -21,8 +21,19 @@ type FileStorage struct {
 
 const FileStorageType storage.Type = "file"
 
-func NewFileStorage(path string) storage.IStorage {
-	return &FileStorage{Path: path}
+func NewFileStorage(path string) (storage.IStorage, error) {
+	fs := &FileStorage{Path: path}
+	err := fs.Open()
+	if err != nil {
+		return nil, err
+	}
+
+	err = fs.Close()
+	if err != nil {
+		return nil, err
+	}
+
+	return fs, nil
 }
 
 func (fs *FileStorage) Open() error {

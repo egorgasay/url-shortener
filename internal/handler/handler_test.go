@@ -193,8 +193,6 @@ func Benchmark_CreateAndGetLink(b *testing.B) {
 	router.Use(handler.CreateLinkHandler)
 	req := httptest.NewRequest("POST", "/", nil)
 
-	urls := make(chan string, 2000000)
-
 	b.ResetTimer()
 	b.Run("Create", func(b *testing.B) {
 		for i := 0; i < b.N; i++ {
@@ -204,7 +202,6 @@ func Benchmark_CreateAndGetLink(b *testing.B) {
 			router.ServeHTTP(w, req)
 			b.StopTimer()
 			log.Println()
-			urls <- w.Body.String()
 			s++
 		}
 	})
@@ -214,7 +211,7 @@ func Benchmark_CreateAndGetLink(b *testing.B) {
 	router.GET("/:id", handler.GetLinkHandler)
 	b.Run("Get", func(b *testing.B) {
 		for i := 0; i < b.N; i++ {
-			req = httptest.NewRequest("GET", "/"+<-urls,
+			req = httptest.NewRequest("GET", "/Xz",
 				nil)
 			w := httptest.NewRecorder()
 
@@ -224,5 +221,4 @@ func Benchmark_CreateAndGetLink(b *testing.B) {
 			uindex++
 		}
 	})
-	log.Println(len(urls))
 }

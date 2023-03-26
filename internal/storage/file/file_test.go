@@ -13,11 +13,14 @@ var TestDB storage.IStorage
 
 func TestMain(m *testing.M) {
 	// Write code here to run before tests
-	TestDB = NewFileStorage("/tmp/test.txt")
+	var err error
+	TestDB, err = NewFileStorage("test.txt")
+	if err != nil {
+		log.Fatalf("Err temp file was not removed: %v", err)
+	}
 	// Run tests
 	exitVal := m.Run()
-	err := os.Remove("/tmp/test.txt")
-	if err != nil {
+	if os.Remove("test.txt") != nil {
 		log.Fatalf("Err temp file was not removed: %v", err)
 	}
 	os.Exit(exitVal)

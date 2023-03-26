@@ -14,7 +14,6 @@ import (
 )
 
 type Handler struct {
-	//storage storage.IStorage
 	conf  *config.Config
 	logic usecase.UseCase
 }
@@ -27,6 +26,8 @@ func NewHandler(cfg *config.Config, logic usecase.UseCase) *Handler {
 	return &Handler{conf: cfg, logic: logic}
 }
 
+// GetLinkHandler accepts short url through the characters in the url (after the slash),
+// returns a redirect to the URL that was shortened.
 func (h Handler) GetLinkHandler(c *gin.Context) {
 	longURL, err := h.logic.GetLink(c.Param("id"))
 	if err != nil {

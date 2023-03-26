@@ -84,7 +84,7 @@ func New(cfg *Config) (storage.IStorage, error) {
 		return dbStorage.NewRealStorage(cfg.VDB.DB, cfg.DriverName), nil
 	case "file":
 		filename := cfg.DataSourcePath
-		return filestorage.NewFileStorage(filename), nil
+		return filestorage.NewFileStorage(filename)
 	default:
 		db := mapStorage.NewMapStorage()
 		return db, nil
