@@ -5,6 +5,7 @@ import (
 	"database/sql"
 	"github.com/golang-migrate/migrate/v4"
 	"github.com/golang-migrate/migrate/v4/database/sqlite"
+	_ "github.com/golang-migrate/migrate/v4/source/file"
 	"log"
 	"url-shortener/internal/schema"
 	"url-shortener/internal/storage/db/queries"

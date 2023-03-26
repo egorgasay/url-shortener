@@ -38,8 +38,8 @@ var queriesMySQL = map[Name]Query{
 	InsertURL:           "INSERT INTO urls (`longURL`, `shortURL`, `cookie`) VALUES (?, ?, ?)",
 	GetLongLink:         "SELECT `longURL` FROM urls WHERE `shortURL` = ?",
 	FindMaxURL:          "SELECT MAX(id) FROM urls",
-	GetAllLinksByCookie: "SELECT `short`, `long` FROM urls WHERE `cookie` = ?",
-	MarkAsDeleted:       "UPDATE urls SET `deleted` = 1 WHERE `short` = ? AND `cookie` = ?",
+	GetAllLinksByCookie: "SELECT `shortURL`, `longURL` FROM urls WHERE `cookie` = ?",
+	MarkAsDeleted:       "UPDATE urls SET `deleted` = 1 WHERE `shortURL` = ? AND `cookie` = ?",
 }
 
 var ErrNotFound = errors.New("query not found")
