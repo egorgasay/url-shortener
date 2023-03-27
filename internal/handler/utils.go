@@ -14,6 +14,7 @@ import (
 	"time"
 )
 
+// CreateLink accepts chars and baseURL for building url.URL.
 func CreateLink(chars, baseURL string) (*url.URL, error) {
 	URL, err := url.Parse(baseURL)
 	if err != nil {
@@ -25,6 +26,7 @@ func CreateLink(chars, baseURL string) (*url.URL, error) {
 	return URL, nil
 }
 
+// UseGzip to read data from the user's body with DecompressGzip in the request body.
 func UseGzip(body io.Reader, contentType string) (data []byte, err error) {
 	if strings.Contains(contentType, "gzip") {
 		data, err = DecompressGzip(body)
@@ -45,6 +47,7 @@ func UseGzip(body io.Reader, contentType string) (data []byte, err error) {
 	return data, nil
 }
 
+// DecompressGzip unpacking Gzip from data in the body
 func DecompressGzip(body io.Reader) ([]byte, error) {
 	gz, err := gzip.NewReader(body)
 	if err != nil {
@@ -61,6 +64,7 @@ func DecompressGzip(body io.Reader) ([]byte, error) {
 	return data, nil
 }
 
+// NewCookie makes a cookie with a signature based on a key.
 func NewCookie(key []byte) string {
 	h := hmac.New(sha256.New, key)
 	src := []byte(fmt.Sprint(time.Now().UnixNano()))

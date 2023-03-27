@@ -14,10 +14,13 @@ import (
 	_ "github.com/mattn/go-sqlite3"
 )
 
+// Sqlite3 struct with *sql.DB instance.
+// It has methods for working with URLs.
 type Sqlite3 struct {
 	DB *sql.DB
 }
 
+// New Sqlite3 struct constructor.
 func New(db *sql.DB, path string) service.IRealStorage {
 	driver, err := sqlite.WithInstance(db, &sqlite.Config{})
 	if err != nil {

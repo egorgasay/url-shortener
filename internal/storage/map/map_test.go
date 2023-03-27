@@ -8,8 +8,10 @@ import (
 	"url-shortener/internal/storage"
 )
 
+// TestDB database for testing.
 var TestDB storage.IStorage
 
+// TestMain ...
 func TestMain(m *testing.M) {
 	// Write code here to run before tests
 	TestDB = NewMapStorage()
@@ -18,6 +20,7 @@ func TestMain(m *testing.M) {
 	os.Exit(exitVal)
 }
 
+// TestPostgres_FindMaxID ...
 func TestPostgres_FindMaxID(t *testing.T) {
 	want := 0
 	got, err := TestDB.FindMaxID()
@@ -41,6 +44,7 @@ func TestPostgres_FindMaxID(t *testing.T) {
 	}
 }
 
+// TestPostgres_AddLink ...
 func TestPostgres_AddLink(t *testing.T) {
 	type args struct {
 		longURL  string
@@ -88,6 +92,7 @@ func TestPostgres_AddLink(t *testing.T) {
 	}
 }
 
+// TestPostgres_GetAllLinksByCookie ...
 func TestPostgres_GetAllLinksByCookie(t *testing.T) {
 	_, err := TestDB.AddLink("dqw3dqwd", "q3hwdfhqfh", "3hqfhvqhv")
 	if err != nil {
@@ -140,6 +145,7 @@ func TestPostgres_GetAllLinksByCookie(t *testing.T) {
 	}
 }
 
+// TestPostgres_GetLongLink ...
 func TestPostgres_GetLongLink(t *testing.T) {
 	_, err := TestDB.AddLink("dqwdqq", "f", "wd")
 	if err != nil {
@@ -180,6 +186,7 @@ func TestPostgres_GetLongLink(t *testing.T) {
 	}
 }
 
+// TestPostgres_MarkAsDeleted ...
 func TestPostgres_MarkAsDeleted(t *testing.T) {
 	ShortURL := "qwe"
 	cookie := "qwsa"
@@ -192,6 +199,7 @@ func TestPostgres_MarkAsDeleted(t *testing.T) {
 	}
 }
 
+// TestPostgres_Ping ...
 func TestPostgres_Ping(t *testing.T) {
 	if err := TestDB.Ping(); err != nil {
 		t.Errorf("Ping() error = %v", err)

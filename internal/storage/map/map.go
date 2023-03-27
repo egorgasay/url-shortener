@@ -9,25 +9,32 @@ import (
 	"url-shortener/internal/storage/db/service"
 )
 
+// MapStorage struct with a map and mutex for concurent use.
 type MapStorage struct {
 	mu        sync.RWMutex
 	container map[shortURL]data
 }
 
+// MapStorageType ...
 const MapStorageType storage.Type = "map"
 
+// shortURL ...
 type shortURL string
+
+// data ...
 type data struct {
 	cookie  string
 	longURL string
 	deleted bool
 }
 
+// NewMapStorage constructor for storage.IStorage with map implementation.
 func NewMapStorage() storage.IStorage {
 	db := make(map[shortURL]data, 10)
 	return &MapStorage{container: db}
 }
 
+// AddLink ...
 func (s *MapStorage) AddLink(longURL, ShortURL, cookie string) (string, error) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
@@ -40,6 +47,7 @@ func (s *MapStorage) AddLink(longURL, ShortURL, cookie string) (string, error) {
 	return ShortURL, nil
 }
 
+// FindMaxID ...
 func (s *MapStorage) FindMaxID() (int, error) {
 	s.mu.RLock()
 	defer s.mu.RUnlock()
@@ -47,6 +55,7 @@ func (s *MapStorage) FindMaxID() (int, error) {
 	return len(s.container), nil
 }
 
+// GetLongLink ...
 func (s *MapStorage) GetLongLink(ShortURL string) (string, error) {
 	s.mu.RLock()
 	defer s.mu.RUnlock()
@@ -63,6 +72,7 @@ func (s *MapStorage) GetLongLink(ShortURL string) (string, error) {
 	return Data.longURL, nil
 }
 
+// GetAllLinksByCookie ...
 func (s *MapStorage) GetAllLinksByCookie(cookie, baseURL string) ([]schema.URL, error) {
 	s.mu.RLock()
 	defer s.mu.RUnlock()
@@ -78,6 +88,7 @@ func (s *MapStorage) GetAllLinksByCookie(cookie, baseURL string) ([]schema.URL, 
 	return URLs, nil
 }
 
+// MarkAsDeleted ...
 func (s *MapStorage) MarkAsDeleted(ShortURL, cookie string) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
@@ -96,6 +107,7 @@ func (s *MapStorage) MarkAsDeleted(ShortURL, cookie string) {
 	s.container[shortURL(ShortURL)] = Data
 }
 
+// Ping ...
 func (s *MapStorage) Ping() error {
 	if s.container == nil {
 		return errors.New("хранилище не существует")

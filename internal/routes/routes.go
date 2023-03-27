@@ -6,6 +6,7 @@ import (
 	handlers "url-shortener/internal/handler"
 )
 
+// PublicRoutes routes for unregistered users.
 func PublicRoutes(r *gin.RouterGroup, h *handlers.Handler) {
 	if r == nil || h == nil {
 		panic("nil pointer")

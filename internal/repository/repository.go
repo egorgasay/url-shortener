@@ -15,6 +15,7 @@ import (
 	mapStorage "url-shortener/internal/storage/map"
 )
 
+// Config struct containing information about the database.
 type Config struct {
 	DriverName     storage.Type
 	DataSourceCred string
@@ -23,6 +24,7 @@ type Config struct {
 	Name           string
 }
 
+// New build storage.IStorage on Config.
 func New(cfg *Config) (storage.IStorage, error) {
 	if cfg == nil {
 		panic("конфигурация задана некорректно")

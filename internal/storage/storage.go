@@ -5,6 +5,7 @@ import (
 	"url-shortener/internal/schema"
 )
 
+// IStorage interface for a storage.
 type IStorage interface {
 	FindMaxID() (int, error)
 	AddLink(longURL, shortURL, cookie string) (string, error)
@@ -14,6 +15,8 @@ type IStorage interface {
 	MarkAsDeleted(shortURL, cookie string)
 }
 
+// Type storage type.
 type Type string
 
+// ErrDeleted when URL was marked as deleted.
 var ErrDeleted = errors.New("URL was marked as deleted")

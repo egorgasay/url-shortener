@@ -11,8 +11,10 @@ import (
 	"url-shortener/internal/storage/db/sqlite3"
 )
 
+// DBStorageType postgres type.
 const DBStorageType storage.Type = "postgres"
 
+// NewRealStorage constructor for storage.IStorage with db implementation.
 func NewRealStorage(db *sql.DB, vendor storage.Type) service.IRealStorage {
 	var irs service.IRealStorage
 	switch vendor {

@@ -13,14 +13,17 @@ import (
 	"url-shortener/internal/storage"
 )
 
+// FileStorage ...
 type FileStorage struct {
 	Path string
 	File *os.File
 	Mu   sync.Mutex
 }
 
+// FileStorageType ...
 const FileStorageType storage.Type = "file"
 
+// NewFileStorage ...
 func NewFileStorage(path string) (storage.IStorage, error) {
 	fs := &FileStorage{Path: path}
 	err := fs.Open()
