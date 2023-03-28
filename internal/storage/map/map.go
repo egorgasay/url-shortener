@@ -34,7 +34,7 @@ func NewMapStorage() storage.IStorage {
 	return &MapStorage{container: db}
 }
 
-// AddLink ...
+// AddLink adds a link to the repository.
 func (s *MapStorage) AddLink(longURL, ShortURL, cookie string) (string, error) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
@@ -47,7 +47,7 @@ func (s *MapStorage) AddLink(longURL, ShortURL, cookie string) (string, error) {
 	return ShortURL, nil
 }
 
-// FindMaxID ...
+// FindMaxID gets len of the repository.
 func (s *MapStorage) FindMaxID() (int, error) {
 	s.mu.RLock()
 	defer s.mu.RUnlock()
@@ -55,40 +55,39 @@ func (s *MapStorage) FindMaxID() (int, error) {
 	return len(s.container), nil
 }
 
-// GetLongLink ...
+// GetLongLink gets a long link from the repository.
 func (s *MapStorage) GetLongLink(ShortURL string) (string, error) {
 	s.mu.RLock()
 	defer s.mu.RUnlock()
 
-	Data, ok := s.container[shortURL(ShortURL)]
+	record, ok := s.container[shortURL(ShortURL)]
 	if !ok {
 		return "", errors.New("короткой ссылки не существует")
 	}
 
-	if Data.deleted {
+	if record.deleted {
 		return "", storage.ErrDeleted
 	}
 
-	return Data.longURL, nil
+	return record.longURL, nil
 }
 
-// GetAllLinksByCookie ...
+// GetAllLinksByCookie gets all links ([]schema.URL) by cookie.
 func (s *MapStorage) GetAllLinksByCookie(cookie, baseURL string) ([]schema.URL, error) {
 	s.mu.RLock()
 	defer s.mu.RUnlock()
-
-	var URLs []schema.URL
+	var links []schema.URL
 
 	for short, dt := range s.container {
 		if dt.cookie == cookie {
-			URLs = append(URLs, schema.URL{LongURL: dt.longURL, ShortURL: baseURL + string(short)})
+			links = append(links, schema.URL{LongURL: dt.longURL, ShortURL: baseURL + string(short)})
 		}
 	}
 
-	return URLs, nil
+	return links, nil
 }
 
-// MarkAsDeleted ...
+// MarkAsDeleted finds a URL and marks it as deleted.
 func (s *MapStorage) MarkAsDeleted(ShortURL, cookie string) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
@@ -107,7 +106,7 @@ func (s *MapStorage) MarkAsDeleted(ShortURL, cookie string) {
 	s.container[shortURL(ShortURL)] = Data
 }
 
-// Ping ...
+// Ping checks connection with the repository.
 func (s *MapStorage) Ping() error {
 	if s.container == nil {
 		return errors.New("хранилище не существует")

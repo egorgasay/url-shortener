@@ -46,6 +46,7 @@ func New(db *sql.DB, path string) service.IRealStorage {
 	return Sqlite3{DB: db}
 }
 
+// AddLink adds a link to the repository.
 func (s Sqlite3) AddLink(longURL, shortURL, cookie string) (string, error) {
 	stmt, err := queries.GetPreparedStatement(queries.InsertURL)
 	if err != nil {
@@ -65,6 +66,7 @@ func (s Sqlite3) AddLink(longURL, shortURL, cookie string) (string, error) {
 	return shortURL, nil
 }
 
+// FindMaxID gets len of the repository.
 func (s Sqlite3) FindMaxID() (int, error) {
 	var id int
 
@@ -79,6 +81,7 @@ func (s Sqlite3) FindMaxID() (int, error) {
 	return id, err
 }
 
+// GetLongLink gets a long link from the repository.
 func (s Sqlite3) GetLongLink(shortURL string) (longURL string, err error) {
 	stmt, err := queries.GetPreparedStatement(queries.GetLongLink)
 	if err != nil {
@@ -91,6 +94,7 @@ func (s Sqlite3) GetLongLink(shortURL string) (longURL string, err error) {
 	return longURL, err
 }
 
+// MarkAsDeleted finds a URL and marks it as deleted.
 func (s Sqlite3) MarkAsDeleted(shortURL, cookie string) {
 	stmt, err := queries.GetPreparedStatement(queries.MarkAsDeleted)
 	if err != nil {
@@ -107,6 +111,7 @@ func (s Sqlite3) MarkAsDeleted(shortURL, cookie string) {
 	}
 }
 
+// GetAllLinksByCookie gets all links ([]schema.URL) by cookie.
 func (s Sqlite3) GetAllLinksByCookie(cookie, baseURL string) ([]schema.URL, error) {
 	stmt, err := queries.GetPreparedStatement(queries.GetAllLinksByCookie)
 	if err != nil {
@@ -123,7 +128,7 @@ func (s Sqlite3) GetAllLinksByCookie(cookie, baseURL string) ([]schema.URL, erro
 		return nil, err
 	}
 
-	var URLs []schema.URL
+	var links []schema.URL
 
 	for stm.Next() {
 		short, long := "", ""
@@ -133,12 +138,13 @@ func (s Sqlite3) GetAllLinksByCookie(cookie, baseURL string) ([]schema.URL, erro
 			return nil, err
 		}
 
-		URLs = append(URLs, schema.URL{LongURL: long, ShortURL: baseURL + short})
+		links = append(links, schema.URL{LongURL: long, ShortURL: baseURL + short})
 	}
 
-	return URLs, err
+	return links, err
 }
 
+// Ping checks connection with the repository.
 func (s Sqlite3) Ping() error {
 	ctx := context.TODO()
 	return s.DB.PingContext(ctx)

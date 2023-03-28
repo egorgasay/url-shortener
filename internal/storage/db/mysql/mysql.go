@@ -14,10 +14,13 @@ import (
 	_ "github.com/go-sql-driver/mysql"
 )
 
+// MySQL struct with *sql.DB instance.
+// It has methods for working with URLs.
 type MySQL struct {
 	DB *sql.DB
 }
 
+// New MySQL struct constructor.
 func New(db *sql.DB, path string) service.IRealStorage {
 	driver, err := mysql.WithInstance(db, &mysql.Config{})
 	if err != nil {
@@ -43,6 +46,7 @@ func New(db *sql.DB, path string) service.IRealStorage {
 	return MySQL{DB: db}
 }
 
+// AddLink adds a link to the repository.
 func (m MySQL) AddLink(longURL, shortURL, cookie string) (string, error) {
 	stmt, err := queries.GetPreparedStatement(queries.InsertURL)
 	if err != nil {
@@ -62,6 +66,7 @@ func (m MySQL) AddLink(longURL, shortURL, cookie string) (string, error) {
 	return shortURL, nil
 }
 
+// FindMaxID gets len of the repository.
 func (m MySQL) FindMaxID() (int, error) {
 	var id sql.NullInt32
 
@@ -76,6 +81,7 @@ func (m MySQL) FindMaxID() (int, error) {
 	return int(id.Int32), err
 }
 
+// GetLongLink gets a long link from the repository.
 func (m MySQL) GetLongLink(shortURL string) (longURL string, err error) {
 	stmt, err := queries.GetPreparedStatement(queries.GetLongLink)
 	if err != nil {
@@ -88,6 +94,7 @@ func (m MySQL) GetLongLink(shortURL string) (longURL string, err error) {
 	return longURL, err
 }
 
+// MarkAsDeleted finds a URL and marks it as deleted.
 func (m MySQL) MarkAsDeleted(shortURL, cookie string) {
 	stmt, err := queries.GetPreparedStatement(queries.MarkAsDeleted)
 	if err != nil {
@@ -104,6 +111,7 @@ func (m MySQL) MarkAsDeleted(shortURL, cookie string) {
 	}
 }
 
+// GetAllLinksByCookie gets all links ([]schema.URL) by cookie.
 func (m MySQL) GetAllLinksByCookie(cookie, baseURL string) ([]schema.URL, error) {
 	stmt, err := queries.GetPreparedStatement(queries.GetAllLinksByCookie)
 	if err != nil {
@@ -120,7 +128,7 @@ func (m MySQL) GetAllLinksByCookie(cookie, baseURL string) ([]schema.URL, error)
 		return nil, err
 	}
 
-	var URLs []schema.URL
+	var links []schema.URL
 
 	for stm.Next() {
 		short, long := "", ""
@@ -130,12 +138,13 @@ func (m MySQL) GetAllLinksByCookie(cookie, baseURL string) ([]schema.URL, error)
 			return nil, err
 		}
 
-		URLs = append(URLs, schema.URL{LongURL: long, ShortURL: baseURL + short})
+		links = append(links, schema.URL{LongURL: long, ShortURL: baseURL + short})
 	}
 
-	return URLs, err
+	return links, err
 }
 
+// Ping checks connection with the repository.
 func (m MySQL) Ping() error {
 	ctx := context.TODO()
 	return m.DB.PingContext(ctx)

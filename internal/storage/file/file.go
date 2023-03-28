@@ -13,17 +13,18 @@ import (
 	"url-shortener/internal/storage"
 )
 
-// FileStorage ...
+// FileStorage struct with Mu for concurrent uses, File instance and Path variable.
+// It has methods for working with URLs.
 type FileStorage struct {
 	Path string
 	File *os.File
 	Mu   sync.Mutex
 }
 
-// FileStorageType ...
+// FileStorageType type for file storage.
 const FileStorageType storage.Type = "file"
 
-// NewFileStorage ...
+// NewFileStorage FileStorage struct constructor.
 func NewFileStorage(path string) (storage.IStorage, error) {
 	fs := &FileStorage{Path: path}
 	err := fs.Open()
@@ -39,6 +40,7 @@ func NewFileStorage(path string) (storage.IStorage, error) {
 	return fs, nil
 }
 
+// Open opens the file.
 func (fs *FileStorage) Open() error {
 	fs.Mu.Lock()
 	file, err := os.OpenFile(fs.Path, os.O_RDWR|os.O_CREATE|os.O_APPEND, 0777)
@@ -50,6 +52,7 @@ func (fs *FileStorage) Open() error {
 	return nil
 }
 
+// OpenForWriteAt opens the file for write at.
 func (fs *FileStorage) OpenForWriteAt() error {
 	fs.Mu.Lock()
 	file, err := os.OpenFile(fs.Path, os.O_RDWR|os.O_CREATE, 0777)
@@ -61,11 +64,13 @@ func (fs *FileStorage) OpenForWriteAt() error {
 	return nil
 }
 
+// Close closes the file.
 func (fs *FileStorage) Close() error {
 	fs.Mu.Unlock()
 	return fs.File.Close()
 }
 
+// AddLink adds a link to the file.
 func (fs *FileStorage) AddLink(longURL, shortURL, cookie string) (string, error) {
 	err := fs.Open()
 	if err != nil {
@@ -89,6 +94,7 @@ func (fs *FileStorage) AddLink(longURL, shortURL, cookie string) (string, error)
 	return shortURL, nil
 }
 
+// FindMaxID gets len of the file.
 func (fs *FileStorage) FindMaxID() (int, error) {
 	err := fs.Open()
 	if err != nil {
@@ -115,6 +121,7 @@ func (fs *FileStorage) FindMaxID() (int, error) {
 	}
 }
 
+// GetLongLink gets a long link from the file.
 func (fs *FileStorage) GetLongLink(shortURL string) (longURL string, err error) {
 	err = fs.Open()
 	if err != nil {
@@ -137,6 +144,7 @@ func (fs *FileStorage) GetLongLink(shortURL string) (longURL string, err error) 
 	return longURL, errors.New("not found")
 }
 
+// GetAllLinksByCookie gets all links ([]schema.URL) by cookie.
 func (fs *FileStorage) GetAllLinksByCookie(cookie, baseURL string) ([]schema.URL, error) {
 	err := fs.Open()
 	if err != nil {
@@ -146,20 +154,21 @@ func (fs *FileStorage) GetAllLinksByCookie(cookie, baseURL string) ([]schema.URL
 	defer fs.Close()
 
 	scanner := bufio.NewScanner(fs.File)
-	var URLs []schema.URL
+	var link []schema.URL
 
 	for scanner.Scan() {
 		line := scanner.Text()
 		split := strings.Split(line, " - ")
 
 		if len(split) == 4 && split[3] == cookie && split[0] == "1" {
-			URLs = append(URLs, schema.URL{LongURL: split[2], ShortURL: baseURL + split[1]})
+			link = append(link, schema.URL{LongURL: split[2], ShortURL: baseURL + split[1]})
 		}
 	}
 
-	return URLs, nil
+	return link, nil
 }
 
+// Ping check for the presence of a file.
 func (fs *FileStorage) Ping() error {
 	err := fs.Open()
 	if err != nil {
@@ -174,6 +183,7 @@ func (fs *FileStorage) Ping() error {
 	return nil
 }
 
+// MarkAsDeleted finds a URL and marks it as deleted.
 func (fs *FileStorage) MarkAsDeleted(shortURL, cookie string) {
 	err := fs.OpenForWriteAt()
 	if err != nil {

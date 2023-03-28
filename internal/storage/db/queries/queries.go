@@ -5,9 +5,13 @@ import (
 	"errors"
 )
 
+// Query text of query.
 type Query string
+
+// Name number of query.
 type Name int
 
+// Query names.
 const (
 	InsertURL = iota
 	GetLongLink
@@ -42,11 +46,15 @@ var queriesMySQL = map[Name]Query{
 	MarkAsDeleted:       "UPDATE urls SET `deleted` = 1 WHERE `shortURL` = ? AND `cookie` = ?",
 }
 
-var ErrNotFound = errors.New("query not found")
+// ErrNotFound occurs when query was not found.
+var ErrNotFound = errors.New("the query was not found")
+
+// ErrNilStatement occurs query statement is nil.
 var ErrNilStatement = errors.New("query statement is nil")
 
 var statements = make(map[Name]*sql.Stmt, 10)
 
+// Prepare prepares all queries for db instance.
 func Prepare(DB *sql.DB, vendor string) error {
 	var queries map[Name]Query
 	switch vendor {
@@ -68,6 +76,7 @@ func Prepare(DB *sql.DB, vendor string) error {
 	return nil
 }
 
+// GetPreparedStatement returns *sql.Stmt by name of query.
 func GetPreparedStatement(name int) (*sql.Stmt, error) {
 	stmt, ok := statements[Name(name)]
 	if !ok {
