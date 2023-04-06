@@ -29,12 +29,13 @@ func TestMain(m *testing.M) {
 		log.Fatal(err)
 	}
 	// Run tests
-	exitVal := m.Run()
+	c := m.Run()
 	err = os.Remove("/tmp/test-db")
 	if err != nil {
 		log.Fatalf("Err temp file was not removed: %v", err)
 	}
-	os.Exit(exitVal)
+
+	os.Exit(c)
 }
 
 func TestPostgres_FindMaxID(t *testing.T) {

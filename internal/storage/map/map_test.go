@@ -14,8 +14,7 @@ func TestMain(m *testing.M) {
 	// Write code here to run before tests
 	TestDB = NewMapStorage()
 	// Run tests
-	exitVal := m.Run()
-	os.Exit(exitVal)
+	os.Exit(m.Run())
 }
 
 func TestPostgres_FindMaxID(t *testing.T) {

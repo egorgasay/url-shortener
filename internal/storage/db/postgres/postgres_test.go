@@ -39,8 +39,7 @@ func TestMain(m *testing.M) {
 
 	vdb, err := dockerdb.New(ctx, cfg)
 	if err != nil {
-		log.Println(err)
-		os.Exit(0)
+		log.Fatal(err)
 	}
 
 	TestDB = New(vdb.DB, pathToMigrations).(Postgres)
@@ -77,8 +76,7 @@ func TestMain(m *testing.M) {
 		log.Fatal(err)
 	}
 
-	exitVal := m.Run()
-	os.Exit(exitVal)
+	os.Exit(m.Run())
 }
 
 func TestPostgres_FindMaxID(t *testing.T) {
