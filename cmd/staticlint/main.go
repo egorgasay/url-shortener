@@ -27,6 +27,7 @@ import (
 	"honnef.co/go/tools/staticcheck"
 )
 
+// ErrNoExitAnalyzer check for direct usage of os.Exit
 var ErrNoExitAnalyzer = &analysis.Analyzer{
 	Name: "noexit",
 	Doc:  "check for direct usage of os.Exit",
