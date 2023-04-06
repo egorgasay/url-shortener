@@ -22,6 +22,7 @@ const (
 	defaultvdb     = ""
 )
 
+// Flag struct for parsing from env and cmd args.
 type Flag struct {
 	host    *string
 	baseURL *string
@@ -43,6 +44,7 @@ func init() {
 	f.vdb = flag.String("vdb", defaultvdb, "-vdb=virtual_db_name")
 }
 
+// Config contains all the settings for configuring the application.
 type Config struct {
 	Host     string
 	BaseURL  string
@@ -50,6 +52,7 @@ type Config struct {
 	DBConfig *repository.Config
 }
 
+// New initializing the config for the application.
 func New() *Config {
 	flag.Parse()
 
@@ -80,12 +83,7 @@ func New() *Config {
 		}
 	}
 
-	//generated, err := password.Generate(17, 5, 0, false, false)
-	//if err != nil {
-	//	log.Fatal("Generate: ", err)
-	//}
-
-	log.Println(*f.dsn, *f.path, *f.storage)
+	//log.Println(*f.dsn, *f.path, *f.storage)
 	var ddb *dockerdb.VDB
 	var vdb = *f.vdb
 
@@ -98,7 +96,7 @@ func New() *Config {
 				User:     "admin",
 				Password: "admin",
 			},
-			Port: "1254",
+			Port: "12522",
 			Vendor: dockerdb.Vendor{
 				Name:  *f.storage,
 				Image: *f.storage,
@@ -110,6 +108,7 @@ func New() *Config {
 		if err != nil {
 			log.Fatal(err)
 		}
+		f.dsn = &ddb.ConnString
 	}
 
 	return &Config{

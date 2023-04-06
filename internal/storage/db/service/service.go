@@ -5,6 +5,7 @@ import (
 	"url-shortener/internal/schema"
 )
 
+// IRealStorage interface for the database storage.
 type IRealStorage interface {
 	AddLink(longURL, shortURL, cookie string) (string, error)
 	FindMaxID() (int, error)
@@ -14,4 +15,5 @@ type IRealStorage interface {
 	MarkAsDeleted(shortURL, cookie string)
 }
 
+// ErrExists occurs when the shortened URL already exists.
 var ErrExists = errors.New("the shortened URL already exists")

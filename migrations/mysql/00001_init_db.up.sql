@@ -1,8 +1,8 @@
 CREATE TABLE urls
 (
-    id INT PRIMARY KEY AUTO_INCREMENT,
+    id INT AUTO_INCREMENT,
     longURL TEXT,
     shortURL TEXT,
-    cookie TEXT
+    cookie TEXT,
+    PRIMARY KEY (id)
 );
-INSERT INTO urls (id) VALUES (1);

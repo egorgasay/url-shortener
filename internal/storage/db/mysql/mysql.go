@@ -5,18 +5,23 @@ import (
 	"database/sql"
 	"github.com/golang-migrate/migrate/v4"
 	"github.com/golang-migrate/migrate/v4/database/mysql"
+	_ "github.com/golang-migrate/migrate/v4/source/file"
 	"log"
 	"url-shortener/internal/schema"
+	"url-shortener/internal/storage/db/queries"
 	"url-shortener/internal/storage/db/service"
 
 	_ "github.com/go-sql-driver/mysql"
 )
 
+// MySQL struct with *sql.DB instance.
+// It has methods for working with URLs.
 type MySQL struct {
 	DB *sql.DB
 }
 
-func New(db *sql.DB) service.IRealStorage {
+// New MySQL struct constructor.
+func New(db *sql.DB, path string) service.IRealStorage {
 	driver, err := mysql.WithInstance(db, &mysql.Config{})
 	if err != nil {
 		log.Fatal(err)
@@ -24,7 +29,7 @@ func New(db *sql.DB) service.IRealStorage {
 	}
 
 	m, err := migrate.NewWithDatabaseInstance(
-		"file://migrations/postgres",
+		path,
 		"mysql", driver)
 	if err != nil {
 		log.Fatal(err)
@@ -41,14 +46,9 @@ func New(db *sql.DB) service.IRealStorage {
 	return MySQL{DB: db}
 }
 
-const insertURL = "INSERT INTO urls (`longURL`, `shortURL`, `cookie`) VALUES (?, ?, ?)"
-const getLongLink = "SELECT `longURL` FROM urls WHERE `shortURL` = ?"
-const findMaxURL = "SELECT MAX(id) FROM urls"
-const getAllLinksByCookie = "SELECT `short`, `long` FROM urls WHERE `cookie` = ?"
-const markAsDeleted = "UPDATE urls SET `deleted` = 1 WHERE `short` = ? AND `cookie` = ?"
-
+// AddLink adds a link to the repository.
 func (m MySQL) AddLink(longURL, shortURL, cookie string) (string, error) {
-	stmt, err := m.DB.Prepare(insertURL)
+	stmt, err := queries.GetPreparedStatement(queries.InsertURL)
 	if err != nil {
 		return "", err
 	}
@@ -66,10 +66,11 @@ func (m MySQL) AddLink(longURL, shortURL, cookie string) (string, error) {
 	return shortURL, nil
 }
 
+// FindMaxID gets len of the repository.
 func (m MySQL) FindMaxID() (int, error) {
-	var id int
+	var id sql.NullInt32
 
-	stmt, err := m.DB.Prepare(findMaxURL)
+	stmt, err := queries.GetPreparedStatement(queries.FindMaxURL)
 	if err != nil {
 		return 0, nil
 	}
@@ -77,11 +78,12 @@ func (m MySQL) FindMaxID() (int, error) {
 	stm := stmt.QueryRow()
 	err = stm.Scan(&id)
 
-	return id, err
+	return int(id.Int32), err
 }
 
+// GetLongLink gets a long link from the repository.
 func (m MySQL) GetLongLink(shortURL string) (longURL string, err error) {
-	stmt, err := m.DB.Prepare(getLongLink)
+	stmt, err := queries.GetPreparedStatement(queries.GetLongLink)
 	if err != nil {
 		return "", nil
 	}
@@ -92,8 +94,9 @@ func (m MySQL) GetLongLink(shortURL string) (longURL string, err error) {
 	return longURL, err
 }
 
+// MarkAsDeleted finds a URL and marks it as deleted.
 func (m MySQL) MarkAsDeleted(shortURL, cookie string) {
-	stmt, err := m.DB.Prepare(markAsDeleted)
+	stmt, err := queries.GetPreparedStatement(queries.MarkAsDeleted)
 	if err != nil {
 		log.Println(err)
 	}
@@ -108,8 +111,9 @@ func (m MySQL) MarkAsDeleted(shortURL, cookie string) {
 	}
 }
 
+// GetAllLinksByCookie gets all links ([]schema.URL) by cookie.
 func (m MySQL) GetAllLinksByCookie(cookie, baseURL string) ([]schema.URL, error) {
-	stmt, err := m.DB.Prepare(getAllLinksByCookie)
+	stmt, err := queries.GetPreparedStatement(queries.GetAllLinksByCookie)
 	if err != nil {
 		return nil, nil
 	}
@@ -124,7 +128,7 @@ func (m MySQL) GetAllLinksByCookie(cookie, baseURL string) ([]schema.URL, error)
 		return nil, err
 	}
 
-	var URLs []schema.URL
+	var links []schema.URL
 
 	for stm.Next() {
 		short, long := "", ""
@@ -134,12 +138,13 @@ func (m MySQL) GetAllLinksByCookie(cookie, baseURL string) ([]schema.URL, error)
 			return nil, err
 		}
 
-		URLs = append(URLs, schema.URL{LongURL: long, ShortURL: baseURL + short})
+		links = append(links, schema.URL{LongURL: long, ShortURL: baseURL + short})
 	}
 
-	return URLs, err
+	return links, err
 }
 
+// Ping checks connection with the repository.
 func (m MySQL) Ping() error {
 	ctx := context.TODO()
 	return m.DB.PingContext(ctx)

@@ -11,26 +11,19 @@ import (
 	"log"
 	"url-shortener/internal/schema"
 	"url-shortener/internal/storage"
+	"url-shortener/internal/storage/db/queries"
 	"url-shortener/internal/storage/db/service"
 	shortenalgorithm "url-shortener/pkg/shortenAlgorithm"
 )
 
-const insertURL = "INSERT INTO urls (long, short, cookie, deleted) VALUES ($1, $2, $3, false)"
-const getShortLink = "SELECT short FROM urls WHERE long = $1"
-const getLongLink = `
-SELECT long, deleted
-FROM urls 
-WHERE short = $1
-`
-const findMaxURL = "SELECT count(*) FROM urls"
-const getAllLinksByCookie = "SELECT short, long FROM urls WHERE cookie = $1"
-const markAsDeleted = "UPDATE urls SET deleted = true WHERE short = $1 and cookie = $2"
-
+// Postgres struct with *sql.DB instance.
+// It has methods for working with URLs.
 type Postgres struct {
 	DB *sql.DB
 }
 
-func New(db *sql.DB) service.IRealStorage {
+// New Postgres struct constructor.
+func New(db *sql.DB, path string) service.IRealStorage {
 	driver, err := postgres.WithInstance(db, &postgres.Config{})
 	if err != nil {
 		log.Fatal(err)
@@ -38,7 +31,7 @@ func New(db *sql.DB) service.IRealStorage {
 	}
 
 	m, err := migrate.NewWithDatabaseInstance(
-		"file://migrations/postgres",
+		path,
 		"postgres", driver)
 	if err != nil {
 		log.Fatal(err)
@@ -55,8 +48,14 @@ func New(db *sql.DB) service.IRealStorage {
 	return Postgres{DB: db}
 }
 
+// AddLink adds a link to the repository.
 func (p Postgres) AddLink(longURL, shortURL, cookie string) (string, error) {
-	stmt, err := p.DB.Prepare(insertURL)
+	stmt, err := queries.GetPreparedStatement(queries.InsertURL)
+	if err != nil {
+		return "", err
+	}
+
+	GetShortLinkSTMT, err := queries.GetPreparedStatement(queries.GetShortLink)
 	if err != nil {
 		return "", err
 	}
@@ -81,7 +80,7 @@ func (p Postgres) AddLink(longURL, shortURL, cookie string) (string, error) {
 		return "", err
 	}
 
-	row := p.DB.QueryRow(getShortLink, sql.Named("long", longURL).Value)
+	row := GetShortLinkSTMT.QueryRow(sql.Named("long", longURL).Value)
 	if row.Err() != nil {
 		return "", err
 	}
@@ -106,10 +105,11 @@ func (p Postgres) AddLink(longURL, shortURL, cookie string) (string, error) {
 	return p.AddLink(longURL, shortURL, cookie)
 }
 
+// FindMaxID gets len of the repository.
 func (p Postgres) FindMaxID() (int, error) {
 	var id int
 
-	stmt, err := p.DB.Prepare(findMaxURL)
+	stmt, err := queries.GetPreparedStatement(queries.FindMaxURL)
 	if err != nil {
 		return 0, nil
 	}
@@ -120,8 +120,9 @@ func (p Postgres) FindMaxID() (int, error) {
 	return id, err
 }
 
+// GetLongLink gets a long link from the repository.
 func (p Postgres) GetLongLink(shortURL string) (longURL string, err error) {
-	stmt, err := p.DB.Prepare(getLongLink)
+	stmt, err := queries.GetPreparedStatement(queries.GetLongLink)
 	if err != nil {
 		return "", err
 	}
@@ -138,8 +139,9 @@ func (p Postgres) GetLongLink(shortURL string) (longURL string, err error) {
 	return longURL, err
 }
 
+// MarkAsDeleted finds a URL and marks it as deleted.
 func (p Postgres) MarkAsDeleted(shortURL, cookie string) {
-	stmt, err := p.DB.Prepare(markAsDeleted)
+	stmt, err := queries.GetPreparedStatement(queries.MarkAsDeleted)
 	if err != nil {
 		log.Println(err)
 	}
@@ -154,8 +156,9 @@ func (p Postgres) MarkAsDeleted(shortURL, cookie string) {
 
 }
 
+// GetAllLinksByCookie gets all links ([]schema.URL) by cookie.
 func (p Postgres) GetAllLinksByCookie(cookie, baseURL string) ([]schema.URL, error) {
-	stmt, err := p.DB.Prepare(getAllLinksByCookie)
+	stmt, err := queries.GetPreparedStatement(queries.GetAllLinksByCookie)
 	if err != nil {
 		return nil, nil
 	}
@@ -170,7 +173,7 @@ func (p Postgres) GetAllLinksByCookie(cookie, baseURL string) ([]schema.URL, err
 		return nil, err
 	}
 
-	var URLs []schema.URL
+	var links []schema.URL
 
 	for stm.Next() {
 		short, long := "", ""
@@ -180,12 +183,13 @@ func (p Postgres) GetAllLinksByCookie(cookie, baseURL string) ([]schema.URL, err
 			return nil, err
 		}
 
-		URLs = append(URLs, schema.URL{LongURL: long, ShortURL: baseURL + short})
+		links = append(links, schema.URL{LongURL: long, ShortURL: baseURL + short})
 	}
 
-	return URLs, err
+	return links, err
 }
 
+// Ping checks connection with the repository.
 func (p Postgres) Ping() error {
 	ctx := context.TODO()
 	return p.DB.PingContext(ctx)

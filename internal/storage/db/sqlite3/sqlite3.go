@@ -5,24 +5,23 @@ import (
 	"database/sql"
 	"github.com/golang-migrate/migrate/v4"
 	"github.com/golang-migrate/migrate/v4/database/sqlite"
+	_ "github.com/golang-migrate/migrate/v4/source/file"
 	"log"
 	"url-shortener/internal/schema"
+	"url-shortener/internal/storage/db/queries"
 	"url-shortener/internal/storage/db/service"
 
 	_ "github.com/mattn/go-sqlite3"
 )
 
-const insertURL = "INSERT INTO urls (long, short, cookie) VALUES (?, ?, ?)"
-const getLongLink = "SELECT long FROM urls WHERE short = ?"
-const findMaxURL = "SELECT MAX(id) FROM urls"
-const getAllLinksByCookie = "SELECT short, long FROM urls WHERE cookie = ?"
-const markAsDeleted = "UPDATE urls SET deleted = 1 WHERE short = ? AND cookie = ?"
-
+// Sqlite3 struct with *sql.DB instance.
+// It has methods for working with URLs.
 type Sqlite3 struct {
 	DB *sql.DB
 }
 
-func New(db *sql.DB) service.IRealStorage {
+// New Sqlite3 struct constructor.
+func New(db *sql.DB, path string) service.IRealStorage {
 	driver, err := sqlite.WithInstance(db, &sqlite.Config{})
 	if err != nil {
 		log.Fatal(err)
@@ -30,7 +29,7 @@ func New(db *sql.DB) service.IRealStorage {
 	}
 
 	m, err := migrate.NewWithDatabaseInstance(
-		"file://migrations/postgres",
+		path,
 		"sqlite", driver)
 	if err != nil {
 		log.Fatal(err)
@@ -47,8 +46,9 @@ func New(db *sql.DB) service.IRealStorage {
 	return Sqlite3{DB: db}
 }
 
+// AddLink adds a link to the repository.
 func (s Sqlite3) AddLink(longURL, shortURL, cookie string) (string, error) {
-	stmt, err := s.DB.Prepare(insertURL)
+	stmt, err := queries.GetPreparedStatement(queries.InsertURL)
 	if err != nil {
 		return "", err
 	}
@@ -66,10 +66,11 @@ func (s Sqlite3) AddLink(longURL, shortURL, cookie string) (string, error) {
 	return shortURL, nil
 }
 
+// FindMaxID gets len of the repository.
 func (s Sqlite3) FindMaxID() (int, error) {
 	var id int
 
-	stmt, err := s.DB.Prepare(findMaxURL)
+	stmt, err := queries.GetPreparedStatement(queries.FindMaxURL)
 	if err != nil {
 		return 0, nil
 	}
@@ -80,8 +81,9 @@ func (s Sqlite3) FindMaxID() (int, error) {
 	return id, err
 }
 
+// GetLongLink gets a long link from the repository.
 func (s Sqlite3) GetLongLink(shortURL string) (longURL string, err error) {
-	stmt, err := s.DB.Prepare(getLongLink)
+	stmt, err := queries.GetPreparedStatement(queries.GetLongLink)
 	if err != nil {
 		return "", nil
 	}
@@ -92,8 +94,9 @@ func (s Sqlite3) GetLongLink(shortURL string) (longURL string, err error) {
 	return longURL, err
 }
 
+// MarkAsDeleted finds a URL and marks it as deleted.
 func (s Sqlite3) MarkAsDeleted(shortURL, cookie string) {
-	stmt, err := s.DB.Prepare(markAsDeleted)
+	stmt, err := queries.GetPreparedStatement(queries.MarkAsDeleted)
 	if err != nil {
 		log.Println(err)
 	}
@@ -108,8 +111,9 @@ func (s Sqlite3) MarkAsDeleted(shortURL, cookie string) {
 	}
 }
 
+// GetAllLinksByCookie gets all links ([]schema.URL) by cookie.
 func (s Sqlite3) GetAllLinksByCookie(cookie, baseURL string) ([]schema.URL, error) {
-	stmt, err := s.DB.Prepare(getAllLinksByCookie)
+	stmt, err := queries.GetPreparedStatement(queries.GetAllLinksByCookie)
 	if err != nil {
 		return nil, nil
 	}
@@ -124,7 +128,7 @@ func (s Sqlite3) GetAllLinksByCookie(cookie, baseURL string) ([]schema.URL, erro
 		return nil, err
 	}
 
-	var URLs []schema.URL
+	var links []schema.URL
 
 	for stm.Next() {
 		short, long := "", ""
@@ -134,12 +138,13 @@ func (s Sqlite3) GetAllLinksByCookie(cookie, baseURL string) ([]schema.URL, erro
 			return nil, err
 		}
 
-		URLs = append(URLs, schema.URL{LongURL: long, ShortURL: baseURL + short})
+		links = append(links, schema.URL{LongURL: long, ShortURL: baseURL + short})
 	}
 
-	return URLs, err
+	return links, err
 }
 
+// Ping checks connection with the repository.
 func (s Sqlite3) Ping() error {
 	ctx := context.TODO()
 	return s.DB.PingContext(ctx)

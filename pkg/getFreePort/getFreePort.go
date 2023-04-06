@@ -5,6 +5,8 @@ import (
 	"strconv"
 )
 
+// GetFreePort starts the TCP server for a second and considers this port free,
+// after which the TCP server shuts down.
 func GetFreePort() (string, error) {
 	addr, err := net.ResolveTCPAddr("tcp", "localhost:0")
 	if err != nil {
