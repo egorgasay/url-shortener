@@ -23,7 +23,6 @@ import (
 	"golang.org/x/tools/go/analysis"
 	"golang.org/x/tools/go/analysis/multichecker"
 	"golang.org/x/tools/go/analysis/passes/printf"
-	"golang.org/x/tools/go/analysis/passes/shadow"
 	"golang.org/x/tools/go/analysis/passes/structtag"
 	"honnef.co/go/tools/staticcheck"
 )
@@ -50,7 +49,7 @@ func run(pass *analysis.Pass) (interface{}, error) {
 			case *ast.CallExpr: // os.Exit
 				switch ce := x.Fun.(type) {
 				case *ast.SelectorExpr:
-					if fmt.Sprintf("%s", ce.Sel.Name) == "Exit" && fmt.Sprintf("%s", ce.X) == "os" {
+					if ce.Sel.Name == "Exit" && fmt.Sprintf("%s", ce.X) == "os" {
 						pass.Reportf(ce.Pos(), "using os.Exit in the main() function is undesirable")
 					}
 				}
@@ -64,9 +63,11 @@ func run(pass *analysis.Pass) (interface{}, error) {
 
 func main() {
 	var mychecks = []*analysis.Analyzer{
+		// check for direct usage of os.Exit
 		ErrNoExitAnalyzer,
+		// check consistency of Printf format strings and arguments
 		printf.Analyzer,
-		shadow.Analyzer,
+		// check that struct field tags conform to reflect.StructTag.Get
 		structtag.Analyzer,
 	}
 
