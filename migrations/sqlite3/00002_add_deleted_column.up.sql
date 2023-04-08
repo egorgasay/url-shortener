@@ -1,1 +1,1 @@
-ALTER TABLE urls ADD COLUMN deleted INT;
+ALTER TABLE links ADD COLUMN deleted INT;

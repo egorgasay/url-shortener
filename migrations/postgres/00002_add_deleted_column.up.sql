@@ -1,1 +1,1 @@
-ALTER TABLE urls ADD COLUMN deleted boolean;
+ALTER TABLE links ADD COLUMN deleted boolean;
