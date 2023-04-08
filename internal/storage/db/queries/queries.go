@@ -32,7 +32,7 @@ var queriesSqlite3 = map[Name]Query{
 var queriesPostgres = map[Name]Query{
 	InsertURL:           "INSERT INTO links (long, short, cookie, deleted) VALUES ($1, $2, $3, false)",
 	GetLongLink:         `SELECT long, deleted FROM links WHERE short = $1`,
-	FindMaxURL:          `SELECT MAX(id) FROM urls`,
+	FindMaxURL:          `SELECT MAX(id) FROM links`,
 	GetAllLinksByCookie: `SELECT short, long FROM links WHERE cookie = $1`,
 	MarkAsDeleted:       `UPDATE links SET deleted = true WHERE short = $1 and cookie = $2`,
 	GetShortLink:        "SELECT short FROM links WHERE long = $1",
