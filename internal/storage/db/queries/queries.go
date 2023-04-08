@@ -22,28 +22,28 @@ const (
 )
 
 var queriesSqlite3 = map[Name]Query{
-	InsertURL:           "INSERT INTO urls (long, short, cookie) VALUES (?, ?, ?)",
-	GetLongLink:         "SELECT long FROM urls WHERE short = ?",
-	FindMaxURL:          "SELECT MAX(id) FROM urls",
-	GetAllLinksByCookie: "SELECT short, long FROM urls WHERE cookie = ?",
-	MarkAsDeleted:       "UPDATE urls SET deleted = 1 WHERE short = ? AND cookie = ?",
+	InsertURL:           "INSERT INTO links (long, short, cookie) VALUES (?, ?, ?)",
+	GetLongLink:         "SELECT long FROM links WHERE short = ?",
+	FindMaxURL:          "SELECT MAX(id) FROM links",
+	GetAllLinksByCookie: "SELECT short, long FROM links WHERE cookie = ?",
+	MarkAsDeleted:       "UPDATE links SET deleted = 1 WHERE short = ? AND cookie = ?",
 }
 
 var queriesPostgres = map[Name]Query{
-	InsertURL:           "INSERT INTO urls (long, short, cookie, deleted) VALUES ($1, $2, $3, false)",
-	GetLongLink:         `SELECT long, deleted FROM urls WHERE short = $1`,
-	FindMaxURL:          `SELECT MAX(id) FROM urls`,
-	GetAllLinksByCookie: `SELECT short, long FROM urls WHERE cookie = $1`,
-	MarkAsDeleted:       `UPDATE urls SET deleted = true WHERE short = $1 and cookie = $2`,
-	GetShortLink:        "SELECT short FROM urls WHERE long = $1",
+	InsertURL:           "INSERT INTO links (long, short, cookie, deleted) VALUES ($1, $2, $3, false)",
+	GetLongLink:         `SELECT long, deleted FROM links WHERE short = $1`,
+	FindMaxURL:          `SELECT MAX(id) FROM links`,
+	GetAllLinksByCookie: `SELECT short, long FROM links WHERE cookie = $1`,
+	MarkAsDeleted:       `UPDATE links SET deleted = true WHERE short = $1 and cookie = $2`,
+	GetShortLink:        "SELECT short FROM links WHERE long = $1",
 }
 
 var queriesMySQL = map[Name]Query{
-	InsertURL:           "INSERT INTO urls (`longURL`, `shortURL`, `cookie`) VALUES (?, ?, ?)",
-	GetLongLink:         "SELECT `longURL` FROM urls WHERE `shortURL` = ?",
-	FindMaxURL:          "SELECT MAX(`id`) FROM urls",
-	GetAllLinksByCookie: "SELECT `shortURL`, `longURL` FROM urls WHERE `cookie` = ?",
-	MarkAsDeleted:       "UPDATE urls SET `deleted` = 1 WHERE `shortURL` = ? AND `cookie` = ?",
+	InsertURL:           "INSERT INTO links (`longURL`, `shortURL`, `cookie`) VALUES (?, ?, ?)",
+	GetLongLink:         "SELECT `longURL` FROM links WHERE `shortURL` = ?",
+	FindMaxURL:          "SELECT MAX(`id`) FROM links",
+	GetAllLinksByCookie: "SELECT `shortURL`, `longURL` FROM links WHERE `cookie` = ?",
+	MarkAsDeleted:       "UPDATE links SET `deleted` = 1 WHERE `shortURL` = ? AND `cookie` = ?",
 }
 
 // ErrNotFound occurs when query was not found.
