@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"github.com/gin-contrib/gzip"
 	"github.com/gin-gonic/gin"
 	"log"
@@ -14,7 +15,20 @@ import (
 	"url-shortener/internal/usecase"
 )
 
+var (
+	buildVersion = "N/A"
+	buildDate    = "N/A"
+	buildCommit  = "N/A"
+)
+
+var text = `
+Build version: %s
+Build date: %s
+Build commit: %s
+`
+
 func main() {
+	fmt.Printf(text, buildVersion, buildDate, buildCommit)
 	cfg := config.New()
 
 	storage, err := repository.New(cfg.DBConfig)
