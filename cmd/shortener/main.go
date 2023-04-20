@@ -30,14 +30,14 @@ var (
 	buildCommit  = "N/A"
 )
 
-var text = `
+const startText = `
 Build version: %s
 Build date: %s
 Build commit: %s
 `
 
 func main() {
-	fmt.Printf(text, buildVersion, buildDate, buildCommit)
+	fmt.Printf(startText, buildVersion, buildDate, buildCommit)
 	cfg := config.New()
 
 	storage, err := repository.New(cfg.DBConfig)
