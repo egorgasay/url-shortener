@@ -18,8 +18,6 @@ const (
 	defaultHost    = "127.0.0.1:8080"
 	defaultPath    = "urlshortener.txt"
 	defaultStorage = dbstorage.DBStorageType
-	defaultdsn     = ""
-	defaultvdb     = ""
 )
 
 // Flag struct for parsing from env and cmd args.
@@ -30,6 +28,7 @@ type Flag struct {
 	storage *string
 	dsn     *string
 	vdb     *string
+	https   *bool
 }
 
 var f Flag
@@ -38,9 +37,10 @@ func init() {
 	f.host = flag.String("a", defaultHost, "-a=host")
 	f.baseURL = flag.String("b", defaultURL, "-b=URL")
 	f.path = flag.String("f", defaultPath, "-f=path")
-	f.storage = flag.String("s", string(defaultStorage), "-s=storage")
-	f.dsn = flag.String("d", defaultdsn, "-d=connection_string")
-	f.vdb = flag.String("vdb", defaultvdb, "-vdb=virtual_db_name")
+	f.storage = flag.String("stype", string(defaultStorage), "-s=storage")
+	f.dsn = flag.String("d", "", "-d=connection_string")
+	f.vdb = flag.String("vdb", "", "-vdb=virtual_db_name")
+	f.https = flag.Bool("s", false, "provide -s to enable a HTTPS connection")
 }
 
 // Config contains all the settings for configuring the application.
@@ -49,6 +49,7 @@ type Config struct {
 	BaseURL  string
 	Key      []byte
 	DBConfig *repository.Config
+	HTTPS    bool
 }
 
 // New initializing the config for the application.
@@ -71,6 +72,10 @@ func New() *Config {
 		f.dsn = &dsn
 	}
 
+	if _, ok := os.LookupEnv("ENABLE_HTTPS"); ok {
+		f.https = &ok
+	}
+
 	if *f.dsn == "" && storage.Type(*f.storage) == defaultStorage && *f.vdb == "" {
 		s := ""
 		if *f.path != defaultPath {
@@ -82,7 +87,6 @@ func New() *Config {
 		}
 	}
 
-	//log.Println(*f.dsn, *f.path, *f.storage)
 	var ddb *dockerdb.VDB
 	var vdb = *f.vdb
 
@@ -121,5 +125,6 @@ func New() *Config {
 			VDB:            ddb,
 			Name:           vdb,
 		},
+		HTTPS: *f.https,
 	}
 }
