@@ -29,15 +29,16 @@ func TestMain(m *testing.M) {
 		log.Fatal(err)
 	}
 	// Run tests
-	exitVal := m.Run()
+	c := m.Run()
 	err = os.Remove("/tmp/test-db")
 	if err != nil {
 		log.Fatalf("Err temp file was not removed: %v", err)
 	}
-	os.Exit(exitVal)
+
+	os.Exit(c)
 }
 
-func TestPostgres_FindMaxID(t *testing.T) {
+func Test_FindMaxID(t *testing.T) {
 	want := 0
 	got, err := TestDB.FindMaxID()
 	if got != want {
@@ -61,7 +62,7 @@ func TestPostgres_FindMaxID(t *testing.T) {
 
 }
 
-func TestPostgres_AddLink(t *testing.T) {
+func Test_AddLink(t *testing.T) {
 	type args struct {
 		longURL  string
 		shortURL string
@@ -98,7 +99,7 @@ func TestPostgres_AddLink(t *testing.T) {
 	}
 }
 
-func TestPostgres_GetAllLinksByCookie(t *testing.T) {
+func Test_GetAllLinksByCookie(t *testing.T) {
 	_, err := TestDB.AddLink("dqw3dqwd", "q3hwdfhqfh", "3hqfhvqhv")
 	if err != nil {
 		t.Error(err)
@@ -150,7 +151,7 @@ func TestPostgres_GetAllLinksByCookie(t *testing.T) {
 	}
 }
 
-func TestPostgres_GetLongLink(t *testing.T) {
+func Test_GetLongLink(t *testing.T) {
 	_, err := TestDB.AddLink("dqwdqq", "f", "wd")
 	if err != nil {
 		t.Error(err)
@@ -190,7 +191,7 @@ func TestPostgres_GetLongLink(t *testing.T) {
 	}
 }
 
-func TestPostgres_MarkAsDeleted(t *testing.T) {
+func Test_MarkAsDeleted(t *testing.T) {
 	ShortURL := "qwe"
 	cookie := "qwsa"
 	TestDB.MarkAsDeleted(ShortURL, cookie)
@@ -202,7 +203,7 @@ func TestPostgres_MarkAsDeleted(t *testing.T) {
 	}
 }
 
-func TestPostgres_Ping(t *testing.T) {
+func Test_Ping(t *testing.T) {
 	if err := TestDB.Ping(); err != nil {
 		t.Errorf("Ping() error = %v", err)
 	}

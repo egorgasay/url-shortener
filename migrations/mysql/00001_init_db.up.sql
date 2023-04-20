@@ -1,4 +1,4 @@
-CREATE TABLE urls
+CREATE TABLE links
 (
     id INT AUTO_INCREMENT,
     longURL TEXT,

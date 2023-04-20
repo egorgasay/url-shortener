@@ -29,7 +29,6 @@ type Flag struct {
 	path    *string
 	storage *string
 	dsn     *string
-	vendor  *string
 	vdb     *string
 }
 

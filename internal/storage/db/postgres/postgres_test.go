@@ -77,8 +77,7 @@ func TestMain(m *testing.M) {
 		log.Fatal(err)
 	}
 
-	exitVal := m.Run()
-	os.Exit(exitVal)
+	os.Exit(m.Run())
 }
 
 func TestPostgres_FindMaxID(t *testing.T) {

@@ -1,1 +1,1 @@
-ALTER TABLE urls DROP COLUMN deleted;
+ALTER TABLE links DROP COLUMN deleted;
