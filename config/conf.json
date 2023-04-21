@@ -1,0 +1,5 @@
+{
+  "server_address": "localhost:8090",
+  "base_url": "http://localhost",
+  "enable_https": true
+}
