@@ -21,6 +21,7 @@ import (
 	handlers "url-shortener/internal/handler"
 	"url-shortener/internal/repository"
 	"url-shortener/internal/routes"
+	"url-shortener/internal/storage/db/queries"
 	"url-shortener/internal/usecase"
 )
 
@@ -126,10 +127,17 @@ func main() {
 	signal.Notify(quit, syscall.SIGINT, syscall.SIGTERM)
 
 	<-quit
+
+	log.Println("Shutdown Server ...")
+
 	err = storage.Shutdown()
 	if err != nil {
 		log.Println("Failed to shutdown storage: ", err)
 	}
 
-	log.Println("Shutdown Server ...")
+	err = queries.Close()
+	if err != nil {
+		log.Println("Failed to shutdown storage: ", err)
+	}
+
 }

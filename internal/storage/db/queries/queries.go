@@ -3,6 +3,7 @@ package queries
 import (
 	"database/sql"
 	"errors"
+	"fmt"
 )
 
 // Query text of query.
@@ -88,4 +89,16 @@ func GetPreparedStatement(name int) (*sql.Stmt, error) {
 	}
 
 	return stmt, nil
+}
+
+// Close closes all prepared statements.
+func Close() error {
+	for _, stmt := range statements {
+		err := stmt.Close()
+		if err != nil {
+			return fmt.Errorf("error closing statement: %w", err)
+		}
+	}
+
+	return nil
 }
