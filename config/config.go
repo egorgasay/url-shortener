@@ -39,6 +39,7 @@ type Flag struct {
 
 var f Flag
 
+// defaults for properly working the reflection.
 var defaults = map[string]string{
 	"Host":    defaultHost,
 	"BaseURL": defaultURL,
@@ -67,6 +68,7 @@ type Config struct {
 	HTTPS    bool
 }
 
+// Modify modifies the config by the file provided.
 func Modify(file string) error {
 	File, err := os.Open(file)
 	if err != nil {
@@ -103,7 +105,7 @@ func Modify(file string) error {
 					elem.SetString(reflectionFCopy.Field(i).Elem().String())
 				}
 			case reflect.Bool:
-				if elem.Bool() == false {
+				if !elem.Bool() {
 					elem.SetBool(reflectionFCopy.Field(i).Elem().Bool())
 				}
 			}
