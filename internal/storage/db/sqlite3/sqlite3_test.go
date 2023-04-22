@@ -21,7 +21,6 @@ func TestMain(m *testing.M) {
 	if err != nil {
 		log.Fatal(err)
 	}
-	defer db.Close()
 
 	TestDB = New(db, pathToMigrations).(*Sqlite3)
 
@@ -31,8 +30,9 @@ func TestMain(m *testing.M) {
 	}
 	// Run tests
 	c := m.Run()
+	db.Close()
 
-	defer func() {
+	func() {
 		err = os.Remove("test-db")
 		if err != nil {
 			log.Fatalf("Err temp file was not removed: %v", err)
