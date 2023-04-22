@@ -48,8 +48,8 @@ func (uc UseCase) CreateLink(longURL, cookie string, chars ...string) (string, e
 }
 
 // GetAllLinksByCookie calls storage method GetAllLinksByCookie and execute json from the response.
-func (uc UseCase) GetAllLinksByCookie(shortURL, baseURL string) (URLs string, err error) {
-	links, err := uc.storage.GetAllLinksByCookie(shortURL, baseURL)
+func (uc UseCase) GetAllLinksByCookie(cookie, baseURL string) (URLs string, err error) {
+	links, err := uc.storage.GetAllLinksByCookie(cookie, baseURL)
 	if err != nil {
 		return "", err
 	}
@@ -74,6 +74,7 @@ func (uc UseCase) Batch(batchURLs []schema.BatchURL, cookie, baseURL string) ([]
 	var errorsCh = make(chan error)
 
 	g, _ := errgroup.WithContext(context.Background())
+	g.SetLimit(200)
 	go func() {
 		errorsCh <- g.Wait()
 	}()

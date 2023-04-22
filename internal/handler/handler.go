@@ -230,7 +230,10 @@ func (h Handler) BatchHandler(c *gin.Context) {
 
 // APIDeleteLinksHandler accepts a batch of URLs and marks them as deleted.
 func (h Handler) APIDeleteLinksHandler(c *gin.Context) {
-	cookie, _ := getCookies(c)
+	cookie, err := getCookies(c)
+	if err != nil || !checkCookies(cookie, h.conf.Key) {
+		cookie = setCookies(c, h.conf.Key)
+	}
 
 	var s []string
 	if err := c.ShouldBindJSON(&s); err != nil {

@@ -20,16 +20,17 @@ func TestMain(m *testing.M) {
 	ctx := context.TODO()
 	cfg := dockerdb.CustomDB{
 		DB: dockerdb.DB{
-			Name:     "mysql_test_url51",
+			Name:     "admin",
 			User:     "admin",
 			Password: "admin",
 		},
-		Port: "31135",
+		Port: "31188",
 		Vendor: dockerdb.Vendor{
 			Name:  "mysql",
 			Image: "mysql:5.7",
 		},
 	}
+
 	err := dockerdb.Pull(ctx, "mysql:5.7")
 	if err != nil {
 		log.Fatal(err)
@@ -46,7 +47,7 @@ func TestMain(m *testing.M) {
 
 	queries := []string{
 		"SET foreign_key_checks = 0;",
-		"TRUNCATE urls;",
+		"TRUNCATE links;",
 		"SET foreign_key_checks = 1;",
 	}
 
