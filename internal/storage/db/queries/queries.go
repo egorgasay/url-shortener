@@ -24,7 +24,7 @@ const (
 
 var queriesSqlite3 = map[Name]Query{
 	InsertURL:           "INSERT INTO links (long, short, cookie) VALUES (?, ?, ?)",
-	GetLongLink:         "SELECT long FROM links WHERE short = ?",
+	GetLongLink:         "SELECT long, deleted FROM links WHERE short = ?",
 	FindMaxURL:          "SELECT MAX(id) FROM links",
 	GetAllLinksByCookie: "SELECT short, long FROM links WHERE cookie = ?",
 	MarkAsDeleted:       "UPDATE links SET deleted = 1 WHERE short = ? AND cookie = ?",
@@ -41,7 +41,7 @@ var queriesPostgres = map[Name]Query{
 
 var queriesMySQL = map[Name]Query{
 	InsertURL:           "INSERT INTO links (`longURL`, `shortURL`, `cookie`) VALUES (?, ?, ?)",
-	GetLongLink:         "SELECT `longURL` FROM links WHERE `shortURL` = ?",
+	GetLongLink:         "SELECT `longURL`, `deleted` FROM links WHERE `shortURL` = ?",
 	FindMaxURL:          "SELECT MAX(`id`) FROM links",
 	GetAllLinksByCookie: "SELECT `shortURL`, `longURL` FROM links WHERE `cookie` = ?",
 	MarkAsDeleted:       "UPDATE links SET `deleted` = 1 WHERE `shortURL` = ? AND `cookie` = ?",

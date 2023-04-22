@@ -108,12 +108,12 @@ func (db *DB) GetLongLink(shortURL string) (longURL string, err error) {
 		return "", fmt.Errorf("error preparing statement: %w", err)
 	}
 
-	var isDeleted = false
-	if stmt.QueryRow(sql.Named("short", shortURL).Value).Scan(&longURL, &isDeleted) != nil {
+	var isDeleted = sql.NullBool{}
+	if err = stmt.QueryRow(sql.Named("short", shortURL).Value).Scan(&longURL, &isDeleted); err != nil {
 		return "", fmt.Errorf("error getting long link: %w", err)
 	}
 
-	if isDeleted {
+	if isDeleted.Bool {
 		return "", fmt.Errorf("error getting long link: %w", storage.ErrDeleted)
 	}
 

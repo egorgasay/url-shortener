@@ -17,10 +17,11 @@ const pathToMigrations = "file://../../../../migrations/sqlite3"
 func TestMain(m *testing.M) {
 	// Write code here to run before tests
 
-	db, err := sql.Open("sqlite3", "/tmp/test-db")
+	db, err := sql.Open("sqlite3", "test-db")
 	if err != nil {
 		log.Fatal(err)
 	}
+	defer db.Close()
 
 	TestDB = New(db, pathToMigrations).(*Sqlite3)
 
@@ -30,10 +31,13 @@ func TestMain(m *testing.M) {
 	}
 	// Run tests
 	c := m.Run()
-	err = os.Remove("/tmp/test-db")
-	if err != nil {
-		log.Fatalf("Err temp file was not removed: %v", err)
-	}
+
+	defer func() {
+		err = os.Remove("test-db")
+		if err != nil {
+			log.Fatalf("Err temp file was not removed: %v", err)
+		}
+	}()
 
 	os.Exit(c)
 }
@@ -152,7 +156,10 @@ func Test_GetAllLinksByCookie(t *testing.T) {
 }
 
 func Test_GetLongLink(t *testing.T) {
-	_, err := TestDB.AddLink("dqwdqq", "f", "wd")
+	longLink := "dqwdqq"
+	shortLink := "f"
+
+	_, err := TestDB.AddLink(longLink, shortLink, "wd")
 	if err != nil {
 		t.Error(err)
 	}
@@ -168,8 +175,8 @@ func Test_GetLongLink(t *testing.T) {
 	}{
 		{
 			name:        "Ok",
-			args:        args{shortURL: "f"},
-			wantLongURL: "dqwdqq",
+			args:        args{shortURL: shortLink},
+			wantLongURL: longLink,
 		},
 		{
 			name:    "Not found",
