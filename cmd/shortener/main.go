@@ -126,5 +126,6 @@ func main() {
 	signal.Notify(quit, syscall.SIGINT, syscall.SIGTERM)
 
 	<-quit
+
 	log.Println("Shutdown Server ...")
 }
