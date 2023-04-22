@@ -119,6 +119,7 @@ func (s *MapStorage) Ping() error {
 	return nil
 }
 
+// Shutdown clears the repository.
 func (s *MapStorage) Shutdown() error {
 	s.container = make(map[shortURL]data)
 	return nil

@@ -212,6 +212,7 @@ func (fs *FileStorage) MarkAsDeleted(shortURL, cookie string) error {
 	return nil
 }
 
+// Shutdown closes the file.
 func (fs *FileStorage) Shutdown() error {
 	err := fs.Close()
 	if err != nil {
