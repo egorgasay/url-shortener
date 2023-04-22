@@ -1,5 +1,7 @@
 {
   "server_address": "localhost:8090",
   "base_url": "http://localhost",
-  "enable_https": true
+  "enable_https": true,
+  "storage": "sqlite3",
+  "database_dsn" : "urls_db"
 }

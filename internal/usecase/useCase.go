@@ -19,7 +19,11 @@ func (uc UseCase) GetLink(shortURL string) (longURL string, err error) {
 
 // MarkAsDeleted calls storage method MarkAsDeleted.
 func (uc UseCase) MarkAsDeleted(shortURL, cookie string) {
-	uc.storage.MarkAsDeleted(shortURL, cookie)
+	err := uc.storage.MarkAsDeleted(shortURL, cookie)
+	if err != nil {
+		// TODO: add zap logger
+		log.Println("can't mark as deleted", err)
+	}
 }
 
 // CreateLink calls FindMaxID, GetShortName and then calls AddLink storage method to save the link.

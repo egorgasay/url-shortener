@@ -2,11 +2,14 @@ package mapstorage
 
 import (
 	"errors"
-	"log"
 	"sync"
 	"url-shortener/internal/schema"
 	"url-shortener/internal/storage"
 	"url-shortener/internal/storage/db/service"
+)
+
+var (
+	_ storage.IStorage = (*MapStorage)(nil)
 )
 
 // MapStorage struct with a map and mutex for concurent use.
@@ -88,22 +91,23 @@ func (s *MapStorage) GetAllLinksByCookie(cookie, baseURL string) ([]schema.URL, 
 }
 
 // MarkAsDeleted finds a URL and marks it as deleted.
-func (s *MapStorage) MarkAsDeleted(ShortURL, cookie string) {
+func (s *MapStorage) MarkAsDeleted(ShortURL, cookie string) error {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 
 	Data, ok := s.container[shortURL(ShortURL)]
 	if !ok {
-		return
+		return errors.New("not found")
 	}
 
 	if cookie != Data.cookie {
-		log.Println("wrong cookie")
-		return
+		return errors.New("wrong cookie")
 	}
 
 	Data.deleted = true
 	s.container[shortURL(ShortURL)] = Data
+
+	return nil
 }
 
 // Ping checks connection with the repository.
@@ -112,5 +116,10 @@ func (s *MapStorage) Ping() error {
 		return errors.New("хранилище не существует")
 	}
 
+	return nil
+}
+
+func (s *MapStorage) Shutdown() error {
+	s.container = make(map[shortURL]data)
 	return nil
 }

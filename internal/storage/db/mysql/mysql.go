@@ -1,23 +1,27 @@
 package mysql
 
 import (
-	"context"
 	"database/sql"
 	"github.com/golang-migrate/migrate/v4"
 	"github.com/golang-migrate/migrate/v4/database/mysql"
 	_ "github.com/golang-migrate/migrate/v4/source/file"
 	"log"
-	"url-shortener/internal/schema"
+	"url-shortener/internal/storage"
+	"url-shortener/internal/storage/db/basic"
 	"url-shortener/internal/storage/db/queries"
 	"url-shortener/internal/storage/db/service"
 
 	_ "github.com/go-sql-driver/mysql"
 )
 
+var (
+	_ storage.IStorage = (*MySQL)(nil)
+)
+
 // MySQL struct with *sql.DB instance.
 // It has methods for working with URLs.
 type MySQL struct {
-	DB *sql.DB
+	basic.DB
 }
 
 // New MySQL struct constructor.
@@ -43,31 +47,11 @@ func New(db *sql.DB, path string) service.IRealStorage {
 		}
 	}
 
-	return MySQL{DB: db}
-}
-
-// AddLink adds a link to the repository.
-func (m MySQL) AddLink(longURL, shortURL, cookie string) (string, error) {
-	stmt, err := queries.GetPreparedStatement(queries.InsertURL)
-	if err != nil {
-		return "", err
-	}
-
-	_, err = stmt.Exec(
-		sql.Named("long", longURL).Value,
-		sql.Named("short", shortURL).Value,
-		sql.Named("cookie", cookie).Value,
-	)
-
-	if err != nil {
-		return "", err
-	}
-
-	return shortURL, nil
+	return &MySQL{DB: basic.DB{DB: db}}
 }
 
 // FindMaxID gets len of the repository.
-func (m MySQL) FindMaxID() (int, error) {
+func (m *MySQL) FindMaxID() (int, error) {
 	var id sql.NullInt32
 
 	stmt, err := queries.GetPreparedStatement(queries.FindMaxURL)
@@ -79,73 +63,4 @@ func (m MySQL) FindMaxID() (int, error) {
 	err = stm.Scan(&id)
 
 	return int(id.Int32), err
-}
-
-// GetLongLink gets a long link from the repository.
-func (m MySQL) GetLongLink(shortURL string) (longURL string, err error) {
-	stmt, err := queries.GetPreparedStatement(queries.GetLongLink)
-	if err != nil {
-		return "", nil
-	}
-
-	stm := stmt.QueryRow(sql.Named("short", shortURL).Value)
-	err = stm.Scan(&longURL)
-
-	return longURL, err
-}
-
-// MarkAsDeleted finds a URL and marks it as deleted.
-func (m MySQL) MarkAsDeleted(shortURL, cookie string) {
-	stmt, err := queries.GetPreparedStatement(queries.MarkAsDeleted)
-	if err != nil {
-		log.Println(err)
-	}
-
-	_, err = stmt.Exec(
-		sql.Named("short", shortURL).Value,
-		sql.Named("cookie", cookie).Value,
-	)
-
-	if err != nil {
-		log.Println(err)
-	}
-}
-
-// GetAllLinksByCookie gets all links ([]schema.URL) by cookie.
-func (m MySQL) GetAllLinksByCookie(cookie, baseURL string) ([]schema.URL, error) {
-	stmt, err := queries.GetPreparedStatement(queries.GetAllLinksByCookie)
-	if err != nil {
-		return nil, nil
-	}
-
-	stm, err := stmt.Query(sql.Named("cookie", cookie).Value)
-	if err != nil {
-		return nil, err
-	}
-
-	err = stm.Err()
-	if err != nil {
-		return nil, err
-	}
-
-	var links []schema.URL
-
-	for stm.Next() {
-		short, long := "", ""
-
-		err = stm.Scan(&short, &long)
-		if err != nil {
-			return nil, err
-		}
-
-		links = append(links, schema.URL{LongURL: long, ShortURL: baseURL + short})
-	}
-
-	return links, err
-}
-
-// Ping checks connection with the repository.
-func (m MySQL) Ping() error {
-	ctx := context.TODO()
-	return m.DB.PingContext(ctx)
 }

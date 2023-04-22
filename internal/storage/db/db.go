@@ -23,7 +23,7 @@ func NewRealStorage(db *sql.DB, vendor storage.Type) service.IRealStorage {
 	case "mysql":
 		irs = mysql.New(db, "file://migrations/mysql")
 	case "sqlite3":
-		irs = sqlite3.New(db, "file://migrations/sqlite")
+		irs = sqlite3.New(db, "file://migrations/sqlite3")
 	case "test":
 		irs = sqlite3.New(db, "file://../../migrations/sqlite3")
 	}

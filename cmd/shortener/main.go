@@ -126,6 +126,10 @@ func main() {
 	signal.Notify(quit, syscall.SIGINT, syscall.SIGTERM)
 
 	<-quit
+	err = storage.Shutdown()
+	if err != nil {
+		log.Println("Failed to shutdown storage: ", err)
+	}
 
 	log.Println("Shutdown Server ...")
 }

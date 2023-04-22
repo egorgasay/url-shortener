@@ -12,7 +12,8 @@ type IStorage interface {
 	GetLongLink(shortURL string) (longURL string, err error)
 	GetAllLinksByCookie(cookie string, baseURL string) (URLs []schema.URL, err error)
 	Ping() error
-	MarkAsDeleted(shortURL, cookie string)
+	MarkAsDeleted(shortURL, cookie string) error
+	Shutdown() error
 }
 
 // Type storage type.

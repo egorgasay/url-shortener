@@ -4,13 +4,17 @@ import (
 	"bufio"
 	"bytes"
 	"errors"
+	"fmt"
 	"io"
-	"log"
 	"os"
 	"strings"
 	"sync"
 	"url-shortener/internal/schema"
 	"url-shortener/internal/storage"
+)
+
+var (
+	_ storage.IStorage = (*FileStorage)(nil)
 )
 
 // FileStorage struct with Mu for concurrent uses, File instance and Path variable.
@@ -184,10 +188,10 @@ func (fs *FileStorage) Ping() error {
 }
 
 // MarkAsDeleted finds a URL and marks it as deleted.
-func (fs *FileStorage) MarkAsDeleted(shortURL, cookie string) {
+func (fs *FileStorage) MarkAsDeleted(shortURL, cookie string) error {
 	err := fs.OpenForWriteAt()
 	if err != nil {
-		log.Println("can't open a file ", err)
+		return fmt.Errorf("can't open a file %w", err)
 	}
 	defer fs.Close()
 
@@ -200,10 +204,19 @@ func (fs *FileStorage) MarkAsDeleted(shortURL, cookie string) {
 			lineWithDeletedMark := "0" + line[1:] + "\n"
 			_, err = fs.File.WriteAt([]byte(lineWithDeletedMark), i-1)
 			if err != nil {
-				log.Println(err)
-				return
+				return fmt.Errorf("can't write a file %w", err)
 			}
 		}
 		i += int64(1 + len(line))
 	}
+	return nil
+}
+
+func (fs *FileStorage) Shutdown() error {
+	err := fs.Close()
+	if err != nil {
+		return fmt.Errorf("can't close a file %w", err)
+	}
+
+	return nil
 }

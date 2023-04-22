@@ -12,7 +12,8 @@ type IRealStorage interface {
 	GetLongLink(shortURL string) (longURL string, err error)
 	GetAllLinksByCookie(cookie, baseURL string) ([]schema.URL, error)
 	Ping() error
-	MarkAsDeleted(shortURL, cookie string)
+	MarkAsDeleted(shortURL, cookie string) error
+	Shutdown() error
 }
 
 // ErrExists occurs when the shortened URL already exists.
