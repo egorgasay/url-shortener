@@ -10,7 +10,7 @@ import (
 	prep "url-shortener/internal/storage/db/queries"
 )
 
-var TestDB Sqlite3
+var TestDB *Sqlite3
 
 const pathToMigrations = "file://../../../../migrations/sqlite3"
 
@@ -22,7 +22,7 @@ func TestMain(m *testing.M) {
 		log.Fatal(err)
 	}
 
-	TestDB = New(db, pathToMigrations).(Sqlite3)
+	TestDB = New(db, pathToMigrations).(*Sqlite3)
 
 	err = prep.Prepare(db, "sqlite3")
 	if err != nil {

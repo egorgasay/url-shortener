@@ -11,7 +11,7 @@ import (
 	prep "url-shortener/internal/storage/db/queries"
 )
 
-var TestDB Postgres
+var TestDB *Postgres
 
 const pathToMigrations = "file://../../../../migrations/postgres"
 
@@ -43,7 +43,7 @@ func TestMain(m *testing.M) {
 		os.Exit(0)
 	}
 
-	TestDB = New(vdb.DB, pathToMigrations).(Postgres)
+	TestDB = New(vdb.DB, pathToMigrations).(*Postgres)
 
 	queries := []string{
 		"DROP SCHEMA public CASCADE;",
@@ -69,10 +69,10 @@ func TestMain(m *testing.M) {
 		log.Fatal(err)
 	}
 
-	TestDB = New(vdb.DB, pathToMigrations).(Postgres)
+	TestDB = New(vdb.DB, pathToMigrations).(*Postgres)
 	// Run tests
 
-	err = prep.Prepare(TestDB.DB, "postgres")
+	err = prep.Prepare(TestDB.DB.DB, "postgres")
 	if err != nil {
 		log.Fatal(err)
 	}

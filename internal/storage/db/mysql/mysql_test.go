@@ -11,7 +11,7 @@ import (
 	prep "url-shortener/internal/storage/db/queries"
 )
 
-var TestDB MySQL
+var TestDB *MySQL
 
 const pathToMigrations = "file://../../../../migrations/mysql"
 
@@ -42,7 +42,7 @@ func TestMain(m *testing.M) {
 		os.Exit(0)
 	}
 
-	TestDB = New(vdb.DB, pathToMigrations).(MySQL)
+	TestDB = New(vdb.DB, pathToMigrations).(*MySQL)
 
 	queries := []string{
 		"SET foreign_key_checks = 0;",
@@ -67,10 +67,10 @@ func TestMain(m *testing.M) {
 		log.Fatal(err)
 	}
 
-	TestDB = New(vdb.DB, pathToMigrations).(MySQL)
+	TestDB = New(vdb.DB, pathToMigrations).(*MySQL)
 	// Run tests
 
-	err = prep.Prepare(TestDB.DB, "mysql")
+	err = prep.Prepare(TestDB.DB.DB, "mysql")
 	if err != nil {
 		log.Fatal(err)
 	}
