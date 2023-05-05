@@ -1,6 +1,7 @@
 package sqlite3
 
 import (
+	"context"
 	"database/sql"
 	"log"
 	"os"
@@ -43,21 +44,22 @@ func TestMain(m *testing.M) {
 }
 
 func Test_FindMaxID(t *testing.T) {
+	ctx := context.Background()
 	want := 0
-	got, err := TestDB.FindMaxID()
+	got, err := TestDB.FindMaxID(ctx)
 	if got != want {
 		t.Errorf("FindMaxID() got = %v, want %v", got, want)
 	} else if err != nil {
 		t.Error(err)
 	}
 
-	_, err = TestDB.AddLink("dqwdqwd", "qhwdfhqfh", "hqfhvqhv")
+	_, err = TestDB.AddLink(ctx, "dqwdqwd", "qhwdfhqfh", "hqfhvqhv")
 	if err != nil {
 		t.Error(err)
 	}
 
 	want = 1
-	got, err = TestDB.FindMaxID()
+	got, err = TestDB.FindMaxID(ctx)
 	if got != want {
 		t.Errorf("FindMaxID() got = %v, want %v", got, want)
 	} else if err != nil {
@@ -67,6 +69,7 @@ func Test_FindMaxID(t *testing.T) {
 }
 
 func Test_AddLink(t *testing.T) {
+	ctx := context.Background()
 	type args struct {
 		longURL  string
 		shortURL string
@@ -91,7 +94,7 @@ func Test_AddLink(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got, err := TestDB.AddLink(tt.args.longURL, tt.args.shortURL, tt.args.cookie)
+			got, err := TestDB.AddLink(ctx, tt.args.longURL, tt.args.shortURL, tt.args.cookie)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("AddLink() error = %v, wantErr %v", err, tt.wantErr)
 				return
@@ -104,7 +107,8 @@ func Test_AddLink(t *testing.T) {
 }
 
 func Test_GetAllLinksByCookie(t *testing.T) {
-	_, err := TestDB.AddLink("dqw3dqwd", "q3hwdfhqfh", "3hqfhvqhv")
+	ctx := context.Background()
+	_, err := TestDB.AddLink(ctx, "dqw3dqwd", "q3hwdfhqfh", "3hqfhvqhv")
 	if err != nil {
 		t.Error(err)
 	}
@@ -143,7 +147,7 @@ func Test_GetAllLinksByCookie(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got, err := TestDB.GetAllLinksByCookie(tt.args.cookie, tt.args.baseURL)
+			got, err := TestDB.GetAllLinksByCookie(ctx, tt.args.cookie, tt.args.baseURL)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("GetAllLinksByCookie() error = %v, wantErr %v", err, tt.wantErr)
 				return
@@ -158,8 +162,9 @@ func Test_GetAllLinksByCookie(t *testing.T) {
 func Test_GetLongLink(t *testing.T) {
 	longLink := "dqwdqq"
 	shortLink := "f"
+	ctx := context.Background()
 
-	_, err := TestDB.AddLink(longLink, shortLink, "wd")
+	_, err := TestDB.AddLink(ctx, longLink, shortLink, "wd")
 	if err != nil {
 		t.Error(err)
 	}
@@ -186,7 +191,7 @@ func Test_GetLongLink(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			gotLongURL, err := TestDB.GetLongLink(tt.args.shortURL)
+			gotLongURL, err := TestDB.GetLongLink(ctx, tt.args.shortURL)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("GetLongLink() error = %v, wantErr %v", err, tt.wantErr)
 				return
@@ -202,8 +207,9 @@ func Test_MarkAsDeleted(t *testing.T) {
 	ShortURL := "qwe"
 	cookie := "qwsa"
 	TestDB.MarkAsDeleted(ShortURL, cookie)
+	ctx := context.Background()
 
-	_, err := TestDB.GetLongLink(ShortURL)
+	_, err := TestDB.GetLongLink(ctx, ShortURL)
 	if err == nil {
 		t.Error("The MarkAsDeleted() job was not completed")
 		return
@@ -211,7 +217,8 @@ func Test_MarkAsDeleted(t *testing.T) {
 }
 
 func Test_Ping(t *testing.T) {
-	if err := TestDB.Ping(); err != nil {
+	ctx := context.Background()
+	if err := TestDB.Ping(ctx); err != nil {
 		t.Errorf("Ping() error = %v", err)
 	}
 }

@@ -17,6 +17,7 @@ const DBStorageType storage.Type = "postgres"
 // NewRealStorage constructor for storage.IStorage with db implementation.
 func NewRealStorage(db *sql.DB, vendor storage.Type) service.IRealStorage {
 	var irs service.IRealStorage
+
 	switch vendor {
 	case "postgres":
 		irs = postgres.New(db, "file://migrations/postgres")

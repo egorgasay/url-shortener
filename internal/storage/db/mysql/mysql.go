@@ -60,7 +60,7 @@ func (m *MySQL) FindMaxID(ctx context.Context) (int, error) {
 		return 0, nil
 	}
 
-	stm := stmt.QueryRow()
+	stm := stmt.QueryRowContext(ctx)
 	err = stm.Scan(&id)
 
 	return int(id.Int32), err
