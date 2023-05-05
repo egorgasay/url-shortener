@@ -49,7 +49,7 @@ func (fs *FileStorage) Open() error {
 	fs.Mu.Lock()
 	file, err := os.OpenFile(fs.Path, os.O_RDWR|os.O_CREATE|os.O_APPEND, 0777)
 	if err != nil {
-		return err
+		return fmt.Errorf("open file error: %w", err)
 	}
 
 	fs.File = file
@@ -220,4 +220,40 @@ func (fs *FileStorage) Shutdown() error {
 	}
 
 	return nil
+}
+
+// URLsCount returns the number of URLs in the file.
+func (fs *FileStorage) URLsCount() (int, error) {
+	err := fs.Open()
+	if err != nil {
+		return 0, err
+	}
+	defer fs.Close()
+	scanner := bufio.NewScanner(fs.File)
+	var count int
+	for ; scanner.Scan(); count++ {
+	}
+	return count, nil
+}
+
+// UsersCount returns the number of users in the file.
+func (fs *FileStorage) UsersCount() (int, error) {
+	err := fs.Open()
+	if err != nil {
+		return 0, err
+	}
+
+	defer fs.Close()
+
+	scanner := bufio.NewScanner(fs.File)
+	var users = make(map[string]struct{}, 100)
+	for scanner.Scan() {
+		line := scanner.Text()
+		split := strings.Split(line, " - ")
+		if len(split) > 3 {
+			users[split[3]] = struct{}{}
+		}
+	}
+
+	return len(users), nil
 }

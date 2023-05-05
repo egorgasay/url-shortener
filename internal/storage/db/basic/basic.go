@@ -139,3 +139,34 @@ func (db *DB) AddLink(longURL, shortURL, cookie string) (string, error) {
 
 	return shortURL, nil
 }
+
+// URLsCount gets count of URLs in the repository.
+func (db *DB) URLsCount() (int, error) {
+	var count int
+
+	stmt, err := queries.GetPreparedStatement(queries.CountURLs)
+	if err != nil {
+		return 0, fmt.Errorf("error preparing statement: %w", err)
+	}
+
+	if err = stmt.QueryRow().Scan(&count); err != nil {
+		return 0, fmt.Errorf("error counting URLs: %w", err)
+	}
+
+	return count, nil
+}
+
+// UsersCount gets count of users in the repository.
+func (db *DB) UsersCount() (int, error) {
+	var count int
+	stmt, err := queries.GetPreparedStatement(queries.CountUsers)
+	if err != nil {
+		return 0, fmt.Errorf("error preparing statement: %w", err)
+	}
+
+	if err = stmt.QueryRow().Scan(&count); err != nil {
+		return 0, fmt.Errorf("error counting users: %w", err)
+	}
+
+	return count, nil
+}

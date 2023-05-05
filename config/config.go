@@ -8,6 +8,7 @@ import (
 	"github.com/egorgasay/dockerdb"
 	"io"
 	"log"
+	"net"
 	"os"
 	"reflect"
 	"url-shortener/internal/repository"
@@ -26,15 +27,16 @@ const (
 
 // Flag struct for parsing from env and cmd args.
 type Flag struct {
-	Host    *string `json:"server_address,omitempty"`
-	BaseURL *string `json:"base_url,omitempty"`
-	Path    *string `json:"file_storage_path,omitempty"`
-	Storage *string `json:"storage,omitempty"`
-	DSN     *string `json:"database_dsn,omitempty"`
-	VDB     *string `json:"vdb,omitempty"`
-	CFG     *string
-	Config  *string
-	HTTPS   *bool `json:"enable_https,omitempty"`
+	Host              *string `json:"server_address,omitempty"`
+	BaseURL           *string `json:"base_url,omitempty"`
+	Path              *string `json:"file_storage_path,omitempty"`
+	Storage           *string `json:"storage,omitempty"`
+	DSN               *string `json:"database_dsn,omitempty"`
+	VDB               *string `json:"vdb,omitempty"`
+	Cfg               *string
+	Config            *string
+	HTTPS             *bool   `json:"enable_https,omitempty"`
+	TrustedSubNetwork *string `json:"trusted_subnet"`
 }
 
 var f Flag
@@ -55,36 +57,38 @@ func init() {
 	f.DSN = flag.String("d", "", "-d=connection_string")
 	f.VDB = flag.String("vdb", "", "-vdb=virtual_db_name")
 	f.HTTPS = flag.Bool("s", false, "-s to enable a HTTPS connection")
-	f.CFG = flag.String("c", "", "-c=path/to/conf.json")
+	f.Cfg = flag.String("c", "", "-c=path/to/conf.json")
 	f.Config = flag.String("config", "", "-config=path/to/conf.json")
+	f.TrustedSubNetwork = flag.String("t", "", "-t=trusted_subnet")
 }
 
 // Config contains all the settings for configuring the application.
 type Config struct {
-	Host     string
-	BaseURL  string
-	Key      []byte
-	DBConfig *repository.Config
-	HTTPS    bool
+	Host              string
+	BaseURL           string
+	TrustedSubNetwork *net.IPNet
+	Key               []byte
+	DBConfig          *repository.Config
+	HTTPS             bool
 }
 
 // Modify modifies the config by the file provided.
-func Modify(file string) error {
-	File, err := os.Open(file)
+func Modify(filename string) error {
+	file, err := os.Open(filename)
 	if err != nil {
-		return fmt.Errorf("can't open %s: %v", file, err)
+		return fmt.Errorf("can't open %s: %v", filename, err)
 	}
-	defer File.Close()
+	defer file.Close()
 
-	all, err := io.ReadAll(File)
+	all, err := io.ReadAll(file)
 	if err != nil {
-		return fmt.Errorf("can't read %s: %v", file, err)
+		return fmt.Errorf("can't read %s: %v", filename, err)
 	}
 
 	var fCopy Flag
 	err = json.Unmarshal(all, &fCopy)
 	if err != nil {
-		return fmt.Errorf("can't unmarshal %s: %v", file, err)
+		return fmt.Errorf("can't unmarshal %s: %v", filename, err)
 	}
 
 	// Reflection by the Flag structure and replacement of null attributes by config file provided.
@@ -100,7 +104,7 @@ func Modify(file string) error {
 			switch elem.Type().Kind() {
 			case reflect.String:
 				if val := defaults[field.Name]; (elem.String() == "" || val == elem.String()) &&
-					reflectionFCopy.Field(i).Elem().String() != "<invalid Value>" {
+					reflectionFCopy.Field(i).Elem().IsValid() {
 
 					elem.SetString(reflectionFCopy.Field(i).Elem().String())
 				}
@@ -120,7 +124,7 @@ func Modify(file string) error {
 func New() *Config {
 	flag.Parse()
 
-	configFile := *f.CFG
+	configFile := *f.Cfg
 	if cfg, ok := os.LookupEnv("CONFIG"); configFile == "" && !ok {
 		configFile = *f.Config
 	} else if ok {
@@ -140,6 +144,10 @@ func New() *Config {
 
 	if fsp, ok := os.LookupEnv("FILE_STORAGE_PATH"); ok {
 		f.Path = &fsp
+	}
+
+	if sub, ok := os.LookupEnv("TRUSTED_SUBNET"); ok {
+		f.TrustedSubNetwork = &sub
 	}
 
 	if addr, ok := os.LookupEnv("SERVER_ADDRESS"); ok {
@@ -192,6 +200,8 @@ func New() *Config {
 		f.DSN = &ddb.ConnString
 	}
 
+	_, subnet, _ := net.ParseCIDR(*f.TrustedSubNetwork)
+
 	var config = &Config{
 		Host:    *f.Host,
 		BaseURL: *f.BaseURL,
@@ -203,7 +213,8 @@ func New() *Config {
 			VDB:            ddb,
 			Name:           vdb,
 		},
-		HTTPS: *f.HTTPS,
+		HTTPS:             *f.HTTPS,
+		TrustedSubNetwork: subnet,
 	}
 
 	return config

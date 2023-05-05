@@ -20,6 +20,8 @@ const (
 	GetAllLinksByCookie
 	MarkAsDeleted
 	GetShortLink
+	CountURLs
+	CountUsers
 )
 
 var queriesSqlite3 = map[Name]Query{
@@ -28,6 +30,8 @@ var queriesSqlite3 = map[Name]Query{
 	FindMaxURL:          "SELECT MAX(id) FROM links",
 	GetAllLinksByCookie: "SELECT short, long FROM links WHERE cookie = ?",
 	MarkAsDeleted:       "UPDATE links SET deleted = 1 WHERE short = ? AND cookie = ?",
+	CountURLs:           "SELECT COUNT(*) FROM links",
+	CountUsers:          "SELECT COUNT(DISTINCT cookie) FROM links",
 }
 
 var queriesPostgres = map[Name]Query{
@@ -37,6 +41,8 @@ var queriesPostgres = map[Name]Query{
 	GetAllLinksByCookie: `SELECT short, long FROM links WHERE cookie = $1`,
 	MarkAsDeleted:       `UPDATE links SET deleted = true WHERE short = $1 and cookie = $2`,
 	GetShortLink:        "SELECT short FROM links WHERE long = $1",
+	CountURLs:           "SELECT COUNT(*) FROM links",
+	CountUsers:          "SELECT COUNT(DISTINCT cookie) FROM links",
 }
 
 var queriesMySQL = map[Name]Query{
@@ -45,6 +51,8 @@ var queriesMySQL = map[Name]Query{
 	FindMaxURL:          "SELECT MAX(`id`) FROM links",
 	GetAllLinksByCookie: "SELECT `shortURL`, `longURL` FROM links WHERE `cookie` = ?",
 	MarkAsDeleted:       "UPDATE links SET `deleted` = 1 WHERE `shortURL` = ? AND `cookie` = ?",
+	CountURLs:           "SELECT COUNT(*) FROM links",
+	CountUsers:          "SELECT COUNT(DISTINCT cookie) FROM links",
 }
 
 // ErrNotFound occurs when query was not found.

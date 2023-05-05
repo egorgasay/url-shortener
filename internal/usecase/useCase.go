@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"golang.org/x/sync/errgroup"
 	"log"
 	"url-shortener/internal/schema"
@@ -114,4 +115,19 @@ func (uc UseCase) Batch(batchURLs []schema.BatchURL, cookie, baseURL string) ([]
 	}
 
 	return respJSON, nil
+}
+
+// GetStats calls storage method GetUser.
+func (uc UseCase) GetStats() (stats schema.StatsResponse, err error) {
+	stats.URLs, err = uc.storage.URLsCount()
+	if err != nil {
+		return stats, fmt.Errorf("can't get urls count: %w", err)
+	}
+
+	stats.Users, err = uc.storage.UsersCount()
+	if err != nil {
+		return stats, fmt.Errorf("can't get users count: %w", err)
+	}
+
+	return stats, nil
 }

@@ -14,6 +14,8 @@ type IStorage interface {
 	Ping() error
 	MarkAsDeleted(shortURL, cookie string) error
 	Shutdown() error
+	URLsCount() (int, error)
+	UsersCount() (int, error)
 }
 
 // Type storage type.

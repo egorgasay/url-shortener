@@ -5,6 +5,7 @@ import (
 	"errors"
 	"github.com/gin-gonic/gin"
 	"log"
+	"net"
 	"net/http"
 	"url-shortener/config"
 	"url-shortener/internal/schema"
@@ -249,4 +250,25 @@ func (h Handler) APIDeleteLinksHandler(c *gin.Context) {
 
 	c.Status(http.StatusAccepted)
 	c.Header("Content-Type", "application/json")
+}
+
+// GetStatsHandler returns statistic about shortened links.
+func (h Handler) GetStatsHandler(c *gin.Context) {
+	c.Header("Content-Type", "application/json")
+
+	ip := c.ClientIP()
+	log.Println(ip)
+	if !h.conf.TrustedSubNetwork.Contains(net.ParseIP(ip)) {
+		c.JSON(http.StatusForbidden, gin.H{"error": "Forbidden"})
+		return
+	}
+
+	data, err := h.logic.GetStats()
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Internal Server Error"})
+		return
+	}
+
+	c.IndentedJSON(http.StatusOK, data)
+	return
 }

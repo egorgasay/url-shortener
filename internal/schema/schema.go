@@ -28,3 +28,9 @@ type ResponseBatchURL struct {
 	Chars   string `json:"correlation_id"`
 	Shorted string `json:"short_url"`
 }
+
+// StatsResponse describes Response that gives GetStats Handler.
+type StatsResponse struct {
+	URLs  int `json:"urls"`
+	Users int `json:"users"`
+}

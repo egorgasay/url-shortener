@@ -102,7 +102,7 @@ func main() {
 				log.Fatalf("Failed to write file: %s", err.Error())
 			}
 
-			caFile.Close()
+			defer caFile.Close()
 
 			caFile, err = os.Create("ca.key")
 			if err != nil {
@@ -114,7 +114,7 @@ func main() {
 				log.Fatalf("Failed to write file: %s", err.Error())
 			}
 
-			caFile.Close()
+			defer caFile.Close()
 
 			http.ListenAndServeTLS(cfg.Host, "ca.crt", "ca.key", router)
 		} else {

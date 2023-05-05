@@ -124,3 +124,24 @@ func (s *MapStorage) Shutdown() error {
 	s.container = make(map[shortURL]data)
 	return nil
 }
+
+// URLsCount gets count of the repository.
+func (s *MapStorage) URLsCount() (int, error) {
+	s.mu.RLock()
+	defer s.mu.RUnlock()
+	return len(s.container), nil
+}
+
+// UsersCount gets count of users.
+func (s *MapStorage) UsersCount() (int, error) {
+	s.mu.RLock()
+	defer s.mu.RUnlock()
+
+	var users map[string]struct{}
+
+	for _, dt := range s.container {
+		users[dt.cookie] = struct{}{}
+	}
+
+	return len(users), nil
+}

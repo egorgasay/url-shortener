@@ -15,6 +15,7 @@ func PublicRoutes(r *gin.RouterGroup, h *handlers.Handler) {
 	r.GET("/:id", h.GetLinkHandler)
 	r.GET("/api/user/urls", h.GetAllLinksHandler)
 	r.GET("/ping", h.Ping)
+	r.GET("/api/internal/stats", h.GetStatsHandler)
 
 	r.Any("/debug/pprof/", gin.WrapF(pprof.Index))
 	r.Any("/debug/pprof/cmdline", gin.WrapF(pprof.Cmdline))

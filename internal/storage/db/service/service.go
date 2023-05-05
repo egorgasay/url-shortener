@@ -14,6 +14,8 @@ type IRealStorage interface {
 	Ping() error
 	MarkAsDeleted(shortURL, cookie string) error
 	Shutdown() error
+	URLsCount() (int, error)
+	UsersCount() (int, error)
 }
 
 // ErrExists occurs when the shortened URL already exists.
