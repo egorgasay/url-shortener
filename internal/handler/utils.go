@@ -98,6 +98,10 @@ func setCookies(c *gin.Context, key []byte) (cookie string) {
 
 func checkCookies(cookie string, key []byte) bool {
 	arr := strings.Split(cookie, "-")
+	if len(arr) < 2 {
+		return false
+	}
+
 	k, v := arr[0], arr[1]
 
 	sign, err := hex.DecodeString(k)

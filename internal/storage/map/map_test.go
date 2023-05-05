@@ -196,3 +196,9 @@ func TestPostgres_Ping(t *testing.T) {
 		t.Errorf("Ping() error = %v", err)
 	}
 }
+
+func TestPostgres_Shutdown(t *testing.T) {
+	if err := TestDB.Shutdown(); err != nil {
+		t.Errorf("Shutdown() error = %v", err)
+	}
+}

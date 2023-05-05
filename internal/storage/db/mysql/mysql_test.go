@@ -11,7 +11,7 @@ import (
 	prep "url-shortener/internal/storage/db/queries"
 )
 
-var TestDB MySQL
+var TestDB *MySQL
 
 const pathToMigrations = "file://../../../../migrations/mysql"
 
@@ -20,16 +20,17 @@ func TestMain(m *testing.M) {
 	ctx := context.TODO()
 	cfg := dockerdb.CustomDB{
 		DB: dockerdb.DB{
-			Name:     "mysql_test_url51",
+			Name:     "admin",
 			User:     "admin",
 			Password: "admin",
 		},
-		Port: "31135",
+		Port: "31188",
 		Vendor: dockerdb.Vendor{
 			Name:  "mysql",
 			Image: "mysql:5.7",
 		},
 	}
+
 	err := dockerdb.Pull(ctx, "mysql:5.7")
 	if err != nil {
 		log.Fatal(err)
@@ -42,11 +43,11 @@ func TestMain(m *testing.M) {
 		os.Exit(0)
 	}
 
-	TestDB = New(vdb.DB, pathToMigrations).(MySQL)
+	TestDB = New(vdb.DB, pathToMigrations).(*MySQL)
 
 	queries := []string{
 		"SET foreign_key_checks = 0;",
-		"TRUNCATE urls;",
+		"TRUNCATE links;",
 		"SET foreign_key_checks = 1;",
 	}
 
@@ -67,10 +68,10 @@ func TestMain(m *testing.M) {
 		log.Fatal(err)
 	}
 
-	TestDB = New(vdb.DB, pathToMigrations).(MySQL)
+	TestDB = New(vdb.DB, pathToMigrations).(*MySQL)
 	// Run tests
 
-	err = prep.Prepare(TestDB.DB, "mysql")
+	err = prep.Prepare(TestDB.DB.DB, "mysql")
 	if err != nil {
 		log.Fatal(err)
 	}
