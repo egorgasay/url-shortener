@@ -269,5 +269,4 @@ func (h Handler) GetStatsHandler(c *gin.Context) {
 	}
 
 	c.IndentedJSON(http.StatusOK, data)
-	return
 }

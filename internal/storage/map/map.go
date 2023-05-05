@@ -166,7 +166,7 @@ func (s *MapStorage) UsersCount(ctx context.Context) (int, error) {
 	s.mu.RLock()
 	defer s.mu.RUnlock()
 
-	var users map[string]struct{}
+	var users = make(map[string]struct{}, 100)
 
 	for _, dt := range s.container {
 		users[dt.cookie] = struct{}{}
