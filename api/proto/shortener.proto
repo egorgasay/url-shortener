@@ -1,0 +1,62 @@
+syntax = "proto3";
+
+option go_package = "grpchandler";
+
+package api;
+
+service Shortener {
+  rpc Get(GetRequest) returns (GetResponse) {}
+  rpc GetAll(GetAllByCookieRequest) returns (GetAllByCookieResponse) {}
+  rpc Create(CreateRequest) returns (CreateResponse) {}
+  rpc Ping(PingRequest) returns (PingResponse) {}
+  rpc Batch(BatchRequest) returns (BatchResponse) {}
+  rpc Delete(DeleteRequest) returns (DeleteResponse) {}
+  rpc GetStats(GetStatsRequest) returns (GetStatsResponse) {}
+}
+
+message GetRequest {
+  string shortened = 1;
+}
+
+message GetResponse {
+  string original_url = 1;
+}
+
+message GetAllByCookieRequest {}
+
+message GetAllByCookieResponse {
+  repeated string urls = 1;
+}
+
+message CreateRequest {
+  string url = 1;
+}
+
+message CreateResponse {
+  string shortened = 1;
+}
+
+message PingRequest {}
+
+message PingResponse {}
+
+message BatchRequest {
+  repeated string original_urls = 1;
+}
+
+message BatchResponse {
+  repeated string shortened_urls = 1;
+}
+
+message DeleteRequest {
+  string url = 1;
+}
+
+message DeleteResponse {}
+
+message GetStatsRequest {}
+
+message GetStatsResponse {
+  int32 urls = 1;
+  int32 users = 2;
+}

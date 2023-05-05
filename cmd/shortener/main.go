@@ -18,7 +18,7 @@ import (
 	"syscall"
 	"time"
 	"url-shortener/config"
-	handlers "url-shortener/internal/handler"
+	resthandler "url-shortener/internal/handler/rest"
 	"url-shortener/internal/repository"
 	"url-shortener/internal/routes"
 	"url-shortener/internal/storage/db/queries"
@@ -48,7 +48,7 @@ func main() {
 
 	logic := usecase.New(storage)
 	router := gin.Default()
-	h := handlers.NewHandler(cfg, logic)
+	h := resthandler.NewHandler(cfg, logic)
 
 	public := router.Group("/")
 	routes.PublicRoutes(public, h)
