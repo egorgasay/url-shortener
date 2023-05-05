@@ -3,7 +3,7 @@ package routes
 import (
 	"github.com/gin-gonic/gin"
 	"net/http/pprof"
-	handlers "url-shortener/internal/handler"
+	handlers "url-shortener/internal/handler/rest"
 )
 
 // PublicRoutes routes for unregistered users.
