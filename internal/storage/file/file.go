@@ -3,6 +3,7 @@ package filestorage
 import (
 	"bufio"
 	"bytes"
+	"context"
 	"errors"
 	"fmt"
 	"io"
@@ -75,7 +76,11 @@ func (fs *FileStorage) Close() error {
 }
 
 // AddLink adds a link to the file.
-func (fs *FileStorage) AddLink(longURL, shortURL, cookie string) (string, error) {
+func (fs *FileStorage) AddLink(ctx context.Context, longURL, shortURL, cookie string) (string, error) {
+	if ctx.Err() != nil {
+		return "", ctx.Err()
+	}
+
 	err := fs.Open()
 	if err != nil {
 		return "", err
@@ -99,7 +104,11 @@ func (fs *FileStorage) AddLink(longURL, shortURL, cookie string) (string, error)
 }
 
 // FindMaxID gets len of the file.
-func (fs *FileStorage) FindMaxID() (int, error) {
+func (fs *FileStorage) FindMaxID(ctx context.Context) (int, error) {
+	if ctx.Err() != nil {
+		return 0, ctx.Err()
+	}
+
 	err := fs.Open()
 	if err != nil {
 		return 0, err
@@ -126,7 +135,11 @@ func (fs *FileStorage) FindMaxID() (int, error) {
 }
 
 // GetLongLink gets a long link from the file.
-func (fs *FileStorage) GetLongLink(shortURL string) (longURL string, err error) {
+func (fs *FileStorage) GetLongLink(ctx context.Context, shortURL string) (longURL string, err error) {
+	if ctx.Err() != nil {
+		return "", ctx.Err()
+	}
+
 	err = fs.Open()
 	if err != nil {
 		return "", err
@@ -149,7 +162,11 @@ func (fs *FileStorage) GetLongLink(shortURL string) (longURL string, err error) 
 }
 
 // GetAllLinksByCookie gets all links ([]schema.URL) by cookie.
-func (fs *FileStorage) GetAllLinksByCookie(cookie, baseURL string) ([]schema.URL, error) {
+func (fs *FileStorage) GetAllLinksByCookie(ctx context.Context, cookie, baseURL string) ([]schema.URL, error) {
+	if ctx.Err() != nil {
+		return nil, ctx.Err()
+	}
+
 	err := fs.Open()
 	if err != nil {
 		return nil, err
@@ -173,7 +190,11 @@ func (fs *FileStorage) GetAllLinksByCookie(cookie, baseURL string) ([]schema.URL
 }
 
 // Ping check for the presence of a file.
-func (fs *FileStorage) Ping() error {
+func (fs *FileStorage) Ping(ctx context.Context) error {
+	if ctx.Err() != nil {
+		return ctx.Err()
+	}
+
 	err := fs.Open()
 	if err != nil {
 		return err
@@ -223,7 +244,11 @@ func (fs *FileStorage) Shutdown() error {
 }
 
 // URLsCount returns the number of URLs in the file.
-func (fs *FileStorage) URLsCount() (int, error) {
+func (fs *FileStorage) URLsCount(ctx context.Context) (int, error) {
+	if ctx.Err() != nil {
+		return 0, ctx.Err()
+	}
+
 	err := fs.Open()
 	if err != nil {
 		return 0, err
@@ -237,7 +262,11 @@ func (fs *FileStorage) URLsCount() (int, error) {
 }
 
 // UsersCount returns the number of users in the file.
-func (fs *FileStorage) UsersCount() (int, error) {
+func (fs *FileStorage) UsersCount(ctx context.Context) (int, error) {
+	if ctx.Err() != nil {
+		return 0, ctx.Err()
+	}
+
 	err := fs.Open()
 	if err != nil {
 		return 0, err

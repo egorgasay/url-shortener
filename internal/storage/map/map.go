@@ -1,6 +1,7 @@
 package mapstorage
 
 import (
+	"context"
 	"errors"
 	"sync"
 	"url-shortener/internal/schema"
@@ -38,7 +39,11 @@ func NewMapStorage() storage.IStorage {
 }
 
 // AddLink adds a link to the repository.
-func (s *MapStorage) AddLink(longURL, ShortURL, cookie string) (string, error) {
+func (s *MapStorage) AddLink(ctx context.Context, longURL, ShortURL, cookie string) (string, error) {
+	if ctx.Err() != nil {
+		return "", ctx.Err()
+	}
+
 	s.mu.Lock()
 	defer s.mu.Unlock()
 	if _, ok := s.container[shortURL(ShortURL)]; ok {
@@ -51,7 +56,11 @@ func (s *MapStorage) AddLink(longURL, ShortURL, cookie string) (string, error) {
 }
 
 // FindMaxID gets len of the repository.
-func (s *MapStorage) FindMaxID() (int, error) {
+func (s *MapStorage) FindMaxID(ctx context.Context) (int, error) {
+	if ctx.Err() != nil {
+		return 0, ctx.Err()
+	}
+
 	s.mu.RLock()
 	defer s.mu.RUnlock()
 
@@ -59,7 +68,11 @@ func (s *MapStorage) FindMaxID() (int, error) {
 }
 
 // GetLongLink gets a long link from the repository.
-func (s *MapStorage) GetLongLink(ShortURL string) (string, error) {
+func (s *MapStorage) GetLongLink(ctx context.Context, ShortURL string) (string, error) {
+	if ctx.Err() != nil {
+		return "", ctx.Err()
+	}
+
 	s.mu.RLock()
 	defer s.mu.RUnlock()
 
@@ -76,7 +89,11 @@ func (s *MapStorage) GetLongLink(ShortURL string) (string, error) {
 }
 
 // GetAllLinksByCookie gets all links ([]schema.URL) by cookie.
-func (s *MapStorage) GetAllLinksByCookie(cookie, baseURL string) ([]schema.URL, error) {
+func (s *MapStorage) GetAllLinksByCookie(ctx context.Context, cookie, baseURL string) ([]schema.URL, error) {
+	if ctx.Err() != nil {
+		return nil, ctx.Err()
+	}
+
 	s.mu.RLock()
 	defer s.mu.RUnlock()
 	var links []schema.URL
@@ -111,7 +128,11 @@ func (s *MapStorage) MarkAsDeleted(ShortURL, cookie string) error {
 }
 
 // Ping checks connection with the repository.
-func (s *MapStorage) Ping() error {
+func (s *MapStorage) Ping(ctx context.Context) error {
+	if ctx.Err() != nil {
+		return ctx.Err()
+	}
+
 	if s.container == nil {
 		return errors.New("хранилище не существует")
 	}
@@ -126,14 +147,22 @@ func (s *MapStorage) Shutdown() error {
 }
 
 // URLsCount gets count of the repository.
-func (s *MapStorage) URLsCount() (int, error) {
+func (s *MapStorage) URLsCount(ctx context.Context) (int, error) {
+	if ctx.Err() != nil {
+		return 0, ctx.Err()
+	}
+
 	s.mu.RLock()
 	defer s.mu.RUnlock()
 	return len(s.container), nil
 }
 
 // UsersCount gets count of users.
-func (s *MapStorage) UsersCount() (int, error) {
+func (s *MapStorage) UsersCount(ctx context.Context) (int, error) {
+	if ctx.Err() != nil {
+		return 0, ctx.Err()
+	}
+
 	s.mu.RLock()
 	defer s.mu.RUnlock()
 

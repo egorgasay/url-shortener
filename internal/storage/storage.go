@@ -1,21 +1,22 @@
 package storage
 
 import (
+	"context"
 	"errors"
 	"url-shortener/internal/schema"
 )
 
 // IStorage interface for a storage.
 type IStorage interface {
-	FindMaxID() (int, error)
-	AddLink(longURL, shortURL, cookie string) (string, error)
-	GetLongLink(shortURL string) (longURL string, err error)
-	GetAllLinksByCookie(cookie string, baseURL string) (URLs []schema.URL, err error)
-	Ping() error
+	FindMaxID(ctx context.Context) (int, error)
+	AddLink(ctx context.Context, longURL, shortURL, cookie string) (string, error)
+	GetLongLink(ctx context.Context, shortURL string) (longURL string, err error)
+	GetAllLinksByCookie(ctx context.Context, cookie string, baseURL string) (URLs []schema.URL, err error)
+	Ping(ctx context.Context) error
 	MarkAsDeleted(shortURL, cookie string) error
 	Shutdown() error
-	URLsCount() (int, error)
-	UsersCount() (int, error)
+	URLsCount(ctx context.Context) (int, error)
+	UsersCount(ctx context.Context) (int, error)
 }
 
 // Type storage type.

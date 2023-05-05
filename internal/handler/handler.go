@@ -33,7 +33,7 @@ func NewHandler(cfg *config.Config, logic usecase.UseCase) *Handler {
 // GetLinkHandler accepts short url through the characters in the url (after the slash),
 // returns a redirect to the URL that was shortened.
 func (h Handler) GetLinkHandler(c *gin.Context) {
-	longURL, err := h.logic.GetLink(c.Param("id"))
+	longURL, err := h.logic.GetLink(c.Request.Context(), c.Param("id"))
 	if err != nil {
 		log.Println(err)
 		if errors.Is(err, storage.ErrDeleted) {
@@ -57,7 +57,7 @@ func (h Handler) GetAllLinksHandler(c *gin.Context) {
 		cookie = setCookies(c, h.conf.Key)
 	}
 
-	URLs, err := h.logic.GetAllLinksByCookie(cookie, h.conf.BaseURL)
+	URLs, err := h.logic.GetAllLinksByCookie(c.Request.Context(), cookie, h.conf.BaseURL)
 	if err != nil {
 		log.Println(err)
 		c.AbortWithStatus(http.StatusBadRequest)
@@ -92,7 +92,7 @@ func (h Handler) CreateLinkHandler(c *gin.Context) {
 		return
 	}
 
-	charsForURL, err := h.logic.CreateLink(string(data), cookie)
+	charsForURL, err := h.logic.CreateLink(c.Request.Context(), string(data), cookie)
 	if err != nil {
 		if !errors.Is(err, service.ErrExists) {
 			c.Error(err)
@@ -153,7 +153,7 @@ func (h Handler) APICreateLinkHandler(c *gin.Context) {
 	}
 
 	var isConflict bool
-	charsForURL, err := h.logic.CreateLink(rj.URL, cookie)
+	charsForURL, err := h.logic.CreateLink(c.Request.Context(), rj.URL, cookie)
 	if err != nil {
 		if !errors.Is(err, service.ErrExists) {
 			c.Error(err)
@@ -193,7 +193,7 @@ func (h Handler) APICreateLinkHandler(c *gin.Context) {
 
 // Ping checks the connection to the database.
 func (h Handler) Ping(c *gin.Context) {
-	err := h.logic.Ping()
+	err := h.logic.Ping(c.Request.Context())
 	if err != nil {
 		c.Status(http.StatusInternalServerError)
 		return
@@ -218,7 +218,7 @@ func (h Handler) BatchHandler(c *gin.Context) {
 		return
 	}
 
-	data, err := h.logic.Batch(batchURLs, cookie, h.conf.BaseURL)
+	data, err := h.logic.Batch(c.Request.Context(), batchURLs, cookie, h.conf.BaseURL)
 	if err != nil {
 		log.Println(err)
 		c.Status(http.StatusInternalServerError)
@@ -256,14 +256,13 @@ func (h Handler) APIDeleteLinksHandler(c *gin.Context) {
 func (h Handler) GetStatsHandler(c *gin.Context) {
 	c.Header("Content-Type", "application/json")
 
-	ip := c.ClientIP()
-	log.Println(ip)
+	ip := c.Request.Header.Get("X-Real-IP")
 	if !h.conf.TrustedSubNetwork.Contains(net.ParseIP(ip)) {
 		c.JSON(http.StatusForbidden, gin.H{"error": "Forbidden"})
 		return
 	}
 
-	data, err := h.logic.GetStats()
+	data, err := h.logic.GetStats(c.Request.Context())
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Internal Server Error"})
 		return
