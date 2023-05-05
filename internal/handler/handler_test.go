@@ -2,6 +2,7 @@ package handler
 
 import (
 	"bytes"
+	"context"
 	"github.com/gin-gonic/gin"
 	"github.com/stretchr/testify/assert"
 	"net/http"
@@ -34,6 +35,7 @@ func TestHandler_GetLinkHandler(t *testing.T) {
 		},
 	}
 
+	ctx := context.Background()
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
 			cfg := &repository.Config{
@@ -47,7 +49,7 @@ func TestHandler_GetLinkHandler(t *testing.T) {
 
 			logic := usecase.New(repo)
 
-			repo.AddLink("http://zrnzruvv7qfdy.ru/hlc65i", "zE", "df")
+			repo.AddLink(ctx, "http://zrnzruvv7qfdy.ru/hlc65i", "zE", "df")
 
 			conf := &config.Config{Host: "127.0.0.1", DBConfig: cfg}
 			handler := Handler{conf: conf, logic: logic}
@@ -111,6 +113,8 @@ func TestHandler_CreateLinkHandler(t *testing.T) {
 	router := gin.Default()
 	router.POST("/", handler.CreateLinkHandler)
 
+	ctx := context.Background()
+
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
 			req := httptest.NewRequest("POST", "/",
@@ -121,7 +125,7 @@ func TestHandler_CreateLinkHandler(t *testing.T) {
 			// Assert
 			assert.Equal(t, test.expectedStatusCode, w.Code)
 			assert.Equal(t, test.expectedResponseBody, w.Body.String())
-			repo.AddLink("vk.com/gasayminajj", "rx", "80f53850d88d388b2a5fb1a057a1867ee70d37b1c2439ede79c43ef3c802e4b8-31363832313934313833373336353432343636")
+			repo.AddLink(ctx, "vk.com/gasayminajj", "rx", "80f53850d88d388b2a5fb1a057a1867ee70d37b1c2439ede79c43ef3c802e4b8-31363832313934313833373336353432343636")
 		})
 	}
 }
@@ -288,7 +292,8 @@ func TestHandler_APIDeleteLinksHandler(t *testing.T) {
 
 	inputBody := `[ "zE" ]`
 
-	_, err = repo.AddLink("http://zrnzruvv7qfdy.ru/hlc65i", "zE", "80f53850d88d388b2a5fb1a057a1867ee70d37b1c2439ede79c43ef3c802e4b8-31363832313934313833373336353432343636")
+	ctx := context.Background()
+	_, err = repo.AddLink(ctx, "http://zrnzruvv7qfdy.ru/hlc65i", "zE", "80f53850d88d388b2a5fb1a057a1867ee70d37b1c2439ede79c43ef3c802e4b8-31363832313934313833373336353432343636")
 	if err != nil {
 		t.Error(err)
 	}
