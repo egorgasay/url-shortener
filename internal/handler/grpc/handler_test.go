@@ -10,6 +10,7 @@ import (
 	"log"
 	"net"
 	"testing"
+	"time"
 	"url-shortener/config"
 	"url-shortener/internal/repository"
 	"url-shortener/internal/usecase"
@@ -173,7 +174,7 @@ func TestHandler_Get(t *testing.T) {
 
 	// PREPARE
 
-	_, err = cl.Create(ctx, &shortener.CreateRequest{Url: "http://ya.ru"})
+	_, err = cl.CreateApi(ctx, &shortener.CreateRequest{Url: "http://ya.ru"})
 	if err != nil {
 		t.Fatalf("Create() error = %v", err)
 	}
@@ -198,9 +199,11 @@ func TestHandler_Get(t *testing.T) {
 		t.Fatalf("Delete() error = %v", err)
 	}
 
+	time.Sleep(2 * time.Second)
+
 	// TEST
 
-	get, err = cl.Get(ctx, &shortener.GetRequest{Shortened: "zE"})
+	_, err = cl.Get(ctx, &shortener.GetRequest{Shortened: "zE"})
 	if err == nil {
 		t.Fatal("No error was returned (deleted url)")
 	}
@@ -213,7 +216,7 @@ func TestHandler_Get(t *testing.T) {
 
 	// TEST
 
-	get, err = cl.Get(ctx, &shortener.GetRequest{Shortened: "qwdfqdfqwsqwdqfqfew"})
+	_, err = cl.Get(ctx, &shortener.GetRequest{Shortened: "qwdfqdfqwsqwdqfqfew"})
 	if err == nil {
 		t.Fatal("No error was returned (deleted url)")
 	}
@@ -293,7 +296,7 @@ func TestHandler_Delete(t *testing.T) {
 
 	// TEST
 
-	get, err = cl.Get(ctx, &shortener.GetRequest{Shortened: "zE"})
+	_, err = cl.Get(ctx, &shortener.GetRequest{Shortened: "zE"})
 	if err == nil {
 		t.Fatal("No error was returned (deleted url)")
 	}
@@ -306,7 +309,7 @@ func TestHandler_Delete(t *testing.T) {
 
 	// TEST
 
-	get, err = cl.Get(ctx, &shortener.GetRequest{Shortened: "qwdfqdfqwsqwdqfqfew"})
+	_, err = cl.Get(ctx, &shortener.GetRequest{Shortened: "qwdfqdfqwsqwdqfqfew"})
 	if err == nil {
 		t.Fatal("No error was returned (deleted url)")
 	}

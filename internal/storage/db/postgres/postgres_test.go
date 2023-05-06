@@ -7,8 +7,8 @@ import (
 	"os"
 	"reflect"
 	"testing"
-	"url-shortener/internal/schema"
 	prep "url-shortener/internal/storage/db/queries"
+	shortener "url-shortener/pkg/api"
 )
 
 var TestDB *Postgres
@@ -165,10 +165,11 @@ func TestPostgres_GetAllLinksByCookie(t *testing.T) {
 		cookie  string
 		baseURL string
 	}
+
 	tests := []struct {
 		name    string
 		args    args
-		want    []schema.URL
+		want    []*shortener.UserURL
 		wantErr bool
 	}{
 		{
@@ -177,10 +178,10 @@ func TestPostgres_GetAllLinksByCookie(t *testing.T) {
 				cookie:  "3hqfhvqhv",
 				baseURL: "127.0.0.1/",
 			},
-			want: []schema.URL{
-				{
-					LongURL:  "dqw3dqwd",
-					ShortURL: "127.0.0.1/q3hwdfhqfh",
+			want: []*shortener.UserURL{
+				&shortener.UserURL{
+					OriginalUrl: "dqw3dqwd",
+					ShortUrl:    "127.0.0.1/q3hwdfhqfh",
 				},
 			},
 		},
@@ -190,9 +191,10 @@ func TestPostgres_GetAllLinksByCookie(t *testing.T) {
 				cookie:  "3hqf3hvqhv",
 				baseURL: "127.0.0.1/",
 			},
-			want: nil,
+			want: []*shortener.UserURL{},
 		},
 	}
+
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			got, err := TestDB.GetAllLinksByCookie(ctx, tt.args.cookie, tt.args.baseURL)

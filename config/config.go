@@ -37,6 +37,7 @@ type Flag struct {
 	Config            *string
 	HTTPS             *bool   `json:"enable_https,omitempty"`
 	TrustedSubNetwork *string `json:"trusted_subnet"`
+	GRPC              *string `json:"grpc"`
 }
 
 var f Flag
@@ -60,6 +61,7 @@ func init() {
 	f.Cfg = flag.String("c", "", "-c=path/to/conf.json")
 	f.Config = flag.String("config", "", "-config=path/to/conf.json")
 	f.TrustedSubNetwork = flag.String("t", "", "-t=trusted_subnet")
+	f.GRPC = flag.String("grpc", "", "-grpc=host:port")
 }
 
 // Config contains all the settings for configuring the application.
@@ -70,6 +72,7 @@ type Config struct {
 	Key               []byte
 	DBConfig          *repository.Config
 	HTTPS             bool
+	GRPC              string
 }
 
 // Modify modifies the config by the file provided.
@@ -156,6 +159,10 @@ func New() *Config {
 
 	if dsn, ok := os.LookupEnv("DATABASE_DSN"); ok {
 		f.DSN = &dsn
+	}
+
+	if grpcHost, ok := os.LookupEnv("GRPC_HOST"); ok {
+		f.GRPC = &grpcHost
 	}
 
 	if _, ok := os.LookupEnv("ENABLE_HTTPS"); ok {
