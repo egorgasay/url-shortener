@@ -314,3 +314,81 @@ func TestHandler_Delete(t *testing.T) {
 		t.Fatal("No error was returned (deleted url)")
 	}
 }
+
+func TestHandler_GetAll(t *testing.T) {
+	cfg := config.Config{Key: []byte("test-key"), DBConfig: &repository.Config{DriverName: "map"}, Host: ":787",
+		BaseURL: "http://localhost:787/"}
+	storage, err := repository.New(cfg.DBConfig)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	uc := usecase.New(storage)
+
+	h := NewHandler(&cfg, uc)
+
+	grpcServer := grpc.NewServer()
+
+	log.Println("Starting Shortener ...")
+	lis, err := net.Listen("tcp", cfg.Host)
+	if err != nil {
+		log.Fatalf("failed to listen: %v", err)
+	}
+	shortener.RegisterShortenerServer(grpcServer, h)
+
+	go func() {
+		log.Println("Starting GRPC", cfg.Host)
+		err = grpcServer.Serve(lis)
+		if err != nil {
+			log.Fatalf("grpcServer Serve: %v", err)
+		}
+
+	}()
+
+	conn, err := grpc.Dial(cfg.Host, grpc.WithTransportCredentials(insecure.NewCredentials()))
+	if err != nil {
+		log.Fatalf("Failed to connect: %v", err)
+	}
+	defer conn.Close()
+
+	cl := shortener.NewShortenerClient(conn)
+
+	token := "529967c34009a2fc523e597248c32dbf95166c3a49092d4223cfb60d4a1324cd-31363833333634373635313831383032363030"
+
+	md := metadata.New(map[string]string{"token": token})
+	ctx := metadata.NewOutgoingContext(context.Background(), md)
+
+	// SUCCESS
+
+	// PREPARE
+
+	_, err = cl.CreateApi(ctx, &shortener.CreateRequest{Url: "http://ya.ru"})
+	if err != nil {
+		t.Fatalf("Create() error = %v", err)
+	}
+
+	_, err = cl.CreateApi(ctx, &shortener.CreateRequest{Url: "http://vk.ru"})
+	if err != nil {
+		t.Fatalf("Create() error = %v", err)
+	}
+
+	// TEST
+
+	get, err := cl.GetAll(ctx, &shortener.GetAllByCookieRequest{})
+	if err != nil {
+		t.Fatalf("Get() error = %v", err)
+	}
+
+	if len(get.Urls) != 2 {
+		t.Fatalf("Get() got = %v, want %v", get, "http://ya.ru")
+	}
+
+	if get.Urls[0].OriginalUrl != "http://ya.ru" {
+		t.Errorf("Get() got = %v, want %v", get, "http://ya.ru")
+	}
+
+	if get.Urls[1].OriginalUrl != "http://vk.ru" {
+		t.Errorf("Get() got = %v, want %v", get, "http://ya.ru")
+	}
+
+}
