@@ -269,7 +269,7 @@ func TestHandler_Delete(t *testing.T) {
 
 	// PREPARE
 
-	_, err = cl.Create(ctx, &shortener.CreateRequest{Url: "http://ya.ru"})
+	_, err = cl.CreateApi(ctx, &shortener.CreateRequest{Url: "http://ya.ru"})
 	if err != nil {
 		t.Fatalf("Create() error = %v", err)
 	}
