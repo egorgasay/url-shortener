@@ -179,7 +179,7 @@ func TestPostgres_GetAllLinksByCookie(t *testing.T) {
 				baseURL: "127.0.0.1/",
 			},
 			want: []*shortener.UserURL{
-				&shortener.UserURL{
+				{
 					OriginalUrl: "dqw3dqwd",
 					ShortUrl:    "127.0.0.1/q3hwdfhqfh",
 				},
