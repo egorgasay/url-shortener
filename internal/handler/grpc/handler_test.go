@@ -223,7 +223,7 @@ func TestHandler_Get(t *testing.T) {
 }
 
 func TestHandler_Delete(t *testing.T) {
-	cfg := config.Config{Key: []byte("test-key"), DBConfig: &repository.Config{DriverName: "map"}, Host: ":788",
+	cfg := config.Config{Key: []byte("test-key"), DBConfig: &repository.Config{DriverName: "map"}, Host: ":787",
 		BaseURL: "http://localhost:787/"}
 	storage, err := repository.New(cfg.DBConfig)
 	if err != nil {
