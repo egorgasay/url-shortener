@@ -316,8 +316,8 @@ func TestHandler_Delete(t *testing.T) {
 }
 
 func TestHandler_GetAll(t *testing.T) {
-	cfg := config.Config{Key: []byte("test-key"), DBConfig: &repository.Config{DriverName: "map"}, Host: ":787",
-		BaseURL: "http://localhost:787/"}
+	cfg := config.Config{Key: []byte("test-key"), DBConfig: &repository.Config{DriverName: "map"}, Host: ":786",
+		BaseURL: "http://localhost:786/"}
 	storage, err := repository.New(cfg.DBConfig)
 	if err != nil {
 		t.Fatal(err)
