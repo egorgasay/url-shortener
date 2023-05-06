@@ -74,7 +74,7 @@ func (h Handler) GetAllLinksHandler(c *gin.Context) {
 
 	c.Header("Content-Type", "application/json")
 
-	if len(b) == 0 {
+	if len(b) == 2 {
 		c.Status(http.StatusNoContent)
 	} else {
 		c.Status(http.StatusOK)
