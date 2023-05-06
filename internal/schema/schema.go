@@ -19,8 +19,8 @@ type URL struct {
 // BatchURL contains Chars - chars that come after the slash in the URL,
 // Original field - original URL.
 type BatchURL struct {
-	Chars    string `json:"correlation_id"`
-	Original string `json:"original_url"`
+	LongURL  string `json:"correlation_id"`
+	ShortURL string `json:"original_url"`
 }
 
 // ResponseBatchURL describes Response that gives BatchURL Handler.

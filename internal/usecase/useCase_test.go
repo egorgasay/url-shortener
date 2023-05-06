@@ -4,7 +4,7 @@ import (
 	"context"
 	"testing"
 	"url-shortener/internal/repository"
-	"url-shortener/internal/schema"
+	shortener "url-shortener/pkg/api"
 )
 
 func TestUseCase_Ping(t *testing.T) {
@@ -43,15 +43,15 @@ func TestUseCase_Batch(t *testing.T) {
 
 	uc := New(repo)
 
-	urls := []schema.BatchURL{
+	urls := []*shortener.LongAndShortURL{
 		{
-			Chars:    "test",
-			Original: "test",
+			CorrelationId: "test",
+			OriginalUrl:   "test",
 		},
 
 		{
-			Chars:    "qwd",
-			Original: "vk.com/gasayminajj",
+			CorrelationId: "qwd",
+			OriginalUrl:   "vk.com/gasayminajj",
 		},
 	}
 

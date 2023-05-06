@@ -4,9 +4,9 @@ import (
 	"context"
 	"errors"
 	"sync"
-	"url-shortener/internal/schema"
 	"url-shortener/internal/storage"
 	"url-shortener/internal/storage/db/service"
+	shortener "url-shortener/pkg/api"
 )
 
 var (
@@ -89,18 +89,18 @@ func (s *MapStorage) GetLongLink(ctx context.Context, ShortURL string) (string, 
 }
 
 // GetAllLinksByCookie gets all links ([]schema.URL) by cookie.
-func (s *MapStorage) GetAllLinksByCookie(ctx context.Context, cookie, baseURL string) ([]schema.URL, error) {
+func (s *MapStorage) GetAllLinksByCookie(ctx context.Context, cookie, baseURL string) ([]*shortener.UserURL, error) {
 	if ctx.Err() != nil {
 		return nil, ctx.Err()
 	}
 
 	s.mu.RLock()
 	defer s.mu.RUnlock()
-	var links []schema.URL
+	var links = make([]*shortener.UserURL, 0)
 
 	for short, dt := range s.container {
 		if dt.cookie == cookie {
-			links = append(links, schema.URL{LongURL: dt.longURL, ShortURL: baseURL + string(short)})
+			links = append(links, &shortener.UserURL{OriginalUrl: dt.longURL, ShortUrl: baseURL + string(short)})
 		}
 	}
 

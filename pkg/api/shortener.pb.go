@@ -114,6 +114,61 @@ func (x *GetResponse) GetOriginalUrl() string {
 	return ""
 }
 
+type LongAndShortURL struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+
+	CorrelationId string `protobuf:"bytes,1,opt,name=correlation_id,json=correlationId,proto3" json:"correlation_id,omitempty"`
+	OriginalUrl   string `protobuf:"bytes,2,opt,name=original_url,json=originalUrl,proto3" json:"original_url,omitempty"`
+}
+
+func (x *LongAndShortURL) Reset() {
+	*x = LongAndShortURL{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_api_proto_shortener_proto_msgTypes[2]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *LongAndShortURL) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*LongAndShortURL) ProtoMessage() {}
+
+func (x *LongAndShortURL) ProtoReflect() protoreflect.Message {
+	mi := &file_api_proto_shortener_proto_msgTypes[2]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use LongAndShortURL.ProtoReflect.Descriptor instead.
+func (*LongAndShortURL) Descriptor() ([]byte, []int) {
+	return file_api_proto_shortener_proto_rawDescGZIP(), []int{2}
+}
+
+func (x *LongAndShortURL) GetCorrelationId() string {
+	if x != nil {
+		return x.CorrelationId
+	}
+	return ""
+}
+
+func (x *LongAndShortURL) GetOriginalUrl() string {
+	if x != nil {
+		return x.OriginalUrl
+	}
+	return ""
+}
+
 type GetAllByCookieRequest struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
@@ -123,7 +178,7 @@ type GetAllByCookieRequest struct {
 func (x *GetAllByCookieRequest) Reset() {
 	*x = GetAllByCookieRequest{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_api_proto_shortener_proto_msgTypes[2]
+		mi := &file_api_proto_shortener_proto_msgTypes[3]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -136,7 +191,7 @@ func (x *GetAllByCookieRequest) String() string {
 func (*GetAllByCookieRequest) ProtoMessage() {}
 
 func (x *GetAllByCookieRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_api_proto_shortener_proto_msgTypes[2]
+	mi := &file_api_proto_shortener_proto_msgTypes[3]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -149,7 +204,62 @@ func (x *GetAllByCookieRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetAllByCookieRequest.ProtoReflect.Descriptor instead.
 func (*GetAllByCookieRequest) Descriptor() ([]byte, []int) {
-	return file_api_proto_shortener_proto_rawDescGZIP(), []int{2}
+	return file_api_proto_shortener_proto_rawDescGZIP(), []int{3}
+}
+
+type UserURL struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+
+	OriginalUrl string `protobuf:"bytes,1,opt,name=original_url,json=originalUrl,proto3" json:"original_url,omitempty"`
+	ShortUrl    string `protobuf:"bytes,2,opt,name=short_url,json=shortUrl,proto3" json:"short_url,omitempty"`
+}
+
+func (x *UserURL) Reset() {
+	*x = UserURL{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_api_proto_shortener_proto_msgTypes[4]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *UserURL) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*UserURL) ProtoMessage() {}
+
+func (x *UserURL) ProtoReflect() protoreflect.Message {
+	mi := &file_api_proto_shortener_proto_msgTypes[4]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use UserURL.ProtoReflect.Descriptor instead.
+func (*UserURL) Descriptor() ([]byte, []int) {
+	return file_api_proto_shortener_proto_rawDescGZIP(), []int{4}
+}
+
+func (x *UserURL) GetOriginalUrl() string {
+	if x != nil {
+		return x.OriginalUrl
+	}
+	return ""
+}
+
+func (x *UserURL) GetShortUrl() string {
+	if x != nil {
+		return x.ShortUrl
+	}
+	return ""
 }
 
 type GetAllByCookieResponse struct {
@@ -157,13 +267,13 @@ type GetAllByCookieResponse struct {
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
-	Urls []string `protobuf:"bytes,1,rep,name=urls,proto3" json:"urls,omitempty"`
+	Urls []*UserURL `protobuf:"bytes,1,rep,name=urls,proto3" json:"urls,omitempty"`
 }
 
 func (x *GetAllByCookieResponse) Reset() {
 	*x = GetAllByCookieResponse{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_api_proto_shortener_proto_msgTypes[3]
+		mi := &file_api_proto_shortener_proto_msgTypes[5]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -176,7 +286,7 @@ func (x *GetAllByCookieResponse) String() string {
 func (*GetAllByCookieResponse) ProtoMessage() {}
 
 func (x *GetAllByCookieResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_api_proto_shortener_proto_msgTypes[3]
+	mi := &file_api_proto_shortener_proto_msgTypes[5]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -189,10 +299,10 @@ func (x *GetAllByCookieResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetAllByCookieResponse.ProtoReflect.Descriptor instead.
 func (*GetAllByCookieResponse) Descriptor() ([]byte, []int) {
-	return file_api_proto_shortener_proto_rawDescGZIP(), []int{3}
+	return file_api_proto_shortener_proto_rawDescGZIP(), []int{5}
 }
 
-func (x *GetAllByCookieResponse) GetUrls() []string {
+func (x *GetAllByCookieResponse) GetUrls() []*UserURL {
 	if x != nil {
 		return x.Urls
 	}
@@ -210,7 +320,7 @@ type CreateRequest struct {
 func (x *CreateRequest) Reset() {
 	*x = CreateRequest{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_api_proto_shortener_proto_msgTypes[4]
+		mi := &file_api_proto_shortener_proto_msgTypes[6]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -223,7 +333,7 @@ func (x *CreateRequest) String() string {
 func (*CreateRequest) ProtoMessage() {}
 
 func (x *CreateRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_api_proto_shortener_proto_msgTypes[4]
+	mi := &file_api_proto_shortener_proto_msgTypes[6]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -236,7 +346,7 @@ func (x *CreateRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CreateRequest.ProtoReflect.Descriptor instead.
 func (*CreateRequest) Descriptor() ([]byte, []int) {
-	return file_api_proto_shortener_proto_rawDescGZIP(), []int{4}
+	return file_api_proto_shortener_proto_rawDescGZIP(), []int{6}
 }
 
 func (x *CreateRequest) GetUrl() string {
@@ -257,7 +367,7 @@ type CreateResponse struct {
 func (x *CreateResponse) Reset() {
 	*x = CreateResponse{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_api_proto_shortener_proto_msgTypes[5]
+		mi := &file_api_proto_shortener_proto_msgTypes[7]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -270,7 +380,7 @@ func (x *CreateResponse) String() string {
 func (*CreateResponse) ProtoMessage() {}
 
 func (x *CreateResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_api_proto_shortener_proto_msgTypes[5]
+	mi := &file_api_proto_shortener_proto_msgTypes[7]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -283,7 +393,7 @@ func (x *CreateResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CreateResponse.ProtoReflect.Descriptor instead.
 func (*CreateResponse) Descriptor() ([]byte, []int) {
-	return file_api_proto_shortener_proto_rawDescGZIP(), []int{5}
+	return file_api_proto_shortener_proto_rawDescGZIP(), []int{7}
 }
 
 func (x *CreateResponse) GetShortened() string {
@@ -302,7 +412,7 @@ type PingRequest struct {
 func (x *PingRequest) Reset() {
 	*x = PingRequest{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_api_proto_shortener_proto_msgTypes[6]
+		mi := &file_api_proto_shortener_proto_msgTypes[8]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -315,7 +425,7 @@ func (x *PingRequest) String() string {
 func (*PingRequest) ProtoMessage() {}
 
 func (x *PingRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_api_proto_shortener_proto_msgTypes[6]
+	mi := &file_api_proto_shortener_proto_msgTypes[8]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -328,7 +438,7 @@ func (x *PingRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use PingRequest.ProtoReflect.Descriptor instead.
 func (*PingRequest) Descriptor() ([]byte, []int) {
-	return file_api_proto_shortener_proto_rawDescGZIP(), []int{6}
+	return file_api_proto_shortener_proto_rawDescGZIP(), []int{8}
 }
 
 type PingResponse struct {
@@ -340,7 +450,7 @@ type PingResponse struct {
 func (x *PingResponse) Reset() {
 	*x = PingResponse{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_api_proto_shortener_proto_msgTypes[7]
+		mi := &file_api_proto_shortener_proto_msgTypes[9]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -353,7 +463,7 @@ func (x *PingResponse) String() string {
 func (*PingResponse) ProtoMessage() {}
 
 func (x *PingResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_api_proto_shortener_proto_msgTypes[7]
+	mi := &file_api_proto_shortener_proto_msgTypes[9]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -366,7 +476,7 @@ func (x *PingResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use PingResponse.ProtoReflect.Descriptor instead.
 func (*PingResponse) Descriptor() ([]byte, []int) {
-	return file_api_proto_shortener_proto_rawDescGZIP(), []int{7}
+	return file_api_proto_shortener_proto_rawDescGZIP(), []int{9}
 }
 
 type BatchRequest struct {
@@ -374,13 +484,13 @@ type BatchRequest struct {
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
-	OriginalUrls []string `protobuf:"bytes,1,rep,name=original_urls,json=originalUrls,proto3" json:"original_urls,omitempty"`
+	Urls []*LongAndShortURL `protobuf:"bytes,1,rep,name=urls,proto3" json:"urls,omitempty"`
 }
 
 func (x *BatchRequest) Reset() {
 	*x = BatchRequest{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_api_proto_shortener_proto_msgTypes[8]
+		mi := &file_api_proto_shortener_proto_msgTypes[10]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -393,7 +503,7 @@ func (x *BatchRequest) String() string {
 func (*BatchRequest) ProtoMessage() {}
 
 func (x *BatchRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_api_proto_shortener_proto_msgTypes[8]
+	mi := &file_api_proto_shortener_proto_msgTypes[10]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -406,14 +516,69 @@ func (x *BatchRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use BatchRequest.ProtoReflect.Descriptor instead.
 func (*BatchRequest) Descriptor() ([]byte, []int) {
-	return file_api_proto_shortener_proto_rawDescGZIP(), []int{8}
+	return file_api_proto_shortener_proto_rawDescGZIP(), []int{10}
 }
 
-func (x *BatchRequest) GetOriginalUrls() []string {
+func (x *BatchRequest) GetUrls() []*LongAndShortURL {
 	if x != nil {
-		return x.OriginalUrls
+		return x.Urls
 	}
 	return nil
+}
+
+type CharsAndShortURL struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+
+	CorrelationId string `protobuf:"bytes,1,opt,name=correlation_id,json=correlationId,proto3" json:"correlation_id,omitempty"`
+	ShortUrl      string `protobuf:"bytes,2,opt,name=short_url,json=shortUrl,proto3" json:"short_url,omitempty"`
+}
+
+func (x *CharsAndShortURL) Reset() {
+	*x = CharsAndShortURL{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_api_proto_shortener_proto_msgTypes[11]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *CharsAndShortURL) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*CharsAndShortURL) ProtoMessage() {}
+
+func (x *CharsAndShortURL) ProtoReflect() protoreflect.Message {
+	mi := &file_api_proto_shortener_proto_msgTypes[11]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use CharsAndShortURL.ProtoReflect.Descriptor instead.
+func (*CharsAndShortURL) Descriptor() ([]byte, []int) {
+	return file_api_proto_shortener_proto_rawDescGZIP(), []int{11}
+}
+
+func (x *CharsAndShortURL) GetCorrelationId() string {
+	if x != nil {
+		return x.CorrelationId
+	}
+	return ""
+}
+
+func (x *CharsAndShortURL) GetShortUrl() string {
+	if x != nil {
+		return x.ShortUrl
+	}
+	return ""
 }
 
 type BatchResponse struct {
@@ -421,13 +586,13 @@ type BatchResponse struct {
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
-	ShortenedUrls []string `protobuf:"bytes,1,rep,name=shortened_urls,json=shortenedUrls,proto3" json:"shortened_urls,omitempty"`
+	Urls []*CharsAndShortURL `protobuf:"bytes,1,rep,name=urls,proto3" json:"urls,omitempty"`
 }
 
 func (x *BatchResponse) Reset() {
 	*x = BatchResponse{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_api_proto_shortener_proto_msgTypes[9]
+		mi := &file_api_proto_shortener_proto_msgTypes[12]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -440,7 +605,7 @@ func (x *BatchResponse) String() string {
 func (*BatchResponse) ProtoMessage() {}
 
 func (x *BatchResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_api_proto_shortener_proto_msgTypes[9]
+	mi := &file_api_proto_shortener_proto_msgTypes[12]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -453,12 +618,12 @@ func (x *BatchResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use BatchResponse.ProtoReflect.Descriptor instead.
 func (*BatchResponse) Descriptor() ([]byte, []int) {
-	return file_api_proto_shortener_proto_rawDescGZIP(), []int{9}
+	return file_api_proto_shortener_proto_rawDescGZIP(), []int{12}
 }
 
-func (x *BatchResponse) GetShortenedUrls() []string {
+func (x *BatchResponse) GetUrls() []*CharsAndShortURL {
 	if x != nil {
-		return x.ShortenedUrls
+		return x.Urls
 	}
 	return nil
 }
@@ -468,13 +633,13 @@ type DeleteRequest struct {
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
-	Url string `protobuf:"bytes,1,opt,name=url,proto3" json:"url,omitempty"`
+	ShortenedUrls []string `protobuf:"bytes,1,rep,name=shortened_urls,json=shortenedUrls,proto3" json:"shortened_urls,omitempty"`
 }
 
 func (x *DeleteRequest) Reset() {
 	*x = DeleteRequest{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_api_proto_shortener_proto_msgTypes[10]
+		mi := &file_api_proto_shortener_proto_msgTypes[13]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -487,7 +652,7 @@ func (x *DeleteRequest) String() string {
 func (*DeleteRequest) ProtoMessage() {}
 
 func (x *DeleteRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_api_proto_shortener_proto_msgTypes[10]
+	mi := &file_api_proto_shortener_proto_msgTypes[13]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -500,14 +665,14 @@ func (x *DeleteRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use DeleteRequest.ProtoReflect.Descriptor instead.
 func (*DeleteRequest) Descriptor() ([]byte, []int) {
-	return file_api_proto_shortener_proto_rawDescGZIP(), []int{10}
+	return file_api_proto_shortener_proto_rawDescGZIP(), []int{13}
 }
 
-func (x *DeleteRequest) GetUrl() string {
+func (x *DeleteRequest) GetShortenedUrls() []string {
 	if x != nil {
-		return x.Url
+		return x.ShortenedUrls
 	}
-	return ""
+	return nil
 }
 
 type DeleteResponse struct {
@@ -519,7 +684,7 @@ type DeleteResponse struct {
 func (x *DeleteResponse) Reset() {
 	*x = DeleteResponse{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_api_proto_shortener_proto_msgTypes[11]
+		mi := &file_api_proto_shortener_proto_msgTypes[14]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -532,7 +697,7 @@ func (x *DeleteResponse) String() string {
 func (*DeleteResponse) ProtoMessage() {}
 
 func (x *DeleteResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_api_proto_shortener_proto_msgTypes[11]
+	mi := &file_api_proto_shortener_proto_msgTypes[14]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -545,7 +710,7 @@ func (x *DeleteResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use DeleteResponse.ProtoReflect.Descriptor instead.
 func (*DeleteResponse) Descriptor() ([]byte, []int) {
-	return file_api_proto_shortener_proto_rawDescGZIP(), []int{11}
+	return file_api_proto_shortener_proto_rawDescGZIP(), []int{14}
 }
 
 type GetStatsRequest struct {
@@ -557,7 +722,7 @@ type GetStatsRequest struct {
 func (x *GetStatsRequest) Reset() {
 	*x = GetStatsRequest{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_api_proto_shortener_proto_msgTypes[12]
+		mi := &file_api_proto_shortener_proto_msgTypes[15]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -570,7 +735,7 @@ func (x *GetStatsRequest) String() string {
 func (*GetStatsRequest) ProtoMessage() {}
 
 func (x *GetStatsRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_api_proto_shortener_proto_msgTypes[12]
+	mi := &file_api_proto_shortener_proto_msgTypes[15]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -583,7 +748,7 @@ func (x *GetStatsRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetStatsRequest.ProtoReflect.Descriptor instead.
 func (*GetStatsRequest) Descriptor() ([]byte, []int) {
-	return file_api_proto_shortener_proto_rawDescGZIP(), []int{12}
+	return file_api_proto_shortener_proto_rawDescGZIP(), []int{15}
 }
 
 type GetStatsResponse struct {
@@ -598,7 +763,7 @@ type GetStatsResponse struct {
 func (x *GetStatsResponse) Reset() {
 	*x = GetStatsResponse{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_api_proto_shortener_proto_msgTypes[13]
+		mi := &file_api_proto_shortener_proto_msgTypes[16]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -611,7 +776,7 @@ func (x *GetStatsResponse) String() string {
 func (*GetStatsResponse) ProtoMessage() {}
 
 func (x *GetStatsResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_api_proto_shortener_proto_msgTypes[13]
+	mi := &file_api_proto_shortener_proto_msgTypes[16]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -624,7 +789,7 @@ func (x *GetStatsResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetStatsResponse.ProtoReflect.Descriptor instead.
 func (*GetStatsResponse) Descriptor() ([]byte, []int) {
-	return file_api_proto_shortener_proto_rawDescGZIP(), []int{13}
+	return file_api_proto_shortener_proto_rawDescGZIP(), []int{16}
 }
 
 func (x *GetStatsResponse) GetUrls() int32 {
@@ -651,60 +816,82 @@ var file_api_proto_shortener_proto_rawDesc = []byte{
 	0x09, 0x52, 0x09, 0x73, 0x68, 0x6f, 0x72, 0x74, 0x65, 0x6e, 0x65, 0x64, 0x22, 0x30, 0x0a, 0x0b,
 	0x47, 0x65, 0x74, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x12, 0x21, 0x0a, 0x0c, 0x6f,
 	0x72, 0x69, 0x67, 0x69, 0x6e, 0x61, 0x6c, 0x5f, 0x75, 0x72, 0x6c, 0x18, 0x01, 0x20, 0x01, 0x28,
-	0x09, 0x52, 0x0b, 0x6f, 0x72, 0x69, 0x67, 0x69, 0x6e, 0x61, 0x6c, 0x55, 0x72, 0x6c, 0x22, 0x17,
-	0x0a, 0x15, 0x47, 0x65, 0x74, 0x41, 0x6c, 0x6c, 0x42, 0x79, 0x43, 0x6f, 0x6f, 0x6b, 0x69, 0x65,
-	0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x22, 0x2c, 0x0a, 0x16, 0x47, 0x65, 0x74, 0x41, 0x6c,
-	0x6c, 0x42, 0x79, 0x43, 0x6f, 0x6f, 0x6b, 0x69, 0x65, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73,
-	0x65, 0x12, 0x12, 0x0a, 0x04, 0x75, 0x72, 0x6c, 0x73, 0x18, 0x01, 0x20, 0x03, 0x28, 0x09, 0x52,
-	0x04, 0x75, 0x72, 0x6c, 0x73, 0x22, 0x21, 0x0a, 0x0d, 0x43, 0x72, 0x65, 0x61, 0x74, 0x65, 0x52,
-	0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x12, 0x10, 0x0a, 0x03, 0x75, 0x72, 0x6c, 0x18, 0x01, 0x20,
-	0x01, 0x28, 0x09, 0x52, 0x03, 0x75, 0x72, 0x6c, 0x22, 0x2e, 0x0a, 0x0e, 0x43, 0x72, 0x65, 0x61,
-	0x74, 0x65, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x12, 0x1c, 0x0a, 0x09, 0x73, 0x68,
-	0x6f, 0x72, 0x74, 0x65, 0x6e, 0x65, 0x64, 0x18, 0x01, 0x20, 0x01, 0x28, 0x09, 0x52, 0x09, 0x73,
-	0x68, 0x6f, 0x72, 0x74, 0x65, 0x6e, 0x65, 0x64, 0x22, 0x0d, 0x0a, 0x0b, 0x50, 0x69, 0x6e, 0x67,
-	0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x22, 0x0e, 0x0a, 0x0c, 0x50, 0x69, 0x6e, 0x67, 0x52,
-	0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x22, 0x33, 0x0a, 0x0c, 0x42, 0x61, 0x74, 0x63, 0x68,
-	0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x12, 0x23, 0x0a, 0x0d, 0x6f, 0x72, 0x69, 0x67, 0x69,
-	0x6e, 0x61, 0x6c, 0x5f, 0x75, 0x72, 0x6c, 0x73, 0x18, 0x01, 0x20, 0x03, 0x28, 0x09, 0x52, 0x0c,
-	0x6f, 0x72, 0x69, 0x67, 0x69, 0x6e, 0x61, 0x6c, 0x55, 0x72, 0x6c, 0x73, 0x22, 0x36, 0x0a, 0x0d,
-	0x42, 0x61, 0x74, 0x63, 0x68, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x12, 0x25, 0x0a,
-	0x0e, 0x73, 0x68, 0x6f, 0x72, 0x74, 0x65, 0x6e, 0x65, 0x64, 0x5f, 0x75, 0x72, 0x6c, 0x73, 0x18,
-	0x01, 0x20, 0x03, 0x28, 0x09, 0x52, 0x0d, 0x73, 0x68, 0x6f, 0x72, 0x74, 0x65, 0x6e, 0x65, 0x64,
-	0x55, 0x72, 0x6c, 0x73, 0x22, 0x21, 0x0a, 0x0d, 0x44, 0x65, 0x6c, 0x65, 0x74, 0x65, 0x52, 0x65,
-	0x71, 0x75, 0x65, 0x73, 0x74, 0x12, 0x10, 0x0a, 0x03, 0x75, 0x72, 0x6c, 0x18, 0x01, 0x20, 0x01,
-	0x28, 0x09, 0x52, 0x03, 0x75, 0x72, 0x6c, 0x22, 0x10, 0x0a, 0x0e, 0x44, 0x65, 0x6c, 0x65, 0x74,
-	0x65, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x22, 0x11, 0x0a, 0x0f, 0x47, 0x65, 0x74,
-	0x53, 0x74, 0x61, 0x74, 0x73, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x22, 0x3c, 0x0a, 0x10,
-	0x47, 0x65, 0x74, 0x53, 0x74, 0x61, 0x74, 0x73, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65,
-	0x12, 0x12, 0x0a, 0x04, 0x75, 0x72, 0x6c, 0x73, 0x18, 0x01, 0x20, 0x01, 0x28, 0x05, 0x52, 0x04,
-	0x75, 0x72, 0x6c, 0x73, 0x12, 0x14, 0x0a, 0x05, 0x75, 0x73, 0x65, 0x72, 0x73, 0x18, 0x02, 0x20,
-	0x01, 0x28, 0x05, 0x52, 0x05, 0x75, 0x73, 0x65, 0x72, 0x73, 0x32, 0x82, 0x03, 0x0a, 0x09, 0x53,
-	0x68, 0x6f, 0x72, 0x74, 0x65, 0x6e, 0x65, 0x72, 0x12, 0x2a, 0x0a, 0x03, 0x47, 0x65, 0x74, 0x12,
-	0x0f, 0x2e, 0x61, 0x70, 0x69, 0x2e, 0x47, 0x65, 0x74, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74,
-	0x1a, 0x10, 0x2e, 0x61, 0x70, 0x69, 0x2e, 0x47, 0x65, 0x74, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e,
-	0x73, 0x65, 0x22, 0x00, 0x12, 0x43, 0x0a, 0x06, 0x47, 0x65, 0x74, 0x41, 0x6c, 0x6c, 0x12, 0x1a,
-	0x2e, 0x61, 0x70, 0x69, 0x2e, 0x47, 0x65, 0x74, 0x41, 0x6c, 0x6c, 0x42, 0x79, 0x43, 0x6f, 0x6f,
-	0x6b, 0x69, 0x65, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x1a, 0x1b, 0x2e, 0x61, 0x70, 0x69,
+	0x09, 0x52, 0x0b, 0x6f, 0x72, 0x69, 0x67, 0x69, 0x6e, 0x61, 0x6c, 0x55, 0x72, 0x6c, 0x22, 0x5b,
+	0x0a, 0x0f, 0x4c, 0x6f, 0x6e, 0x67, 0x41, 0x6e, 0x64, 0x53, 0x68, 0x6f, 0x72, 0x74, 0x55, 0x52,
+	0x4c, 0x12, 0x25, 0x0a, 0x0e, 0x63, 0x6f, 0x72, 0x72, 0x65, 0x6c, 0x61, 0x74, 0x69, 0x6f, 0x6e,
+	0x5f, 0x69, 0x64, 0x18, 0x01, 0x20, 0x01, 0x28, 0x09, 0x52, 0x0d, 0x63, 0x6f, 0x72, 0x72, 0x65,
+	0x6c, 0x61, 0x74, 0x69, 0x6f, 0x6e, 0x49, 0x64, 0x12, 0x21, 0x0a, 0x0c, 0x6f, 0x72, 0x69, 0x67,
+	0x69, 0x6e, 0x61, 0x6c, 0x5f, 0x75, 0x72, 0x6c, 0x18, 0x02, 0x20, 0x01, 0x28, 0x09, 0x52, 0x0b,
+	0x6f, 0x72, 0x69, 0x67, 0x69, 0x6e, 0x61, 0x6c, 0x55, 0x72, 0x6c, 0x22, 0x17, 0x0a, 0x15, 0x47,
+	0x65, 0x74, 0x41, 0x6c, 0x6c, 0x42, 0x79, 0x43, 0x6f, 0x6f, 0x6b, 0x69, 0x65, 0x52, 0x65, 0x71,
+	0x75, 0x65, 0x73, 0x74, 0x22, 0x49, 0x0a, 0x07, 0x55, 0x73, 0x65, 0x72, 0x55, 0x52, 0x4c, 0x12,
+	0x21, 0x0a, 0x0c, 0x6f, 0x72, 0x69, 0x67, 0x69, 0x6e, 0x61, 0x6c, 0x5f, 0x75, 0x72, 0x6c, 0x18,
+	0x01, 0x20, 0x01, 0x28, 0x09, 0x52, 0x0b, 0x6f, 0x72, 0x69, 0x67, 0x69, 0x6e, 0x61, 0x6c, 0x55,
+	0x72, 0x6c, 0x12, 0x1b, 0x0a, 0x09, 0x73, 0x68, 0x6f, 0x72, 0x74, 0x5f, 0x75, 0x72, 0x6c, 0x18,
+	0x02, 0x20, 0x01, 0x28, 0x09, 0x52, 0x08, 0x73, 0x68, 0x6f, 0x72, 0x74, 0x55, 0x72, 0x6c, 0x22,
+	0x3a, 0x0a, 0x16, 0x47, 0x65, 0x74, 0x41, 0x6c, 0x6c, 0x42, 0x79, 0x43, 0x6f, 0x6f, 0x6b, 0x69,
+	0x65, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x12, 0x20, 0x0a, 0x04, 0x75, 0x72, 0x6c,
+	0x73, 0x18, 0x01, 0x20, 0x03, 0x28, 0x0b, 0x32, 0x0c, 0x2e, 0x61, 0x70, 0x69, 0x2e, 0x55, 0x73,
+	0x65, 0x72, 0x55, 0x52, 0x4c, 0x52, 0x04, 0x75, 0x72, 0x6c, 0x73, 0x22, 0x21, 0x0a, 0x0d, 0x43,
+	0x72, 0x65, 0x61, 0x74, 0x65, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x12, 0x10, 0x0a, 0x03,
+	0x75, 0x72, 0x6c, 0x18, 0x01, 0x20, 0x01, 0x28, 0x09, 0x52, 0x03, 0x75, 0x72, 0x6c, 0x22, 0x2e,
+	0x0a, 0x0e, 0x43, 0x72, 0x65, 0x61, 0x74, 0x65, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65,
+	0x12, 0x1c, 0x0a, 0x09, 0x73, 0x68, 0x6f, 0x72, 0x74, 0x65, 0x6e, 0x65, 0x64, 0x18, 0x01, 0x20,
+	0x01, 0x28, 0x09, 0x52, 0x09, 0x73, 0x68, 0x6f, 0x72, 0x74, 0x65, 0x6e, 0x65, 0x64, 0x22, 0x0d,
+	0x0a, 0x0b, 0x50, 0x69, 0x6e, 0x67, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x22, 0x0e, 0x0a,
+	0x0c, 0x50, 0x69, 0x6e, 0x67, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x22, 0x38, 0x0a,
+	0x0c, 0x42, 0x61, 0x74, 0x63, 0x68, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x12, 0x28, 0x0a,
+	0x04, 0x75, 0x72, 0x6c, 0x73, 0x18, 0x01, 0x20, 0x03, 0x28, 0x0b, 0x32, 0x14, 0x2e, 0x61, 0x70,
+	0x69, 0x2e, 0x4c, 0x6f, 0x6e, 0x67, 0x41, 0x6e, 0x64, 0x53, 0x68, 0x6f, 0x72, 0x74, 0x55, 0x52,
+	0x4c, 0x52, 0x04, 0x75, 0x72, 0x6c, 0x73, 0x22, 0x56, 0x0a, 0x10, 0x43, 0x68, 0x61, 0x72, 0x73,
+	0x41, 0x6e, 0x64, 0x53, 0x68, 0x6f, 0x72, 0x74, 0x55, 0x52, 0x4c, 0x12, 0x25, 0x0a, 0x0e, 0x63,
+	0x6f, 0x72, 0x72, 0x65, 0x6c, 0x61, 0x74, 0x69, 0x6f, 0x6e, 0x5f, 0x69, 0x64, 0x18, 0x01, 0x20,
+	0x01, 0x28, 0x09, 0x52, 0x0d, 0x63, 0x6f, 0x72, 0x72, 0x65, 0x6c, 0x61, 0x74, 0x69, 0x6f, 0x6e,
+	0x49, 0x64, 0x12, 0x1b, 0x0a, 0x09, 0x73, 0x68, 0x6f, 0x72, 0x74, 0x5f, 0x75, 0x72, 0x6c, 0x18,
+	0x02, 0x20, 0x01, 0x28, 0x09, 0x52, 0x08, 0x73, 0x68, 0x6f, 0x72, 0x74, 0x55, 0x72, 0x6c, 0x22,
+	0x3a, 0x0a, 0x0d, 0x42, 0x61, 0x74, 0x63, 0x68, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65,
+	0x12, 0x29, 0x0a, 0x04, 0x75, 0x72, 0x6c, 0x73, 0x18, 0x01, 0x20, 0x03, 0x28, 0x0b, 0x32, 0x15,
+	0x2e, 0x61, 0x70, 0x69, 0x2e, 0x43, 0x68, 0x61, 0x72, 0x73, 0x41, 0x6e, 0x64, 0x53, 0x68, 0x6f,
+	0x72, 0x74, 0x55, 0x52, 0x4c, 0x52, 0x04, 0x75, 0x72, 0x6c, 0x73, 0x22, 0x36, 0x0a, 0x0d, 0x44,
+	0x65, 0x6c, 0x65, 0x74, 0x65, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x12, 0x25, 0x0a, 0x0e,
+	0x73, 0x68, 0x6f, 0x72, 0x74, 0x65, 0x6e, 0x65, 0x64, 0x5f, 0x75, 0x72, 0x6c, 0x73, 0x18, 0x01,
+	0x20, 0x03, 0x28, 0x09, 0x52, 0x0d, 0x73, 0x68, 0x6f, 0x72, 0x74, 0x65, 0x6e, 0x65, 0x64, 0x55,
+	0x72, 0x6c, 0x73, 0x22, 0x10, 0x0a, 0x0e, 0x44, 0x65, 0x6c, 0x65, 0x74, 0x65, 0x52, 0x65, 0x73,
+	0x70, 0x6f, 0x6e, 0x73, 0x65, 0x22, 0x11, 0x0a, 0x0f, 0x47, 0x65, 0x74, 0x53, 0x74, 0x61, 0x74,
+	0x73, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x22, 0x3c, 0x0a, 0x10, 0x47, 0x65, 0x74, 0x53,
+	0x74, 0x61, 0x74, 0x73, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x12, 0x12, 0x0a, 0x04,
+	0x75, 0x72, 0x6c, 0x73, 0x18, 0x01, 0x20, 0x01, 0x28, 0x05, 0x52, 0x04, 0x75, 0x72, 0x6c, 0x73,
+	0x12, 0x14, 0x0a, 0x05, 0x75, 0x73, 0x65, 0x72, 0x73, 0x18, 0x02, 0x20, 0x01, 0x28, 0x05, 0x52,
+	0x05, 0x75, 0x73, 0x65, 0x72, 0x73, 0x32, 0xba, 0x03, 0x0a, 0x09, 0x53, 0x68, 0x6f, 0x72, 0x74,
+	0x65, 0x6e, 0x65, 0x72, 0x12, 0x2a, 0x0a, 0x03, 0x47, 0x65, 0x74, 0x12, 0x0f, 0x2e, 0x61, 0x70,
+	0x69, 0x2e, 0x47, 0x65, 0x74, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x1a, 0x10, 0x2e, 0x61,
+	0x70, 0x69, 0x2e, 0x47, 0x65, 0x74, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x22, 0x00,
+	0x12, 0x43, 0x0a, 0x06, 0x47, 0x65, 0x74, 0x41, 0x6c, 0x6c, 0x12, 0x1a, 0x2e, 0x61, 0x70, 0x69,
 	0x2e, 0x47, 0x65, 0x74, 0x41, 0x6c, 0x6c, 0x42, 0x79, 0x43, 0x6f, 0x6f, 0x6b, 0x69, 0x65, 0x52,
-	0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x22, 0x00, 0x12, 0x33, 0x0a, 0x06, 0x43, 0x72, 0x65,
-	0x61, 0x74, 0x65, 0x12, 0x12, 0x2e, 0x61, 0x70, 0x69, 0x2e, 0x43, 0x72, 0x65, 0x61, 0x74, 0x65,
-	0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x1a, 0x13, 0x2e, 0x61, 0x70, 0x69, 0x2e, 0x43, 0x72,
-	0x65, 0x61, 0x74, 0x65, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x22, 0x00, 0x12, 0x2d,
-	0x0a, 0x04, 0x50, 0x69, 0x6e, 0x67, 0x12, 0x10, 0x2e, 0x61, 0x70, 0x69, 0x2e, 0x50, 0x69, 0x6e,
-	0x67, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x1a, 0x11, 0x2e, 0x61, 0x70, 0x69, 0x2e, 0x50,
-	0x69, 0x6e, 0x67, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x22, 0x00, 0x12, 0x30, 0x0a,
-	0x05, 0x42, 0x61, 0x74, 0x63, 0x68, 0x12, 0x11, 0x2e, 0x61, 0x70, 0x69, 0x2e, 0x42, 0x61, 0x74,
-	0x63, 0x68, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x1a, 0x12, 0x2e, 0x61, 0x70, 0x69, 0x2e,
-	0x42, 0x61, 0x74, 0x63, 0x68, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x22, 0x00, 0x12,
-	0x33, 0x0a, 0x06, 0x44, 0x65, 0x6c, 0x65, 0x74, 0x65, 0x12, 0x12, 0x2e, 0x61, 0x70, 0x69, 0x2e,
-	0x44, 0x65, 0x6c, 0x65, 0x74, 0x65, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x1a, 0x13, 0x2e,
-	0x61, 0x70, 0x69, 0x2e, 0x44, 0x65, 0x6c, 0x65, 0x74, 0x65, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e,
-	0x73, 0x65, 0x22, 0x00, 0x12, 0x39, 0x0a, 0x08, 0x47, 0x65, 0x74, 0x53, 0x74, 0x61, 0x74, 0x73,
-	0x12, 0x14, 0x2e, 0x61, 0x70, 0x69, 0x2e, 0x47, 0x65, 0x74, 0x53, 0x74, 0x61, 0x74, 0x73, 0x52,
-	0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x1a, 0x15, 0x2e, 0x61, 0x70, 0x69, 0x2e, 0x47, 0x65, 0x74,
-	0x53, 0x74, 0x61, 0x74, 0x73, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x22, 0x00, 0x42,
-	0x0f, 0x5a, 0x0d, 0x2e, 0x2f, 0x67, 0x72, 0x70, 0x63, 0x68, 0x61, 0x6e, 0x64, 0x6c, 0x65, 0x72,
-	0x62, 0x06, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x33,
+	0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x1a, 0x1b, 0x2e, 0x61, 0x70, 0x69, 0x2e, 0x47, 0x65, 0x74,
+	0x41, 0x6c, 0x6c, 0x42, 0x79, 0x43, 0x6f, 0x6f, 0x6b, 0x69, 0x65, 0x52, 0x65, 0x73, 0x70, 0x6f,
+	0x6e, 0x73, 0x65, 0x22, 0x00, 0x12, 0x33, 0x0a, 0x06, 0x43, 0x72, 0x65, 0x61, 0x74, 0x65, 0x12,
+	0x12, 0x2e, 0x61, 0x70, 0x69, 0x2e, 0x43, 0x72, 0x65, 0x61, 0x74, 0x65, 0x52, 0x65, 0x71, 0x75,
+	0x65, 0x73, 0x74, 0x1a, 0x13, 0x2e, 0x61, 0x70, 0x69, 0x2e, 0x43, 0x72, 0x65, 0x61, 0x74, 0x65,
+	0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x22, 0x00, 0x12, 0x36, 0x0a, 0x09, 0x43, 0x72,
+	0x65, 0x61, 0x74, 0x65, 0x41, 0x70, 0x69, 0x12, 0x12, 0x2e, 0x61, 0x70, 0x69, 0x2e, 0x43, 0x72,
+	0x65, 0x61, 0x74, 0x65, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x1a, 0x13, 0x2e, 0x61, 0x70,
+	0x69, 0x2e, 0x43, 0x72, 0x65, 0x61, 0x74, 0x65, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65,
+	0x22, 0x00, 0x12, 0x2d, 0x0a, 0x04, 0x50, 0x69, 0x6e, 0x67, 0x12, 0x10, 0x2e, 0x61, 0x70, 0x69,
+	0x2e, 0x50, 0x69, 0x6e, 0x67, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x1a, 0x11, 0x2e, 0x61,
+	0x70, 0x69, 0x2e, 0x50, 0x69, 0x6e, 0x67, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x22,
+	0x00, 0x12, 0x30, 0x0a, 0x05, 0x42, 0x61, 0x74, 0x63, 0x68, 0x12, 0x11, 0x2e, 0x61, 0x70, 0x69,
+	0x2e, 0x42, 0x61, 0x74, 0x63, 0x68, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x1a, 0x12, 0x2e,
+	0x61, 0x70, 0x69, 0x2e, 0x42, 0x61, 0x74, 0x63, 0x68, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73,
+	0x65, 0x22, 0x00, 0x12, 0x33, 0x0a, 0x06, 0x44, 0x65, 0x6c, 0x65, 0x74, 0x65, 0x12, 0x12, 0x2e,
+	0x61, 0x70, 0x69, 0x2e, 0x44, 0x65, 0x6c, 0x65, 0x74, 0x65, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73,
+	0x74, 0x1a, 0x13, 0x2e, 0x61, 0x70, 0x69, 0x2e, 0x44, 0x65, 0x6c, 0x65, 0x74, 0x65, 0x52, 0x65,
+	0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x22, 0x00, 0x12, 0x39, 0x0a, 0x08, 0x47, 0x65, 0x74, 0x53,
+	0x74, 0x61, 0x74, 0x73, 0x12, 0x14, 0x2e, 0x61, 0x70, 0x69, 0x2e, 0x47, 0x65, 0x74, 0x53, 0x74,
+	0x61, 0x74, 0x73, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x1a, 0x15, 0x2e, 0x61, 0x70, 0x69,
+	0x2e, 0x47, 0x65, 0x74, 0x53, 0x74, 0x61, 0x74, 0x73, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73,
+	0x65, 0x22, 0x00, 0x42, 0x0d, 0x5a, 0x0b, 0x2e, 0x2f, 0x73, 0x68, 0x6f, 0x72, 0x74, 0x65, 0x6e,
+	0x65, 0x72, 0x62, 0x06, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x33,
 }
 
 var (
@@ -719,43 +906,51 @@ func file_api_proto_shortener_proto_rawDescGZIP() []byte {
 	return file_api_proto_shortener_proto_rawDescData
 }
 
-var file_api_proto_shortener_proto_msgTypes = make([]protoimpl.MessageInfo, 14)
+var file_api_proto_shortener_proto_msgTypes = make([]protoimpl.MessageInfo, 17)
 var file_api_proto_shortener_proto_goTypes = []interface{}{
 	(*GetRequest)(nil),             // 0: api.GetRequest
 	(*GetResponse)(nil),            // 1: api.GetResponse
-	(*GetAllByCookieRequest)(nil),  // 2: api.GetAllByCookieRequest
-	(*GetAllByCookieResponse)(nil), // 3: api.GetAllByCookieResponse
-	(*CreateRequest)(nil),          // 4: api.CreateRequest
-	(*CreateResponse)(nil),         // 5: api.CreateResponse
-	(*PingRequest)(nil),            // 6: api.PingRequest
-	(*PingResponse)(nil),           // 7: api.PingResponse
-	(*BatchRequest)(nil),           // 8: api.BatchRequest
-	(*BatchResponse)(nil),          // 9: api.BatchResponse
-	(*DeleteRequest)(nil),          // 10: api.DeleteRequest
-	(*DeleteResponse)(nil),         // 11: api.DeleteResponse
-	(*GetStatsRequest)(nil),        // 12: api.GetStatsRequest
-	(*GetStatsResponse)(nil),       // 13: api.GetStatsResponse
+	(*LongAndShortURL)(nil),        // 2: api.LongAndShortURL
+	(*GetAllByCookieRequest)(nil),  // 3: api.GetAllByCookieRequest
+	(*UserURL)(nil),                // 4: api.UserURL
+	(*GetAllByCookieResponse)(nil), // 5: api.GetAllByCookieResponse
+	(*CreateRequest)(nil),          // 6: api.CreateRequest
+	(*CreateResponse)(nil),         // 7: api.CreateResponse
+	(*PingRequest)(nil),            // 8: api.PingRequest
+	(*PingResponse)(nil),           // 9: api.PingResponse
+	(*BatchRequest)(nil),           // 10: api.BatchRequest
+	(*CharsAndShortURL)(nil),       // 11: api.CharsAndShortURL
+	(*BatchResponse)(nil),          // 12: api.BatchResponse
+	(*DeleteRequest)(nil),          // 13: api.DeleteRequest
+	(*DeleteResponse)(nil),         // 14: api.DeleteResponse
+	(*GetStatsRequest)(nil),        // 15: api.GetStatsRequest
+	(*GetStatsResponse)(nil),       // 16: api.GetStatsResponse
 }
 var file_api_proto_shortener_proto_depIdxs = []int32{
-	0,  // 0: api.Shortener.Get:input_type -> api.GetRequest
-	2,  // 1: api.Shortener.GetAll:input_type -> api.GetAllByCookieRequest
-	4,  // 2: api.Shortener.Create:input_type -> api.CreateRequest
-	6,  // 3: api.Shortener.Ping:input_type -> api.PingRequest
-	8,  // 4: api.Shortener.Batch:input_type -> api.BatchRequest
-	10, // 5: api.Shortener.Delete:input_type -> api.DeleteRequest
-	12, // 6: api.Shortener.GetStats:input_type -> api.GetStatsRequest
-	1,  // 7: api.Shortener.Get:output_type -> api.GetResponse
-	3,  // 8: api.Shortener.GetAll:output_type -> api.GetAllByCookieResponse
-	5,  // 9: api.Shortener.Create:output_type -> api.CreateResponse
-	7,  // 10: api.Shortener.Ping:output_type -> api.PingResponse
-	9,  // 11: api.Shortener.Batch:output_type -> api.BatchResponse
-	11, // 12: api.Shortener.Delete:output_type -> api.DeleteResponse
-	13, // 13: api.Shortener.GetStats:output_type -> api.GetStatsResponse
-	7,  // [7:14] is the sub-list for method output_type
-	0,  // [0:7] is the sub-list for method input_type
-	0,  // [0:0] is the sub-list for extension type_name
-	0,  // [0:0] is the sub-list for extension extendee
-	0,  // [0:0] is the sub-list for field type_name
+	4,  // 0: api.GetAllByCookieResponse.urls:type_name -> api.UserURL
+	2,  // 1: api.BatchRequest.urls:type_name -> api.LongAndShortURL
+	11, // 2: api.BatchResponse.urls:type_name -> api.CharsAndShortURL
+	0,  // 3: api.Shortener.Get:input_type -> api.GetRequest
+	3,  // 4: api.Shortener.GetAll:input_type -> api.GetAllByCookieRequest
+	6,  // 5: api.Shortener.Create:input_type -> api.CreateRequest
+	6,  // 6: api.Shortener.CreateApi:input_type -> api.CreateRequest
+	8,  // 7: api.Shortener.Ping:input_type -> api.PingRequest
+	10, // 8: api.Shortener.Batch:input_type -> api.BatchRequest
+	13, // 9: api.Shortener.Delete:input_type -> api.DeleteRequest
+	15, // 10: api.Shortener.GetStats:input_type -> api.GetStatsRequest
+	1,  // 11: api.Shortener.Get:output_type -> api.GetResponse
+	5,  // 12: api.Shortener.GetAll:output_type -> api.GetAllByCookieResponse
+	7,  // 13: api.Shortener.Create:output_type -> api.CreateResponse
+	7,  // 14: api.Shortener.CreateApi:output_type -> api.CreateResponse
+	9,  // 15: api.Shortener.Ping:output_type -> api.PingResponse
+	12, // 16: api.Shortener.Batch:output_type -> api.BatchResponse
+	14, // 17: api.Shortener.Delete:output_type -> api.DeleteResponse
+	16, // 18: api.Shortener.GetStats:output_type -> api.GetStatsResponse
+	11, // [11:19] is the sub-list for method output_type
+	3,  // [3:11] is the sub-list for method input_type
+	3,  // [3:3] is the sub-list for extension type_name
+	3,  // [3:3] is the sub-list for extension extendee
+	0,  // [0:3] is the sub-list for field type_name
 }
 
 func init() { file_api_proto_shortener_proto_init() }
@@ -789,7 +984,7 @@ func file_api_proto_shortener_proto_init() {
 			}
 		}
 		file_api_proto_shortener_proto_msgTypes[2].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*GetAllByCookieRequest); i {
+			switch v := v.(*LongAndShortURL); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -801,7 +996,7 @@ func file_api_proto_shortener_proto_init() {
 			}
 		}
 		file_api_proto_shortener_proto_msgTypes[3].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*GetAllByCookieResponse); i {
+			switch v := v.(*GetAllByCookieRequest); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -813,7 +1008,7 @@ func file_api_proto_shortener_proto_init() {
 			}
 		}
 		file_api_proto_shortener_proto_msgTypes[4].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*CreateRequest); i {
+			switch v := v.(*UserURL); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -825,7 +1020,7 @@ func file_api_proto_shortener_proto_init() {
 			}
 		}
 		file_api_proto_shortener_proto_msgTypes[5].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*CreateResponse); i {
+			switch v := v.(*GetAllByCookieResponse); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -837,7 +1032,7 @@ func file_api_proto_shortener_proto_init() {
 			}
 		}
 		file_api_proto_shortener_proto_msgTypes[6].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*PingRequest); i {
+			switch v := v.(*CreateRequest); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -849,7 +1044,7 @@ func file_api_proto_shortener_proto_init() {
 			}
 		}
 		file_api_proto_shortener_proto_msgTypes[7].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*PingResponse); i {
+			switch v := v.(*CreateResponse); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -861,7 +1056,7 @@ func file_api_proto_shortener_proto_init() {
 			}
 		}
 		file_api_proto_shortener_proto_msgTypes[8].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*BatchRequest); i {
+			switch v := v.(*PingRequest); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -873,7 +1068,7 @@ func file_api_proto_shortener_proto_init() {
 			}
 		}
 		file_api_proto_shortener_proto_msgTypes[9].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*BatchResponse); i {
+			switch v := v.(*PingResponse); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -885,7 +1080,7 @@ func file_api_proto_shortener_proto_init() {
 			}
 		}
 		file_api_proto_shortener_proto_msgTypes[10].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*DeleteRequest); i {
+			switch v := v.(*BatchRequest); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -897,7 +1092,7 @@ func file_api_proto_shortener_proto_init() {
 			}
 		}
 		file_api_proto_shortener_proto_msgTypes[11].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*DeleteResponse); i {
+			switch v := v.(*CharsAndShortURL); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -909,7 +1104,7 @@ func file_api_proto_shortener_proto_init() {
 			}
 		}
 		file_api_proto_shortener_proto_msgTypes[12].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*GetStatsRequest); i {
+			switch v := v.(*BatchResponse); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -921,6 +1116,42 @@ func file_api_proto_shortener_proto_init() {
 			}
 		}
 		file_api_proto_shortener_proto_msgTypes[13].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*DeleteRequest); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
+		file_api_proto_shortener_proto_msgTypes[14].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*DeleteResponse); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
+		file_api_proto_shortener_proto_msgTypes[15].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*GetStatsRequest); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
+		file_api_proto_shortener_proto_msgTypes[16].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*GetStatsResponse); i {
 			case 0:
 				return &v.state
@@ -939,7 +1170,7 @@ func file_api_proto_shortener_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: file_api_proto_shortener_proto_rawDesc,
 			NumEnums:      0,
-			NumMessages:   14,
+			NumMessages:   17,
 			NumExtensions: 0,
 			NumServices:   1,
 		},

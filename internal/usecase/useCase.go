@@ -2,13 +2,13 @@ package usecase
 
 import (
 	"context"
-	"encoding/json"
 	"errors"
 	"fmt"
 	"golang.org/x/sync/errgroup"
 	"log"
 	"url-shortener/internal/schema"
 	"url-shortener/internal/storage/db/service"
+	shortener "url-shortener/pkg/api"
 	shortenalgorithm "url-shortener/pkg/shortenAlgorithm"
 )
 
@@ -57,22 +57,17 @@ func (uc UseCase) CreateLink(ctx context.Context, longURL, cookie string, chars 
 }
 
 // GetAllLinksByCookie calls storage method GetAllLinksByCookie and execute json from the response.
-func (uc UseCase) GetAllLinksByCookie(ctx context.Context, cookie, baseURL string) (URLs string, err error) {
+func (uc UseCase) GetAllLinksByCookie(ctx context.Context, cookie, baseURL string) ([]*shortener.UserURL, error) {
 	if ctx.Err() != nil {
-		return "", ctx.Err()
+		return nil, ctx.Err()
 	}
 
 	links, err := uc.storage.GetAllLinksByCookie(ctx, cookie, baseURL)
 	if err != nil {
-		return "", err
+		return nil, fmt.Errorf("can't get links by cookie: %w", err)
 	}
 
-	b, err := json.MarshalIndent(links, "", "    ")
-	if err != nil {
-		return "", err
-	}
-
-	return string(b), nil
+	return links, nil
 }
 
 // Ping checks connection with db.
@@ -85,12 +80,12 @@ func (uc UseCase) Ping(ctx context.Context) error {
 }
 
 // Batch gets urls for process and processes every url in separate goroutines.
-func (uc UseCase) Batch(ctx context.Context, batchURLs []schema.BatchURL, cookie, baseURL string) ([]schema.ResponseBatchURL, error) {
+func (uc UseCase) Batch(ctx context.Context, batchURLs []*shortener.LongAndShortURL, cookie, baseURL string) ([]*shortener.CharsAndShortURL, error) {
 	if ctx.Err() != nil {
 		return nil, ctx.Err()
 	}
 
-	var respJSON = make([]schema.ResponseBatchURL, len(batchURLs))
+	var resp = make([]*shortener.CharsAndShortURL, len(batchURLs))
 
 	g, _ := errgroup.WithContext(ctx)
 	g.SetLimit(200)
@@ -99,12 +94,12 @@ func (uc UseCase) Batch(ctx context.Context, batchURLs []schema.BatchURL, cookie
 		pair := pair
 		i := i
 		g.Go(func() error {
-			short, err := uc.CreateLink(ctx, pair.Original, cookie, pair.Chars)
+			short, err := uc.CreateLink(ctx, pair.OriginalUrl, cookie, pair.CorrelationId)
 			if err != nil && !errors.Is(err, service.ErrExists) {
 				return err
 			}
 
-			respJSON[i] = schema.ResponseBatchURL{Chars: pair.Chars, Shorted: baseURL + short}
+			resp[i] = &shortener.CharsAndShortURL{CorrelationId: pair.CorrelationId, ShortUrl: baseURL + short}
 			return nil
 		})
 	}
@@ -113,7 +108,7 @@ func (uc UseCase) Batch(ctx context.Context, batchURLs []schema.BatchURL, cookie
 		return nil, fmt.Errorf("can't batch: %w", err)
 	}
 
-	return respJSON, nil
+	return resp, nil
 }
 
 // GetStats calls storage method GetUser.

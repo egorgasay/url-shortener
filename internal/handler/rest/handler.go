@@ -12,6 +12,7 @@ import (
 	"url-shortener/internal/storage"
 	"url-shortener/internal/storage/db/service"
 	"url-shortener/internal/usecase"
+	shortener "url-shortener/pkg/api"
 )
 
 // Handler struct that contains link to the logic layer and conf.
@@ -57,7 +58,7 @@ func (h Handler) GetAllLinksHandler(c *gin.Context) {
 		cookie = setCookies(c, h.conf.Key)
 	}
 
-	URLs, err := h.logic.GetAllLinksByCookie(c.Request.Context(), cookie, h.conf.BaseURL)
+	links, err := h.logic.GetAllLinksByCookie(c.Request.Context(), cookie, h.conf.BaseURL)
 	if err != nil {
 		log.Println(err)
 		c.AbortWithStatus(http.StatusBadRequest)
@@ -65,15 +66,21 @@ func (h Handler) GetAllLinksHandler(c *gin.Context) {
 		return
 	}
 
+	b, err := json.MarshalIndent(links, "", "    ")
+	if err != nil {
+		c.AbortWithStatus(http.StatusInternalServerError)
+		return
+	}
+
 	c.Header("Content-Type", "application/json")
 
-	if URLs == "null" {
+	if len(b) == 0 {
 		c.Status(http.StatusNoContent)
 	} else {
 		c.Status(http.StatusOK)
 	}
 
-	c.Writer.WriteString(URLs)
+	c.Writer.Write(b)
 }
 
 // CreateLinkHandler accepts original link in the request (as plain text) and
@@ -210,7 +217,7 @@ func (h Handler) BatchHandler(c *gin.Context) {
 		cookie = setCookies(c, h.conf.Key)
 	}
 
-	var batchURLs []schema.BatchURL
+	var batchURLs []*shortener.LongAndShortURL
 	err = c.BindJSON(&batchURLs)
 	if err != nil {
 		log.Println(err)

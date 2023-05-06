@@ -10,8 +10,8 @@ import (
 	"os"
 	"strings"
 	"sync"
-	"url-shortener/internal/schema"
 	"url-shortener/internal/storage"
+	shortener "url-shortener/pkg/api"
 )
 
 var (
@@ -162,7 +162,7 @@ func (fs *FileStorage) GetLongLink(ctx context.Context, shortURL string) (longUR
 }
 
 // GetAllLinksByCookie gets all links ([]schema.URL) by cookie.
-func (fs *FileStorage) GetAllLinksByCookie(ctx context.Context, cookie, baseURL string) ([]schema.URL, error) {
+func (fs *FileStorage) GetAllLinksByCookie(ctx context.Context, cookie, baseURL string) ([]*shortener.UserURL, error) {
 	if ctx.Err() != nil {
 		return nil, ctx.Err()
 	}
@@ -175,14 +175,14 @@ func (fs *FileStorage) GetAllLinksByCookie(ctx context.Context, cookie, baseURL 
 	defer fs.Close()
 
 	scanner := bufio.NewScanner(fs.File)
-	var link []schema.URL
+	var link = make([]*shortener.UserURL, 0)
 
 	for scanner.Scan() {
 		line := scanner.Text()
 		split := strings.Split(line, " - ")
 
 		if len(split) == 4 && split[3] == cookie && split[0] == "1" {
-			link = append(link, schema.URL{LongURL: split[2], ShortURL: baseURL + split[1]})
+			link = append(link, &shortener.UserURL{OriginalUrl: split[2], ShortUrl: baseURL + split[1]})
 		}
 	}
 

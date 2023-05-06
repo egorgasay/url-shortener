@@ -3,7 +3,7 @@ package storage
 import (
 	"context"
 	"errors"
-	"url-shortener/internal/schema"
+	shortener "url-shortener/pkg/api"
 )
 
 // IStorage interface for a storage.
@@ -11,7 +11,7 @@ type IStorage interface {
 	FindMaxID(ctx context.Context) (int, error)
 	AddLink(ctx context.Context, longURL, shortURL, cookie string) (string, error)
 	GetLongLink(ctx context.Context, shortURL string) (longURL string, err error)
-	GetAllLinksByCookie(ctx context.Context, cookie string, baseURL string) (URLs []schema.URL, err error)
+	GetAllLinksByCookie(ctx context.Context, cookie string, baseURL string) (URLs []*shortener.UserURL, err error)
 	Ping(ctx context.Context) error
 	MarkAsDeleted(shortURL, cookie string) error
 	Shutdown() error

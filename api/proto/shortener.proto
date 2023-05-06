@@ -1,6 +1,6 @@
 syntax = "proto3";
 
-option go_package = "grpchandler";
+option go_package = "./shortener";
 
 package api;
 
@@ -8,6 +8,7 @@ service Shortener {
   rpc Get(GetRequest) returns (GetResponse) {}
   rpc GetAll(GetAllByCookieRequest) returns (GetAllByCookieResponse) {}
   rpc Create(CreateRequest) returns (CreateResponse) {}
+  rpc CreateApi(CreateRequest) returns (CreateResponse) {}
   rpc Ping(PingRequest) returns (PingResponse) {}
   rpc Batch(BatchRequest) returns (BatchResponse) {}
   rpc Delete(DeleteRequest) returns (DeleteResponse) {}
@@ -22,10 +23,20 @@ message GetResponse {
   string original_url = 1;
 }
 
+message LongAndShortURL {
+  string correlation_id = 1;
+  string original_url = 2;
+}
+
 message GetAllByCookieRequest {}
 
+message UserURL {
+  string original_url = 1;
+  string short_url = 2;
+}
+
 message GetAllByCookieResponse {
-  repeated string urls = 1;
+  repeated UserURL urls = 1;
 }
 
 message CreateRequest {
@@ -41,15 +52,20 @@ message PingRequest {}
 message PingResponse {}
 
 message BatchRequest {
-  repeated string original_urls = 1;
+  repeated LongAndShortURL urls = 1;
+}
+
+message CharsAndShortURL {
+  string correlation_id = 1;
+  string short_url = 2;
 }
 
 message BatchResponse {
-  repeated string shortened_urls = 1;
+  repeated CharsAndShortURL urls = 1;
 }
 
 message DeleteRequest {
-  string url = 1;
+  repeated string shortened_urls = 1;
 }
 
 message DeleteResponse {}

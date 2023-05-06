@@ -4,8 +4,8 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
+	shortener "url-shortener/pkg/api"
 
-	"url-shortener/internal/schema"
 	"url-shortener/internal/storage"
 	"url-shortener/internal/storage/db/queries"
 )
@@ -76,7 +76,7 @@ func (db *DB) FindMaxID(ctx context.Context) (int, error) {
 }
 
 // GetAllLinksByCookie gets all links ([]schema.URL) by cookie.
-func (db *DB) GetAllLinksByCookie(ctx context.Context, cookie, baseURL string) ([]schema.URL, error) {
+func (db *DB) GetAllLinksByCookie(ctx context.Context, cookie, baseURL string) ([]*shortener.UserURL, error) {
 	if ctx.Err() != nil {
 		return nil, ctx.Err()
 	}
@@ -96,7 +96,7 @@ func (db *DB) GetAllLinksByCookie(ctx context.Context, cookie, baseURL string) (
 		return nil, fmt.Errorf("error getting links by cookie: %w", err)
 	}
 
-	var links []schema.URL
+	var links = make([]*shortener.UserURL, 0)
 
 	for stm.Next() {
 		short, long := "", ""
@@ -106,7 +106,7 @@ func (db *DB) GetAllLinksByCookie(ctx context.Context, cookie, baseURL string) (
 			return nil, fmt.Errorf("error getting links by cookie: %w", err)
 		}
 
-		links = append(links, schema.URL{LongURL: long, ShortURL: baseURL + short})
+		links = append(links, &shortener.UserURL{OriginalUrl: long, ShortUrl: baseURL + short})
 	}
 
 	return links, nil
