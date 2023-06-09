@@ -1,34 +1,52 @@
-# go-musthave-shortener-tpl
+# go-url-shortener [![autotests](https://github.com/egorgasay/url-shortener/actions/workflows/shortenertest.yml/badge.svg?branch=iter24)](https://github.com/egorgasay/url-shortener/actions/workflows/shortenertest.yml)
 
-Шаблон репозитория для практического трек "Веб-разработка на Go"
+### 🔍️ Purpose
 
-# Начало работы
+Server on Go (Go). Accepts a link to a web resource from the client and, using a text shortening algorithm, shortens it and gives it back.   
+The new short link will automatically redirect everyone clients to the original (longer) link.
 
-1. Склонируйте репозиторий в любую подходящую директорию на вашем компьютере
-2. В корне репозитория выполните команду `go mod init <name>` (где `<name>` - адрес вашего репозитория на Github без
-   префикса `https://`) для создания модуля
+### 🔴 Endpoints
 
-# Обновление шаблона
-
-Чтобы иметь возможность получать обновления автотестов и других частей шаблона выполните следующую команды:
-
+```http
+- Create link 
+GET /api/shorten or /:id
+- Get all links 
+GET /api/user/urls
+- Get one link 
+POST /
+- Ping 
+GET /ping
+- Get Stats 
+GET /api/internal/stats
+- Batch create 
+POST /api/shorten/batch
+- Delete links 
+DELETE /api/user/urls
 ```
-git remote add -m main template https://github.com/yandex-praktikum/go-musthave-shortener-tpl.git
+
+### ⚙️ Configuration
+
+#### 🔧 json
+```json
+{
+  "server_address": "localhost:8090",
+  "base_url": "http://localhost",
+  "enable_https": true,
+  "storage": "sqlite3",
+  "database_dsn" : "urls_db"
+}
 ```
-
-Для обновления кода автотестов выполните команду:
-
+#### 🚩 flags
 ```
-git fetch template && git checkout template/main .github
+grpc - ip for gRPC -grpc=host:port
+a - ip for REST -a=host
+b base url -b=URL
+f - path to the file to be used as a database -f=path
+stype - storage type (sqlite3, mysql, postgres) -s=storage
+d - connection string -d=connection_string
+vdb - virtual db name -vdb=qdfh12
+s - enable a HTTPS connection -s
+c - path to config -c=path/to/conf.json
+config - path to config -config=path/to/conf.json
+t - trusted subnet -t=192.168.0.0/24
 ```
-
-затем добавьте полученые изменения в свой репозиторий.
-
-# Запуск автотестов
-
-Для успешного запуска автотестов вам необходимо давать вашим веткам названия вида `iter<number>`, где `<number>` -
-порядковый номер итерации.
-
-Например в ветке с названием `iter4` запустятся автотесты для итераций с первой по четвертую.
-
-При мерже ветки с итерацией в основную ветку (`main`) будут запускаться все автотесты.
