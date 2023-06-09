@@ -4,8 +4,8 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
+	shortener "url-shortener/pkg/api"
 
-	"url-shortener/internal/schema"
 	"url-shortener/internal/storage"
 	"url-shortener/internal/storage/db/queries"
 )
@@ -16,8 +16,12 @@ type DB struct {
 }
 
 // Ping checks connection with the repository.
-func (db *DB) Ping() error {
-	if err := db.PingContext(context.Background()); err != nil {
+func (db *DB) Ping(ctx context.Context) error {
+	if ctx.Err() != nil {
+		return ctx.Err()
+	}
+
+	if err := db.PingContext(ctx); err != nil {
 		return fmt.Errorf("error pinging db: %w", err)
 	}
 
@@ -40,8 +44,7 @@ func (db *DB) MarkAsDeleted(shortURL, cookie string) error {
 		return fmt.Errorf("error preparing statement: %w", err)
 	}
 
-	_, err = stmt.Exec(
-		sql.Named("short", shortURL).Value,
+	_, err = stmt.Exec(sql.Named("short", shortURL).Value,
 		sql.Named("cookie", cookie).Value,
 	)
 
@@ -53,7 +56,11 @@ func (db *DB) MarkAsDeleted(shortURL, cookie string) error {
 }
 
 // FindMaxID gets len of the repository.
-func (db *DB) FindMaxID() (int, error) {
+func (db *DB) FindMaxID(ctx context.Context) (int, error) {
+	if ctx.Err() != nil {
+		return 0, ctx.Err()
+	}
+
 	var id int
 
 	stmt, err := queries.GetPreparedStatement(queries.FindMaxURL)
@@ -61,7 +68,7 @@ func (db *DB) FindMaxID() (int, error) {
 		return 0, fmt.Errorf("error preparing statement: %w", err)
 	}
 
-	if stmt.QueryRow().Scan(&id) != nil {
+	if stmt.QueryRowContext(ctx).Scan(&id) != nil {
 		return 0, fmt.Errorf("error finding max id: %w", err)
 	}
 
@@ -69,13 +76,17 @@ func (db *DB) FindMaxID() (int, error) {
 }
 
 // GetAllLinksByCookie gets all links ([]schema.URL) by cookie.
-func (db *DB) GetAllLinksByCookie(cookie, baseURL string) ([]schema.URL, error) {
+func (db *DB) GetAllLinksByCookie(ctx context.Context, cookie, baseURL string) ([]*shortener.UserURL, error) {
+	if ctx.Err() != nil {
+		return nil, ctx.Err()
+	}
+
 	stmt, err := queries.GetPreparedStatement(queries.GetAllLinksByCookie)
 	if err != nil {
 		return nil, nil
 	}
 
-	stm, err := stmt.Query(sql.Named("cookie", cookie).Value)
+	stm, err := stmt.QueryContext(ctx, sql.Named("cookie", cookie).Value)
 	if err != nil {
 		return nil, fmt.Errorf("error getting links by cookie: %w", err)
 	}
@@ -85,7 +96,7 @@ func (db *DB) GetAllLinksByCookie(cookie, baseURL string) ([]schema.URL, error) 
 		return nil, fmt.Errorf("error getting links by cookie: %w", err)
 	}
 
-	var links []schema.URL
+	var links = make([]*shortener.UserURL, 0)
 
 	for stm.Next() {
 		short, long := "", ""
@@ -95,21 +106,25 @@ func (db *DB) GetAllLinksByCookie(cookie, baseURL string) ([]schema.URL, error) 
 			return nil, fmt.Errorf("error getting links by cookie: %w", err)
 		}
 
-		links = append(links, schema.URL{LongURL: long, ShortURL: baseURL + short})
+		links = append(links, &shortener.UserURL{OriginalUrl: long, ShortUrl: baseURL + short})
 	}
 
 	return links, nil
 }
 
 // GetLongLink gets a long link from the repository.
-func (db *DB) GetLongLink(shortURL string) (longURL string, err error) {
+func (db *DB) GetLongLink(ctx context.Context, shortURL string) (longURL string, err error) {
+	if ctx.Err() != nil {
+		return "", ctx.Err()
+	}
+
 	stmt, err := queries.GetPreparedStatement(queries.GetLongLink)
 	if err != nil {
 		return "", fmt.Errorf("error preparing statement: %w", err)
 	}
 
 	var isDeleted = sql.NullBool{}
-	if err = stmt.QueryRow(sql.Named("short", shortURL).Value).Scan(&longURL, &isDeleted); err != nil {
+	if err = stmt.QueryRowContext(ctx, sql.Named("short", shortURL).Value).Scan(&longURL, &isDeleted); err != nil {
 		return "", fmt.Errorf("error getting long link: %w", err)
 	}
 
@@ -121,7 +136,11 @@ func (db *DB) GetLongLink(shortURL string) (longURL string, err error) {
 }
 
 // AddLink adds a link to the repository.
-func (db *DB) AddLink(longURL, shortURL, cookie string) (string, error) {
+func (db *DB) AddLink(ctx context.Context, longURL, shortURL, cookie string) (string, error) {
+	if ctx.Err() != nil {
+		return "", ctx.Err()
+	}
+
 	stmt, err := queries.GetPreparedStatement(queries.InsertURL)
 	if err != nil {
 		return "", fmt.Errorf("error preparing statement: %w", err)
@@ -138,4 +157,44 @@ func (db *DB) AddLink(longURL, shortURL, cookie string) (string, error) {
 	}
 
 	return shortURL, nil
+}
+
+// URLsCount gets count of URLs in the repository.
+func (db *DB) URLsCount(ctx context.Context) (int, error) {
+	if ctx.Err() != nil {
+		return 0, ctx.Err()
+	}
+
+	var count int
+
+	stmt, err := queries.GetPreparedStatement(queries.CountURLs)
+	if err != nil {
+		return 0, fmt.Errorf("error preparing statement: %w", err)
+	}
+
+	if err = stmt.QueryRow(ctx).Scan(&count); err != nil {
+		return 0, fmt.Errorf("error counting URLs: %w", err)
+	}
+
+	return count, nil
+}
+
+// UsersCount gets count of users in the repository.
+func (db *DB) UsersCount(ctx context.Context) (int, error) {
+	if ctx.Err() != nil {
+		return 0, ctx.Err()
+	}
+
+	var count int
+
+	stmt, err := queries.GetPreparedStatement(queries.CountUsers)
+	if err != nil {
+		return 0, fmt.Errorf("error preparing statement: %w", err)
+	}
+
+	if err = stmt.QueryRowContext(ctx).Scan(&count); err != nil {
+		return 0, fmt.Errorf("error counting users: %w", err)
+	}
+
+	return count, nil
 }

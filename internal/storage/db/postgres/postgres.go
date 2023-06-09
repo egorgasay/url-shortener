@@ -1,6 +1,7 @@
 package postgres
 
 import (
+	"context"
 	"database/sql"
 	"fmt"
 	"github.com/golang-migrate/migrate/v4"
@@ -53,7 +54,7 @@ func New(db *sql.DB, path string) service.IRealStorage {
 }
 
 // AddLink adds a link to the repository.
-func (p *Postgres) AddLink(longURL, shortURL, cookie string) (string, error) {
+func (p *Postgres) AddLink(ctx context.Context, longURL, shortURL, cookie string) (string, error) {
 	stmt, err := queries.GetPreparedStatement(queries.InsertURL)
 	if err != nil {
 		return "", err
@@ -96,7 +97,7 @@ func (p *Postgres) AddLink(longURL, shortURL, cookie string) (string, error) {
 
 	log.Println("cycle")
 
-	lastID, err := p.FindMaxID()
+	lastID, err := p.FindMaxID(ctx)
 	if err != nil {
 		return "", err
 	}
@@ -106,5 +107,5 @@ func (p *Postgres) AddLink(longURL, shortURL, cookie string) (string, error) {
 		return "", err
 	}
 
-	return p.AddLink(longURL, shortURL, cookie)
+	return p.AddLink(ctx, longURL, shortURL, cookie)
 }

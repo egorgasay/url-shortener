@@ -1,4 +1,4 @@
-package handler
+package rest
 
 import (
 	"fmt"
@@ -16,8 +16,8 @@ import (
 func Benchmark_CreateAndGetLink(b *testing.B) {
 	s := 1000
 	cfg := &repository.Config{
-		DriverName:     "test",
-		DataSourcePath: "testsqlite3",
+		DriverName:     "map",
+		DataSourcePath: "map",
 	}
 	repo, err := repository.New(cfg)
 	if err != nil {

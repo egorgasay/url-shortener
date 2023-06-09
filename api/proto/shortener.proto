@@ -1,0 +1,78 @@
+syntax = "proto3";
+
+option go_package = "./shortener";
+
+package api;
+
+service Shortener {
+  rpc Get(GetRequest) returns (GetResponse) {}
+  rpc GetAll(GetAllByCookieRequest) returns (GetAllByCookieResponse) {}
+  rpc Create(CreateRequest) returns (CreateResponse) {}
+  rpc CreateApi(CreateRequest) returns (CreateResponse) {}
+  rpc Ping(PingRequest) returns (PingResponse) {}
+  rpc Batch(BatchRequest) returns (BatchResponse) {}
+  rpc Delete(DeleteRequest) returns (DeleteResponse) {}
+  rpc GetStats(GetStatsRequest) returns (GetStatsResponse) {}
+}
+
+message GetRequest {
+  string shortened = 1;
+}
+
+message GetResponse {
+  string original_url = 1;
+}
+
+message LongAndShortURL {
+  string correlation_id = 1;
+  string original_url = 2;
+}
+
+message GetAllByCookieRequest {}
+
+message UserURL {
+  string original_url = 1;
+  string short_url = 2;
+}
+
+message GetAllByCookieResponse {
+  repeated UserURL urls = 1;
+}
+
+message CreateRequest {
+  string url = 1;
+}
+
+message CreateResponse {
+  string shortened = 1;
+}
+
+message PingRequest {}
+
+message PingResponse {}
+
+message BatchRequest {
+  repeated LongAndShortURL urls = 1;
+}
+
+message CharsAndShortURL {
+  string correlation_id = 1;
+  string short_url = 2;
+}
+
+message BatchResponse {
+  repeated CharsAndShortURL urls = 1;
+}
+
+message DeleteRequest {
+  repeated string shortened_urls = 1;
+}
+
+message DeleteResponse {}
+
+message GetStatsRequest {}
+
+message GetStatsResponse {
+  int32 urls = 1;
+  int32 users = 2;
+}

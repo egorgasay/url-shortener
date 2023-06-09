@@ -1,6 +1,8 @@
 package usecase
 
-import "url-shortener/internal/storage"
+import (
+	"url-shortener/internal/storage"
+)
 
 // UseCase logic layer main struct.
 type UseCase struct {

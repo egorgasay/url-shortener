@@ -1,6 +1,7 @@
 package mysql
 
 import (
+	"context"
 	"database/sql"
 	"github.com/golang-migrate/migrate/v4"
 	"github.com/golang-migrate/migrate/v4/database/mysql"
@@ -51,7 +52,7 @@ func New(db *sql.DB, path string) service.IRealStorage {
 }
 
 // FindMaxID gets len of the repository.
-func (m *MySQL) FindMaxID() (int, error) {
+func (m *MySQL) FindMaxID(ctx context.Context) (int, error) {
 	var id sql.NullInt32
 
 	stmt, err := queries.GetPreparedStatement(queries.FindMaxURL)
@@ -59,7 +60,7 @@ func (m *MySQL) FindMaxID() (int, error) {
 		return 0, nil
 	}
 
-	stm := stmt.QueryRow()
+	stm := stmt.QueryRowContext(ctx)
 	err = stm.Scan(&id)
 
 	return int(id.Int32), err

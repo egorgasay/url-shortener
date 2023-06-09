@@ -10,19 +10,23 @@ import (
 	"fmt"
 	"github.com/gin-contrib/gzip"
 	"github.com/gin-gonic/gin"
+	"google.golang.org/grpc"
 	"log"
 	"math/big"
+	"net"
 	"net/http"
 	"os"
 	"os/signal"
 	"syscall"
 	"time"
 	"url-shortener/config"
-	handlers "url-shortener/internal/handler"
+	grpchandler "url-shortener/internal/handler/grpc"
+	resthandler "url-shortener/internal/handler/rest"
 	"url-shortener/internal/repository"
 	"url-shortener/internal/routes"
 	"url-shortener/internal/storage/db/queries"
 	"url-shortener/internal/usecase"
+	shortener "url-shortener/pkg/api"
 )
 
 var (
@@ -48,12 +52,32 @@ func main() {
 
 	logic := usecase.New(storage)
 	router := gin.Default()
-	h := handlers.NewHandler(cfg, logic)
+	h := resthandler.NewHandler(cfg, logic)
 
 	public := router.Group("/")
 	routes.PublicRoutes(public, h)
 
 	router.Use(gzip.Gzip(gzip.BestSpeed))
+
+	if cfg.GRPC != "" {
+		go func() {
+			log.Println("Server is running on grpc://" + cfg.GRPC)
+			grpcServer := grpc.NewServer()
+			ghandler := grpchandler.NewHandler(cfg, logic)
+
+			lis, err := net.Listen("tcp", cfg.Host)
+			if err != nil {
+				log.Fatalf("failed to listen: %v", err)
+			}
+			shortener.RegisterShortenerServer(grpcServer, ghandler)
+
+			err = grpcServer.Serve(lis)
+			if err != nil {
+				log.Fatalf("grpcServer Serve: %v", err)
+			}
+		}()
+	}
+
 	go func() {
 		if cfg.HTTPS {
 			log.Println("Server is running on https://" + cfg.Host)
@@ -102,7 +126,7 @@ func main() {
 				log.Fatalf("Failed to write file: %s", err.Error())
 			}
 
-			caFile.Close()
+			defer caFile.Close()
 
 			caFile, err = os.Create("ca.key")
 			if err != nil {
@@ -114,7 +138,7 @@ func main() {
 				log.Fatalf("Failed to write file: %s", err.Error())
 			}
 
-			caFile.Close()
+			defer caFile.Close()
 
 			http.ListenAndServeTLS(cfg.Host, "ca.crt", "ca.key", router)
 		} else {

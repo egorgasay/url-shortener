@@ -3,14 +3,15 @@ package filestorage
 import (
 	"bufio"
 	"bytes"
+	"context"
 	"errors"
 	"fmt"
 	"io"
 	"os"
 	"strings"
 	"sync"
-	"url-shortener/internal/schema"
 	"url-shortener/internal/storage"
+	shortener "url-shortener/pkg/api"
 )
 
 var (
@@ -49,7 +50,7 @@ func (fs *FileStorage) Open() error {
 	fs.Mu.Lock()
 	file, err := os.OpenFile(fs.Path, os.O_RDWR|os.O_CREATE|os.O_APPEND, 0777)
 	if err != nil {
-		return err
+		return fmt.Errorf("open file error: %w", err)
 	}
 
 	fs.File = file
@@ -75,7 +76,11 @@ func (fs *FileStorage) Close() error {
 }
 
 // AddLink adds a link to the file.
-func (fs *FileStorage) AddLink(longURL, shortURL, cookie string) (string, error) {
+func (fs *FileStorage) AddLink(ctx context.Context, longURL, shortURL, cookie string) (string, error) {
+	if ctx.Err() != nil {
+		return "", ctx.Err()
+	}
+
 	err := fs.Open()
 	if err != nil {
 		return "", err
@@ -99,7 +104,11 @@ func (fs *FileStorage) AddLink(longURL, shortURL, cookie string) (string, error)
 }
 
 // FindMaxID gets len of the file.
-func (fs *FileStorage) FindMaxID() (int, error) {
+func (fs *FileStorage) FindMaxID(ctx context.Context) (int, error) {
+	if ctx.Err() != nil {
+		return 0, ctx.Err()
+	}
+
 	err := fs.Open()
 	if err != nil {
 		return 0, err
@@ -126,7 +135,11 @@ func (fs *FileStorage) FindMaxID() (int, error) {
 }
 
 // GetLongLink gets a long link from the file.
-func (fs *FileStorage) GetLongLink(shortURL string) (longURL string, err error) {
+func (fs *FileStorage) GetLongLink(ctx context.Context, shortURL string) (longURL string, err error) {
+	if ctx.Err() != nil {
+		return "", ctx.Err()
+	}
+
 	err = fs.Open()
 	if err != nil {
 		return "", err
@@ -149,7 +162,11 @@ func (fs *FileStorage) GetLongLink(shortURL string) (longURL string, err error) 
 }
 
 // GetAllLinksByCookie gets all links ([]schema.URL) by cookie.
-func (fs *FileStorage) GetAllLinksByCookie(cookie, baseURL string) ([]schema.URL, error) {
+func (fs *FileStorage) GetAllLinksByCookie(ctx context.Context, cookie, baseURL string) ([]*shortener.UserURL, error) {
+	if ctx.Err() != nil {
+		return nil, ctx.Err()
+	}
+
 	err := fs.Open()
 	if err != nil {
 		return nil, err
@@ -158,14 +175,14 @@ func (fs *FileStorage) GetAllLinksByCookie(cookie, baseURL string) ([]schema.URL
 	defer fs.Close()
 
 	scanner := bufio.NewScanner(fs.File)
-	var link []schema.URL
+	var link = make([]*shortener.UserURL, 0)
 
 	for scanner.Scan() {
 		line := scanner.Text()
 		split := strings.Split(line, " - ")
 
 		if len(split) == 4 && split[3] == cookie && split[0] == "1" {
-			link = append(link, schema.URL{LongURL: split[2], ShortURL: baseURL + split[1]})
+			link = append(link, &shortener.UserURL{OriginalUrl: split[2], ShortUrl: baseURL + split[1]})
 		}
 	}
 
@@ -173,7 +190,11 @@ func (fs *FileStorage) GetAllLinksByCookie(cookie, baseURL string) ([]schema.URL
 }
 
 // Ping check for the presence of a file.
-func (fs *FileStorage) Ping() error {
+func (fs *FileStorage) Ping(ctx context.Context) error {
+	if ctx.Err() != nil {
+		return ctx.Err()
+	}
+
 	err := fs.Open()
 	if err != nil {
 		return err
@@ -220,4 +241,48 @@ func (fs *FileStorage) Shutdown() error {
 	}
 
 	return nil
+}
+
+// URLsCount returns the number of URLs in the file.
+func (fs *FileStorage) URLsCount(ctx context.Context) (int, error) {
+	if ctx.Err() != nil {
+		return 0, ctx.Err()
+	}
+
+	err := fs.Open()
+	if err != nil {
+		return 0, err
+	}
+	defer fs.Close()
+	scanner := bufio.NewScanner(fs.File)
+	var count int
+	for ; scanner.Scan(); count++ {
+	}
+	return count, nil
+}
+
+// UsersCount returns the number of users in the file.
+func (fs *FileStorage) UsersCount(ctx context.Context) (int, error) {
+	if ctx.Err() != nil {
+		return 0, ctx.Err()
+	}
+
+	err := fs.Open()
+	if err != nil {
+		return 0, err
+	}
+
+	defer fs.Close()
+
+	scanner := bufio.NewScanner(fs.File)
+	var users = make(map[string]struct{}, 100)
+	for scanner.Scan() {
+		line := scanner.Text()
+		split := strings.Split(line, " - ")
+		if len(split) > 3 {
+			users[split[3]] = struct{}{}
+		}
+	}
+
+	return len(users), nil
 }
